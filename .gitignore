@@ -36,6 +36,9 @@ migrate_working_dir/
 # Symbolication related
 app.*.symbols
 
+# DevTools settings
+devtools_options.yaml
+
 # Obfuscation related
 app.*.map.json
 
