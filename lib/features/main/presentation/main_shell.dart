@@ -58,9 +58,14 @@ class _MainShellState extends State<MainShell> {
             ),
             SafeArea(
               bottom: false,
-              child: IndexedStack(
-                index: _tab.index,
-                children: _screens,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                switchInCurve: Curves.easeOut,
+                switchOutCurve: Curves.easeIn,
+                child: KeyedSubtree(
+                  key: ValueKey(_tab),
+                  child: _screens[_tab.index],
+                ),
               ),
             ),
           ],
