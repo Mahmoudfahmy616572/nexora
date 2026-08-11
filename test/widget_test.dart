@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:nexora/app.dart';
+import 'package:nexora/core/router/app_router.dart';
 import 'package:nexora/features/main/presentation/analyze_screen.dart';
 import 'package:nexora/features/main/presentation/dna_screen.dart';
 import 'package:nexora/features/main/presentation/home_screen.dart';
@@ -25,11 +26,16 @@ void main() {
     }
   });
 
-  Future<void> pumpAt(WidgetTester tester, Size size) async {
+  Future<void> pumpAt(WidgetTester tester, Size size, {String path = Routes.main}) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
+    appRouter.go(Routes.main);
     await tester.pumpWidget(const NexoraApp());
+    if (path != Routes.main) {
+      appRouter.go(path);
+      await tester.pumpAndSettle();
+    }
   }
 
   Finder inScreen<T>(String text) => find.descendant(
@@ -106,6 +112,52 @@ void main() {
     await pumpAt(tester, const Size(320, 700));
 
     expect(inScreen<HomeScreen>('Ahmed Al-Rashidi'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Onboarding flows through all three slides', (tester) async {
+    await pumpAt(tester, const Size(390, 844), path: Routes.onboarding);
+
+    expect(find.text('01 · ANALYZE'), findsOneWidget);
+    expect(find.text('SKIP'), findsOneWidget);
+
+    await tester.tap(find.text('Next'));
+    await tester.pumpAndSettle();
+    expect(find.text('02 · BUILD'), findsOneWidget);
+
+    await tester.tap(find.text('Next'));
+    await tester.pumpAndSettle();
+    expect(find.text('03 · TRACK'), findsOneWidget);
+    expect(find.text('Create my career DNA'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Sign in screen renders and toggles to create account', (tester) async {
+    await pumpAt(tester, const Size(390, 844), path: Routes.login);
+
+    expect(find.text('Welcome back'), findsOneWidget);
+    expect(find.text('EMAIL'), findsOneWidget);
+    expect(find.text('PASSWORD'), findsOneWidget);
+    expect(find.text('FULL NAME'), findsNothing);
+
+    await tester.tap(find.text('Create account'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Create your account'), findsOneWidget);
+    expect(find.text('FULL NAME'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Pre-auth screens render on narrow device without overflow', (tester) async {
+    await pumpAt(tester, const Size(320, 700), path: Routes.onboarding);
+
+    expect(find.text('01 · ANALYZE'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    appRouter.go(Routes.login);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Welcome back'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

@@ -1,8 +1,9 @@
 import 'package:go_router/go_router.dart';
 
+import '../../features/auth/presentation/sign_in_screen.dart';
 import '../../features/auth/presentation/welcome_screen.dart';
-import '../../features/common/presentation/pending_screen.dart';
 import '../../features/main/presentation/main_shell.dart';
+import '../../features/onboarding/presentation/onboarding_screen.dart';
 
 /// Route names for the entire application.
 abstract final class Routes {
@@ -19,11 +20,11 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: Routes.welcome, builder: (context, state) => const WelcomeScreen()),
     GoRoute(
       path: Routes.onboarding,
-      builder: (context, state) => const PendingScreen(title: 'Onboarding'),
+      builder: (context, state) => const OnboardingScreen(),
     ),
     GoRoute(
       path: Routes.login,
-      builder: (context, state) => const PendingScreen(title: 'Sign in'),
+      builder: (context, state) => const SignInScreen(),
     ),
   ],
 );
