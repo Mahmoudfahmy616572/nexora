@@ -4,11 +4,14 @@ import 'app_colors.dart';
 
 /// Nexora typography — extracted from the approved UI/UX source.
 ///
-/// Base family is Inter (bundled as a variable font). Sizes follow the
-/// design spec exactly; screen code may scale the display size via
-/// [AppTextStyles.displaySize].
+/// The design uses three families:
+/// * [displayFont] — Bricolage Grotesque (headings / display)
+/// * [fontFamily] — Inter (body)
+/// * [monoFont] — DM Mono (numbers, timestamps, uppercase labels)
 abstract final class AppTextStyles {
   static const String fontFamily = 'Inter';
+  static const String displayFont = 'Bricolage Grotesque';
+  static const String monoFont = 'DM Mono';
 
   // ---------------------------------------------------------------------------
   // Brand
@@ -35,13 +38,27 @@ abstract final class AppTextStyles {
   );
 
   // ---------------------------------------------------------------------------
-  // Hero
+  // Display (Bricolage Grotesque)
   // ---------------------------------------------------------------------------
-  static const TextStyle eyebrow = TextStyle(
-    fontSize: 13,
+  static const TextStyle screenTitle = TextStyle(
+    fontSize: 22,
+    fontWeight: FontWeight.w800,
+    color: AppColors.text,
+    fontFamily: displayFont,
+  );
+
+  static const TextStyle cardTitle = TextStyle(
+    fontSize: 14,
     fontWeight: FontWeight.w700,
-    letterSpacing: 2,
-    color: AppColors.eyebrow,
+    color: AppColors.text,
+    fontFamily: displayFont,
+  );
+
+  static const TextStyle cardTitleSmall = TextStyle(
+    fontSize: 13,
+    fontWeight: FontWeight.w600,
+    color: AppColors.text,
+    fontFamily: displayFont,
   );
 
   static TextStyle display(double size, {double letterSpacing = -3}) => TextStyle(
@@ -50,8 +67,12 @@ abstract final class AppTextStyles {
         letterSpacing: letterSpacing,
         height: 0.99,
         color: AppColors.text,
+        fontFamily: displayFont,
       );
 
+  // ---------------------------------------------------------------------------
+  // Body
+  // ---------------------------------------------------------------------------
   static const TextStyle description = TextStyle(
     fontSize: 18,
     height: 1.65,
@@ -64,9 +85,37 @@ abstract final class AppTextStyles {
     color: AppColors.description,
   );
 
+  static const TextStyle body = TextStyle(
+    fontSize: 13,
+    fontWeight: FontWeight.w500,
+    color: AppColors.text,
+  );
+
+  static const TextStyle bodySub = TextStyle(
+    fontSize: 12,
+    color: AppColors.textSub,
+  );
+
+  static const TextStyle bodySmall = TextStyle(
+    fontSize: 11,
+    color: AppColors.textSub,
+  );
+
+  static const TextStyle bodyMuted = TextStyle(
+    fontSize: 10,
+    color: AppColors.textMuted,
+  );
+
   // ---------------------------------------------------------------------------
-  // Trust row
+  // Hero (legacy welcome screen)
   // ---------------------------------------------------------------------------
+  static const TextStyle eyebrow = TextStyle(
+    fontSize: 13,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 2,
+    color: AppColors.eyebrow,
+  );
+
   static const TextStyle trustTitle = TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.w700,
@@ -76,12 +125,9 @@ abstract final class AppTextStyles {
   static const TextStyle trustSubtitle = TextStyle(
     fontSize: 9,
     height: 1.45,
-    color: Color(0xFF7F8AA3),
+    color: AppColors.textSub,
   );
 
-  // ---------------------------------------------------------------------------
-  // Feature tiles
-  // ---------------------------------------------------------------------------
   static const TextStyle featureTitle = TextStyle(
     fontSize: 13,
     fontWeight: FontWeight.w700,
@@ -91,7 +137,7 @@ abstract final class AppTextStyles {
   static const TextStyle featureSubtitle = TextStyle(
     fontSize: 10,
     height: 1.45,
-    color: Color(0xFF8C96AA),
+    color: AppColors.textSub,
   );
 
   // ---------------------------------------------------------------------------
@@ -105,11 +151,11 @@ abstract final class AppTextStyles {
 
   static const TextStyle secondaryButton = TextStyle(
     fontSize: 14,
-    color: Color(0xFFE4E7EF),
+    color: AppColors.textSub,
   );
 
   // ---------------------------------------------------------------------------
-  // DNA visualization
+  // DNA visualization (legacy welcome screen)
   // ---------------------------------------------------------------------------
   static const TextStyle dnaLabelTitle = TextStyle(
     fontSize: 15,
@@ -119,7 +165,7 @@ abstract final class AppTextStyles {
 
   static const TextStyle dnaLabelSubtitle = TextStyle(
     fontSize: 10,
-    color: Color(0xFF8993A9),
+    color: AppColors.textSub,
   );
 
   static const TextStyle dnaNode = TextStyle(
@@ -128,16 +174,40 @@ abstract final class AppTextStyles {
   );
 
   // ---------------------------------------------------------------------------
-  // Micro / notes
+  // Micro / mono (DM Mono)
   // ---------------------------------------------------------------------------
   static const TextStyle privacyNote = TextStyle(
     fontSize: 10,
-    color: Color(0xFF778198),
+    color: AppColors.textMuted,
   );
 
   static const TextStyle privacyNoteStrong = TextStyle(
     fontSize: 10,
     fontWeight: FontWeight.w600,
-    color: Color(0xFF9E75E7),
+    color: AppColors.teal,
+  );
+
+  /// Uppercase mono section label (design: 10px, 0.1em tracking).
+  static const TextStyle sectionLabel = TextStyle(
+    fontSize: 10,
+    color: AppColors.textMuted,
+    fontFamily: monoFont,
+    letterSpacing: 1,
+    fontWeight: FontWeight.w400,
+  );
+
+  /// Big mono metric value (e.g. DNA score, ATS score).
+  static const TextStyle metric = TextStyle(
+    fontSize: 23,
+    fontWeight: FontWeight.w800,
+    color: AppColors.teal,
+    fontFamily: monoFont,
+  );
+
+  /// Small mono timestamp / meta.
+  static const TextStyle mono = TextStyle(
+    fontSize: 10,
+    color: AppColors.textMuted,
+    fontFamily: monoFont,
   );
 }

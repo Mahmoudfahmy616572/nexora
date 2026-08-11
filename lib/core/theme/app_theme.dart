@@ -9,10 +9,11 @@ abstract final class AppTheme {
 
   static ThemeData _buildDark() {
     final colorScheme = const ColorScheme.dark(
-      primary: AppColors.purple,
-      secondary: AppColors.blue,
-      tertiary: AppColors.cyan,
-      surface: AppColors.backgroundSoft,
+      primary: AppColors.teal,
+      onPrimary: AppColors.background,
+      secondary: AppColors.purple,
+      tertiary: AppColors.green,
+      surface: AppColors.card,
       onSurface: AppColors.text,
     );
 

@@ -1,6 +1,7 @@
 import 'dart:ui';
 
-/// Nexora design tokens — extracted from the approved UI/UX source.
+/// Nexora design tokens — extracted from the approved UI/UX source
+/// (Figma "Career DNA" app design).
 ///
 /// These are the ONLY colors the app uses. Do not hard-code raw color
 /// values in widgets; always reference a token here.
@@ -8,87 +9,121 @@ abstract final class AppColors {
   // ---------------------------------------------------------------------------
   // Surfaces
   // ---------------------------------------------------------------------------
-  static const Color background = Color(0xFF020617);
-  static const Color backgroundGradientMid = Color(0xFF030719);
-  static const Color backgroundSoft = Color(0xFF070B20);
+  /// App background (#080C1F).
+  static const Color background = Color(0xFF080C1F);
 
-  /// Surface used by glass panels (feature panel, dna label, topbar).
-  static const Color surfaceGlass = Color(0x0F0F172A); // rgba(15,23,42,0.48)
+  /// Ambient app-shell background gradient (lighter navy).
+  static const Color backgroundGradientMid = Color(0xFF060919);
+
+  /// Card surface (#0F1430).
+  static const Color card = Color(0xFF0F1430);
+
+  /// Elevated card / input surface (#141A38).
+  static const Color cardHi = Color(0xFF141A38);
+
+  /// Glass surface used by pills / buttons.
+  static const Color surfaceGlass = Color(0xFF141A38);
 
   // ---------------------------------------------------------------------------
   // Brand accents
   // ---------------------------------------------------------------------------
-  static const Color purple = Color(0xFFA855F7);
-  static const Color purpleLight = Color(0xFFC084FC);
-  static const Color violet = Color(0xFF7C3AED);
+  /// Primary / success (teal #00D4AA).
+  static const Color teal = Color(0xFF00D4AA);
 
-  static const Color blue = Color(0xFF2563EB);
-  static const Color blueLight = Color(0xFF60A5FA);
+  /// Accent purple (#8B7EFF).
+  static const Color purple = Color(0xFF8B7EFF);
 
-  static const Color cyan = Color(0xFF22D3EE);
+  /// Amber / warning (#F59E0B).
+  static const Color amber = Color(0xFFF59E0B);
+
+  /// Red / destructive (#FF6B6B).
+  static const Color red = Color(0xFFFF6B6B);
+
+  /// Green / positive (#34D399).
+  static const Color green = Color(0xFF34D399);
+
+  // Backwards-compatible aliases used by pre-design widgets.
+  static const Color blue = teal;
+  static const Color cyan = green;
+  static const Color purpleLight = purple;
+  static const Color violet = purple;
+  static const Color blueLight = teal;
 
   // ---------------------------------------------------------------------------
   // Text
   // ---------------------------------------------------------------------------
   static const Color white = Color(0xFFFFFFFF);
-  static const Color text = Color(0xFFF8FAFC);
-  static const Color muted = Color(0xFFA7AFC4);
+  static const Color text = Color(0xFFE8EEFF);
 
-  static const Color eyebrow = Color(0xFFA970FF);
-  static const Color brandSubtitle = Color(0xFF9F67FF);
-  static const Color description = Color(0xFFAEB7CB);
+  /// Secondary text rgba(232,238,255,0.52).
+  static const Color textSub = Color(0x85E8EEFF);
+
+  /// Muted text rgba(232,238,255,0.27).
+  static const Color textMuted = Color(0x45E8EEFF);
+
+  static const Color muted = textSub;
+  static const Color eyebrow = textMuted;
+  static const Color brandSubtitle = teal;
+  static const Color description = textSub;
 
   // ---------------------------------------------------------------------------
   // Icon accents
   // ---------------------------------------------------------------------------
-  static const Color iconPurple = Color(0xFFBD76FF);
-  static const Color iconBlue = Color(0xFF5C8FFF);
-  static const Color iconCyan = Color(0xFF28D9E8);
+  static const Color iconPurple = purple;
+  static const Color iconBlue = teal;
+  static const Color iconCyan = green;
 
   // ---------------------------------------------------------------------------
   // Borders
   // ---------------------------------------------------------------------------
-  static const Color border = Color(0x2E94A0B8); // rgba(148,163,184,0.18)
-  static const Color borderViolet = Color(0x738B5CF6); // violet @ 0.45
+  /// rgba(255,255,255,0.07).
+  static const Color border = Color(0x12FFFFFF);
+
+  /// rgba(255,255,255,0.13).
+  static const Color borderMed = Color(0x21FFFFFF);
+
+  static const Color borderViolet = purpleBdr;
+
+  // ---------------------------------------------------------------------------
+  // Tinted backgrounds / borders (10% fill, 22% stroke)
+  // ---------------------------------------------------------------------------
+  static const Color tealBg = Color(0x1A00D4AA);
+  static const Color tealBdr = Color(0x3800D4AA);
+  static const Color purpleBg = Color(0x1A8B7EFF);
+  static const Color purpleBdr = Color(0x388B7EFF);
+  static const Color amberBg = Color(0x1AF59E0B);
+  static const Color amberBdr = Color(0x38F59E0B);
+  static const Color redBg = Color(0x1AFF6B6B);
+  static const Color redBdr = Color(0x38FF6B6B);
+  static const Color greenBg = Color(0x1A34D399);
+  static const Color greenBdr = Color(0x3834D399);
 
   // ---------------------------------------------------------------------------
   // Gradients
   // ---------------------------------------------------------------------------
-  static const List<Color> brandMarkLeft = [purpleLight, violet];
-  static const List<Color> brandMarkRight = [blueLight, blue];
+  static const List<Color> brandMarkLeft = [teal, teal];
+  static const List<Color> brandMarkRight = [purple, purple];
 
-  static const List<Color> headlineGradient = [
-    Color(0xFFB45CFF),
-    Color(0xFF8056FF),
-    Color(0xFF567CFF),
-  ];
+  static const List<Color> headlineGradient = [teal, purple];
 
-  static const List<Color> primaryButtonGradient = [
-    purple,
-    violet,
-    blue,
-  ];
+  static const List<Color> primaryButtonGradient = [teal, teal];
 
-  static const List<Color> strandLeftGradient = [
-    violet,
-    purpleLight,
-    blue,
-  ];
+  static const List<Color> strandLeftGradient = [teal, purple];
+  static const List<Color> strandRightGradient = [purple, teal];
+  static const List<Color> rungGradient = [teal, purple];
 
-  static const List<Color> strandRightGradient = [
-    blue,
-    blueLight,
-    purple,
-  ];
-
-  static const List<Color> rungGradient = [purple, blueLight];
+  /// Signature teal→purple gradient used for avatars, fills, and accents.
+  static const List<Color> signatureGradient = [teal, purple];
 
   // ---------------------------------------------------------------------------
   // Glows / shadows
   // ---------------------------------------------------------------------------
-  static const Color dnaLabelShadow = Color(0x387C3AED); // violet @ 0.22
-  static const Color primaryShadow = Color(0x477C3AED); // violet @ 0.28
-  static const Color primaryShadowHover = Color(0x667C3AED); // violet @ 0.40
-  static const Color panelShadow = Color(0x40000000); // black @ 0.25
-  static const Color platformShadow = Color(0x407C3AED); // violet @ 0.25
+  static const Color dnaLabelShadow = tealBg;
+  static const Color primaryShadow = tealBg;
+  static const Color primaryShadowHover = Color(0x6600D4AA);
+  static const Color panelShadow = Color(0x40000000);
+  static const Color platformShadow = purpleBg;
+
+  /// Raised FAB shadow (design: 0 4px 20px rgba(0,212,170,0.45)).
+  static const Color fabShadow = Color(0x7300D4AA);
 }
