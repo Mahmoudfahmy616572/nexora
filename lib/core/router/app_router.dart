@@ -16,7 +16,7 @@ abstract final class Routes {
 }
 
 final GoRouter appRouter = GoRouter(
-  initialLocation: Routes.main,
+  initialLocation: Routes.welcome,
   routes: [
     GoRoute(path: Routes.main, builder: (context, state) => const MainShell()),
     GoRoute(path: Routes.welcome, builder: (context, state) => const WelcomeScreen()),
