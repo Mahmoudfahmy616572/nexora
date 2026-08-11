@@ -153,7 +153,8 @@ class _SignInScreenState extends State<SignInScreen> {
                     const SizedBox(height: 22),
                     NexoraPrimaryButton(
                       label: signIn ? 'Sign in' : 'Create account',
-                      onPressed: () => context.go(Routes.main),
+                      onPressed: () =>
+                          context.go(signIn ? Routes.main : Routes.verify),
                       compact: true,
                     ),
                     const SizedBox(height: 10),

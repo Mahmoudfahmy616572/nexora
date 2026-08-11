@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:nexora/app.dart';
 import 'package:nexora/core/router/app_router.dart';
+import 'package:nexora/core/widgets/nexora_buttons.dart';
 import 'package:nexora/features/main/presentation/analyze_screen.dart';
 import 'package:nexora/features/main/presentation/dna_screen.dart';
 import 'package:nexora/features/main/presentation/home_screen.dart';
@@ -145,6 +146,32 @@ void main() {
 
     expect(find.text('Create your account'), findsOneWidget);
     expect(find.text('FULL NAME'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(NexoraPrimaryButton, 'Create account'));
+    await tester.pumpAndSettle();
+    expect(find.text('Verify your email'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Verify email accepts OTP and completes verification', (tester) async {
+    await pumpAt(tester, const Size(390, 844), path: Routes.verify);
+
+    expect(find.text('Verify your email'), findsOneWidget);
+    expect(find.textContaining('Resend in 0:30'), findsOneWidget);
+    expect(find.byType(TextField), findsNWidgets(6));
+
+    for (var i = 0; i < 6; i++) {
+      await tester.enterText(find.byType(TextField).at(i), '${i + 1}');
+    }
+    await tester.pump();
+
+    await tester.tap(find.text('Verify'));
+    await tester.pump();
+    expect(find.text('Email verified'), findsOneWidget);
+
+    await tester.pump(const Duration(milliseconds: 1700));
+    await tester.pumpAndSettle();
+    expect(inScreen<HomeScreen>('Ahmed Al-Rashidi'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -158,6 +185,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Welcome back'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    appRouter.go(Routes.verify);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Verify your email'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
