@@ -85,7 +85,7 @@ class RingScore extends StatelessWidget {
         Text(
           caption,
           style: const TextStyle(
-            fontSize: 8,
+            fontSize: 10,
             color: AppColors.textMuted,
             fontFamily: AppTextStyles.monoFont,
             letterSpacing: 0.8,

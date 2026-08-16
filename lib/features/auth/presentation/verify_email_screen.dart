@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/widgets/ambient_background.dart';
 import '../../../core/widgets/brand_lockup.dart';
 import '../../../core/widgets/nexora_buttons.dart';
@@ -114,6 +115,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
   }
 
   Widget _buildForm(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(22, 16, 22, 24),
@@ -150,13 +152,13 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
               ),
               const SizedBox(height: 20),
               Text(
-                'Verify your email',
+                l10n.verifyEmailTitle,
                 style: AppTextStyles.display(30),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 10),
               Text(
-                'We sent a 6-digit code to\n${widget.email}',
+                l10n.verifySentCode(widget.email),
                 textAlign: TextAlign.center,
                 style: AppTextStyles.bodySub.copyWith(fontSize: 13, height: 1.6),
               ),
@@ -182,15 +184,15 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                   TextSpan(
                     style: AppTextStyles.bodySmall.copyWith(fontSize: 12),
                     children: [
-                      const TextSpan(text: "Didn't get it? "),
+                      TextSpan(text: l10n.verifyDidntGet),
                       if (_seconds > 0)
                         TextSpan(
-                          text: 'Resend in 0:${_seconds.toString().padLeft(2, '0')}',
+                          text: l10n.verifyResendIn(_seconds),
                           style: const TextStyle(color: AppColors.textMuted),
                         )
                       else
                         TextSpan(
-                          text: 'Resend code',
+                          text: l10n.verifyResend,
                           style: const TextStyle(
                             color: AppColors.teal,
                             fontWeight: FontWeight.w700,
@@ -204,14 +206,14 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
               Opacity(
                 opacity: _ready ? 1 : 0.45,
                 child: NexoraPrimaryButton(
-                  label: 'Verify',
+                  label: l10n.verifyCta,
                   onPressed: _ready ? _verify : null,
                   compact: true,
                 ),
               ),
               const SizedBox(height: 10),
               NexoraSecondaryButton(
-                label: 'Change email',
+                label: l10n.changeEmail,
                 onPressed: () => context.go(Routes.login),
               ),
             ],
@@ -301,6 +303,7 @@ class _VerifiedSplash extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -319,10 +322,10 @@ class _VerifiedSplash extends StatelessWidget {
             child: const Icon(Icons.check_rounded, size: 46, color: Colors.white),
           ),
           const SizedBox(height: 24),
-          Text('Email verified', style: AppTextStyles.display(30)),
+          Text(l10n.emailVerified, style: AppTextStyles.display(30)),
           const SizedBox(height: 12),
-          const Text(
-            'Your account is ready. Setting up your Career DNA…',
+          Text(
+            l10n.settingUpDna,
             textAlign: TextAlign.center,
             style: AppTextStyles.bodySub,
           ),

@@ -10,7 +10,7 @@ class AppChip extends StatelessWidget {
     super.key,
     required this.label,
     this.color = AppColors.teal,
-    this.size = 10,
+    this.size = 11,
   });
 
   final String label;
@@ -28,6 +28,8 @@ class AppChip extends StatelessWidget {
       ),
       child: Text(
         label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           fontSize: size,
           fontFamily: AppTextStyles.monoFont,

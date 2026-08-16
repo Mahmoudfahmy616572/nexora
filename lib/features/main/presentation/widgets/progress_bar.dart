@@ -4,7 +4,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 
 /// Labeled horizontal progress bar — mirrors the design's `Bar` primitive
-/// (4px track, rounded, mono % value).
+/// (4px track, rounded, mono % value). The fill animates up from zero on first
+/// paint for a touch of delight.
 class ProgressBar extends StatelessWidget {
   const ProgressBar({
     super.key,
@@ -31,11 +32,18 @@ class ProgressBar extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(label, style: AppTextStyles.bodySmall.copyWith(fontSize: 11)),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: AppTextStyles.bodySmall,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
                 Text(
                   '${value.round()}%',
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontSize: 12,
                     fontFamily: AppTextStyles.monoFont,
                     fontWeight: FontWeight.w500,
                     color: AppColors.text,
@@ -44,13 +52,18 @@ class ProgressBar extends StatelessWidget {
               ],
             ),
           ),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(2),
-            child: LinearProgressIndicator(
-              value: value / 100,
-              minHeight: height,
-              color: color,
-              backgroundColor: AppColors.border,
+          TweenAnimationBuilder<double>(
+            duration: const Duration(milliseconds: 700),
+            curve: Curves.easeOutCubic,
+            tween: Tween(begin: 0, end: value.clamp(0, 100) / 100),
+            builder: (context, fill, _) => ClipRRect(
+              borderRadius: BorderRadius.circular(2),
+              child: LinearProgressIndicator(
+                value: fill,
+                minHeight: height,
+                color: color,
+                backgroundColor: AppColors.border,
+              ),
             ),
           ),
         ],

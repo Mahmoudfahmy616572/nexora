@@ -32,13 +32,13 @@ class InfoNote extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 14, color: color),
+              Icon(icon, size: 16, color: color),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   title,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 12,
                     fontFamily: AppTextStyles.monoFont,
                     fontWeight: FontWeight.w600,
                     color: color,

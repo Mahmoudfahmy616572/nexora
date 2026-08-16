@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required for Supabase API calls in release builds (debug/profile
+         profiles add this automatically). -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="nexora"
         android:name="${applicationName}"

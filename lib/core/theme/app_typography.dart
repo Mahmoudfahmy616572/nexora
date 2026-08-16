@@ -31,7 +31,7 @@ abstract final class AppTextStyles {
   );
 
   static const TextStyle brandSubtitle = TextStyle(
-    fontSize: 8,
+    fontSize: 10,
     fontWeight: FontWeight.w700,
     letterSpacing: 2,
     color: AppColors.brandSubtitle,
@@ -97,12 +97,12 @@ abstract final class AppTextStyles {
   );
 
   static const TextStyle bodySmall = TextStyle(
-    fontSize: 11,
+    fontSize: 12,
     color: AppColors.textSub,
   );
 
   static const TextStyle bodyMuted = TextStyle(
-    fontSize: 10,
+    fontSize: 11,
     color: AppColors.textMuted,
   );
 
@@ -123,7 +123,7 @@ abstract final class AppTextStyles {
   );
 
   static const TextStyle trustSubtitle = TextStyle(
-    fontSize: 9,
+    fontSize: 11,
     height: 1.45,
     color: AppColors.textSub,
   );
@@ -135,7 +135,7 @@ abstract final class AppTextStyles {
   );
 
   static const TextStyle featureSubtitle = TextStyle(
-    fontSize: 10,
+    fontSize: 12,
     height: 1.45,
     color: AppColors.textSub,
   );
@@ -164,12 +164,12 @@ abstract final class AppTextStyles {
   );
 
   static const TextStyle dnaLabelSubtitle = TextStyle(
-    fontSize: 10,
+    fontSize: 11,
     color: AppColors.textSub,
   );
 
   static const TextStyle dnaNode = TextStyle(
-    fontSize: 11,
+    fontSize: 12,
     color: Color(0xFFDCE1EB),
   );
 
@@ -177,19 +177,19 @@ abstract final class AppTextStyles {
   // Micro / mono (DM Mono)
   // ---------------------------------------------------------------------------
   static const TextStyle privacyNote = TextStyle(
-    fontSize: 10,
+    fontSize: 11,
     color: AppColors.textMuted,
   );
 
   static const TextStyle privacyNoteStrong = TextStyle(
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: FontWeight.w600,
     color: AppColors.teal,
   );
 
   /// Uppercase mono section label (design: 10px, 0.1em tracking).
   static const TextStyle sectionLabel = TextStyle(
-    fontSize: 10,
+    fontSize: 11,
     color: AppColors.textMuted,
     fontFamily: monoFont,
     letterSpacing: 1,
@@ -206,7 +206,7 @@ abstract final class AppTextStyles {
 
   /// Small mono timestamp / meta.
   static const TextStyle mono = TextStyle(
-    fontSize: 10,
+    fontSize: 11,
     color: AppColors.textMuted,
     fontFamily: monoFont,
   );

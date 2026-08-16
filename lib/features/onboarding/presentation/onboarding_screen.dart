@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/breakpoints.dart';
 import '../../../core/widgets/ambient_background.dart';
 import '../../../core/widgets/brand_lockup.dart';
@@ -40,7 +41,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final slides = _OnboardingSlide.slides;
+    final l10n = AppLocalizations.of(context)!;
+    final slides = _OnboardingSlide.slidesFor(l10n);
     final isLast = _page == slides.length - 1;
     return Scaffold(
       body: AmbientBackground(
@@ -66,13 +68,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     NexoraPrimaryButton(
-                      label: isLast ? 'Create my career DNA' : 'Next',
+                      label: isLast ? l10n.onbCreateDna : l10n.onbNext,
                       onPressed: isLast ? () => context.go(Routes.login) : _next,
                       compact: true,
                     ),
                     const SizedBox(height: 10),
                     NexoraSecondaryButton(
-                      label: 'I already have an account',
+                      label: l10n.onbAlreadyAccount,
                       onPressed: () => context.go(Routes.login),
                     ),
                   ],
@@ -94,6 +96,7 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.fromLTRB(18, 14, 18, 4),
       child: Row(
@@ -103,9 +106,9 @@ class _TopBar extends StatelessWidget {
           if (showSkip)
             GestureDetector(
               onTap: onSkip,
-              child: const Text(
-                'SKIP',
-                style: TextStyle(
+              child: Text(
+                l10n.onbSkip,
+                style: const TextStyle(
                   fontFamily: AppTextStyles.monoFont,
                   fontSize: 10,
                   letterSpacing: 1.4,
@@ -162,32 +165,29 @@ class _OnboardingSlide extends StatelessWidget {
   final String body;
   final Widget scene;
 
-  static const List<_OnboardingSlide> slides = [
-    _OnboardingSlide(
-      eyebrow: '01 · ANALYZE',
-      titleLead: 'Know your match\n',
-      titleAccent: 'before you apply.',
-      body: 'Paste any job, scholarship, or program. Nexora extracts the real '
-          'requirements and scores them against your Career DNA.',
-      scene: _MatchScene(),
-    ),
-    _OnboardingSlide(
-      eyebrow: '02 · BUILD',
-      titleLead: 'CVs engineered\n',
-      titleAccent: 'to beat the ATS.',
-      body: 'The AI CV Studio scores every line against your target role — '
-          'then rewrites it until the machines say yes.',
-      scene: _CvScene(),
-    ),
-    _OnboardingSlide(
-      eyebrow: '03 · TRACK',
-      titleLead: 'Own your entire\n',
-      titleAccent: 'career pipeline.',
-      body: 'Applications, interviews and offers in one calm dashboard. '
-          'Practice rounds and smart nudges keep you on target.',
-      scene: _PipelineScene(),
-    ),
-  ];
+  static List<_OnboardingSlide> slidesFor(AppLocalizations l10n) => [
+        _OnboardingSlide(
+          eyebrow: l10n.onbSlide1Eyebrow,
+          titleLead: l10n.onbSlide1Lead,
+          titleAccent: l10n.onbSlide1Accent,
+          body: l10n.onbSlide1Body,
+          scene: const _MatchScene(),
+        ),
+        _OnboardingSlide(
+          eyebrow: l10n.onbSlide2Eyebrow,
+          titleLead: l10n.onbSlide2Lead,
+          titleAccent: l10n.onbSlide2Accent,
+          body: l10n.onbSlide2Body,
+          scene: const _CvScene(),
+        ),
+        _OnboardingSlide(
+          eyebrow: l10n.onbSlide3Eyebrow,
+          titleLead: l10n.onbSlide3Lead,
+          titleAccent: l10n.onbSlide3Accent,
+          body: l10n.onbSlide3Body,
+          scene: const _PipelineScene(),
+        ),
+      ];
 
   @override
   Widget build(BuildContext context) {

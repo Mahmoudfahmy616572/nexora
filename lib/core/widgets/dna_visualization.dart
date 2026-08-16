@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 
@@ -47,6 +48,7 @@ class _Scene extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     const double w = DnaVisualization.designWidth;
     const double h = DnaVisualization.designHeight;
     return Stack(
@@ -55,61 +57,61 @@ class _Scene extends StatelessWidget {
         Positioned(
           left: w * 0.02,
           top: h * 0.21,
-          child: const _DnaNode(
+          child: _DnaNode(
             icon: Icons.work_outline,
-            label: 'Experience',
-            color: Color(0xFFDCE1EB),
-            borderColor: Color(0xB3A855F7),
+            label: l10n.dnaExperience,
+            color: const Color(0xFFDCE1EB),
+            borderColor: const Color(0xB3A855F7),
           ),
         ),
         Positioned(
           right: 0,
           top: h * 0.21,
-          child: const _DnaNode(
+          child: _DnaNode(
             icon: Icons.code_rounded,
-            label: 'Skills',
-            color: Color(0xFF69A3FF),
-            borderColor: Color(0xCC3B82F6),
+            label: l10n.dnaSkills,
+            color: const Color(0xFF69A3FF),
+            borderColor: const Color(0xCC3B82F6),
           ),
         ),
         Positioned(
           left: 0,
           top: h * 0.42,
-          child: const _DnaNode(
+          child: _DnaNode(
             icon: Icons.developer_mode_rounded,
-            label: 'Projects',
-            color: Color(0xFFDCE1EB),
-            borderColor: Color(0xB3A855F7),
+            label: l10n.dnaProjects,
+            color: const Color(0xFFDCE1EB),
+            borderColor: const Color(0xB3A855F7),
           ),
         ),
         Positioned(
           right: 0,
           top: h * 0.42,
-          child: const _DnaNode(
+          child: _DnaNode(
             icon: Icons.school_outlined,
-            label: 'Education',
-            color: Color(0xFF69A3FF),
-            borderColor: Color(0xCC3B82F6),
+            label: l10n.dnaEducation,
+            color: const Color(0xFF69A3FF),
+            borderColor: const Color(0xCC3B82F6),
           ),
         ),
         Positioned(
           left: w * 0.06,
           top: h * 0.68,
-          child: const _DnaNode(
+          child: _DnaNode(
             icon: Icons.emoji_events_outlined,
-            label: 'Achievements',
-            color: Color(0xFFDCE1EB),
-            borderColor: Color(0xB3A855F7),
+            label: l10n.dnaAchievements,
+            color: const Color(0xFFDCE1EB),
+            borderColor: const Color(0xB3A855F7),
           ),
         ),
         Positioned(
           right: w * 0.04,
           top: h * 0.68,
-          child: const _DnaNode(
+          child: _DnaNode(
             icon: Icons.workspace_premium_outlined,
-            label: 'Certifications',
-            color: Color(0xFF3BE4EF),
-            borderColor: Color(0xBF22D3EE),
+            label: l10n.dnaCertifications,
+            color: const Color(0xFF3BE4EF),
+            borderColor: const Color(0xBF22D3EE),
           ),
         ),
         Positioned.fill(
@@ -178,6 +180,7 @@ class _DnaLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
       decoration: BoxDecoration(
@@ -208,13 +211,13 @@ class _DnaLabel extends StatelessWidget {
             child: const Icon(Icons.adjust, size: 20, color: Color(0xFFD8B4FE)),
           ),
           const SizedBox(width: 12),
-          const Column(
+          Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('CAREER DNA', style: AppTextStyles.dnaLabelTitle),
-              SizedBox(height: 3),
-              Text('Your professional identity', style: AppTextStyles.dnaLabelSubtitle),
+              Text(l10n.dnaVisualLabel, style: AppTextStyles.dnaLabelTitle),
+              const SizedBox(height: 3),
+              Text(l10n.dnaVisualSubtitle, style: AppTextStyles.dnaLabelSubtitle),
             ],
           ),
         ],

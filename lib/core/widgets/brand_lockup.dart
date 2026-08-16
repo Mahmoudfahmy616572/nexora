@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 
@@ -23,19 +24,28 @@ class BrandLockup extends StatelessWidget {
       children: [
         const BrandMark(),
         const SizedBox(width: 13),
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'NEXORA',
-              style: compact ? AppTextStyles.brandNameCompact : AppTextStyles.brandName,
-            ),
-            if (!narrow) ...[
-              const SizedBox(height: 2),
-              const Text('CAREER INTELLIGENCE', style: AppTextStyles.brandSubtitle),
+        Flexible(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'NEXORA',
+                style: compact ? AppTextStyles.brandNameCompact : AppTextStyles.brandName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (!narrow) ...[
+                const SizedBox(height: 2),
+                Text(
+                  AppLocalizations.of(context)!.brandSubtitle,
+                  style: AppTextStyles.brandSubtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ],
     );

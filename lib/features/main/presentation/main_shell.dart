@@ -2,39 +2,42 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../l10n/app_localizations.dart';
 import 'analyze_screen.dart';
 import 'dna_screen.dart';
 import 'home_screen.dart';
+import 'main_tab.dart';
 import 'studio_screen.dart';
 import 'tracker_screen.dart';
-
-enum MainTab { home, dna, analyze, studio, track }
 
 /// The authenticated app shell — mirrors the design's phone frame:
 /// a 5-item bottom navigation with a raised center "Analyze" button.
 class MainShell extends StatefulWidget {
-  const MainShell({super.key});
+  const MainShell({super.key, this.initialTab = MainTab.home});
+
+  /// Lets auth flows drop a brand-new (empty-profile) user straight onto the
+  /// DNA tab so the "Build your Career DNA" nudge shows before anything else.
+  final MainTab initialTab;
 
   @override
   State<MainShell> createState() => _MainShellState();
 }
 
 class _MainShellState extends State<MainShell> {
-  MainTab _tab = MainTab.home;
+  late MainTab _tab = widget.initialTab;
 
-  static const _screens = <Widget>[
-    HomeScreen(),
-    DnaScreen(),
-    AnalyzeScreen(),
-    StudioScreen(),
-    TrackerScreen(),
+  late final List<Widget> _screens = [
+    HomeScreen(onOpenTab: (tab) => setState(() => _tab = tab)),
+    const DnaScreen(),
+    const AnalyzeScreen(),
+    const StudioScreen(),
+    const TrackerScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      extendBody: true,
       body: DecoratedBox(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -108,6 +111,7 @@ class _BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: const BoxDecoration(
         color: Color(0xFF08091E),
@@ -116,11 +120,11 @@ class _BottomNav extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(6, 8, 6, 8),
       child: Row(
         children: [
-          _NavItem(key: const ValueKey('nav_home'), icon: Icons.home_rounded, label: 'Home', tab: MainTab.home, current: current, onTap: onSelected),
-          _NavItem(key: const ValueKey('nav_dna'), icon: Icons.fingerprint, label: 'DNA', tab: MainTab.dna, current: current, onTap: onSelected),
-          _NavItem(key: const ValueKey('nav_analyze'), icon: Icons.track_changes_rounded, label: 'Analyze', tab: MainTab.analyze, current: current, onTap: onSelected, center: true),
-          _NavItem(key: const ValueKey('nav_studio'), icon: Icons.description_rounded, label: 'Studio', tab: MainTab.studio, current: current, onTap: onSelected),
-          _NavItem(key: const ValueKey('nav_track'), icon: Icons.bar_chart_rounded, label: 'Track', tab: MainTab.track, current: current, onTap: onSelected),
+          _NavItem(key: const ValueKey('nav_home'), icon: Icons.home_rounded, label: l10n.navHome, tab: MainTab.home, current: current, onTap: onSelected),
+          _NavItem(key: const ValueKey('nav_dna'), icon: Icons.fingerprint, label: l10n.navDna, tab: MainTab.dna, current: current, onTap: onSelected),
+          _NavItem(key: const ValueKey('nav_analyze'), icon: Icons.track_changes_rounded, label: l10n.navAnalyze, tab: MainTab.analyze, current: current, onTap: onSelected, center: true),
+          _NavItem(key: const ValueKey('nav_studio'), icon: Icons.description_rounded, label: l10n.navStudio, tab: MainTab.studio, current: current, onTap: onSelected),
+          _NavItem(key: const ValueKey('nav_track'), icon: Icons.bar_chart_rounded, label: l10n.navTrack, tab: MainTab.track, current: current, onTap: onSelected),
         ],
       ),
     );
@@ -159,28 +163,28 @@ class _NavItem extends StatelessWidget {
               const SizedBox(height: 4),
               AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
-                width: 18,
-                height: 2,
+                width: 22,
+                height: 3,
                 decoration: BoxDecoration(
                   color: active ? AppColors.teal : Colors.transparent,
-                  borderRadius: BorderRadius.circular(1),
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ],
             SizedBox(
-              height: center ? 56 : 24,
+              height: center ? 60 : 26,
               child: center
                   ? Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: _CenterButton(active: active, icon: icon),
                     )
-                  : Icon(icon, size: 20, color: active ? AppColors.teal : const Color(0x47E8EEFF)),
+                  : Icon(icon, size: 22, color: active ? AppColors.teal : const Color(0x47E8EEFF)),
             ),
             const SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(
-                fontSize: 9,
+                fontSize: 11,
                 fontFamily: AppTextStyles.fontFamily,
                 fontWeight: active ? FontWeight.w600 : FontWeight.w400,
                 color: active ? AppColors.teal : const Color(0x47E8EEFF),
@@ -203,17 +207,17 @@ class _CenterButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      width: 48,
-      height: 48,
+      width: 50,
+      height: 50,
       decoration: BoxDecoration(
         color: active ? AppColors.teal : const Color(0x2400D4AA),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(17),
         border: Border.all(color: active ? AppColors.teal : AppColors.tealBdr),
         boxShadow: active
             ? [BoxShadow(color: AppColors.fabShadow, blurRadius: 20, offset: const Offset(0, 4))]
             : null,
       ),
-      child: Icon(icon, size: 20, color: active ? AppColors.background : AppColors.teal),
+      child: Icon(icon, size: 22, color: active ? AppColors.background : AppColors.teal),
     );
   }
 }

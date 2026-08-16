@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/breakpoints.dart';
 import '../../../core/widgets/brand_lockup.dart';
 import '../../../core/widgets/dna_visualization.dart';
@@ -140,11 +141,11 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mobile = Breakpoints.isMobile(context);
-    final narrow = MediaQuery.sizeOf(context).width < 360;
+    final narrow = MediaQuery.sizeOf(context).width < 380;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        BrandLockup(compact: mobile, narrow: narrow),
+        Expanded(child: BrandLockup(compact: mobile, narrow: narrow)),
         LanguageSelector(compact: mobile),
       ],
     );
@@ -189,6 +190,7 @@ class _HeroContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final mobile = Breakpoints.isMobile(context);
     final width = MediaQuery.sizeOf(context).width;
     final displaySize = mobile ? 46.0 : (width * 0.05).clamp(52.0, 76.0);
@@ -197,7 +199,7 @@ class _HeroContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: centered ? CrossAxisAlignment.center : CrossAxisAlignment.start,
       children: [
-        const EyebrowLabel(text: 'Welcome to Nexora'),
+        EyebrowLabel(text: l10n.welcomeEyebrow),
         const SizedBox(height: 18),
         Text.rich(
           TextSpan(
@@ -206,10 +208,10 @@ class _HeroContent extends StatelessWidget {
               letterSpacing: mobile ? -2 : -3,
             ),
             children: [
-              const TextSpan(text: 'Your Career\n'),
-              const TextSpan(text: 'Understood.\n'),
+              TextSpan(text: l10n.welcomeCareer),
+              TextSpan(text: l10n.welcomeUnderstood),
               TextSpan(
-                text: 'Elevated.',
+                text: l10n.welcomeElevated,
                 style: TextStyle(
                   foreground: Paint()
                     ..shader = LinearGradient(
@@ -227,8 +229,7 @@ class _HeroContent extends StatelessWidget {
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 520),
           child: Text(
-            'AI-powered career intelligence that understands '
-            'who you are, what you want, and how to get you there.',
+            l10n.welcomeBody,
             style: mobile ? AppTextStyles.descriptionCompact : AppTextStyles.description,
             textAlign: textAlign,
           ),
@@ -247,24 +248,25 @@ class _TrustRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const items = [
+    final l10n = AppLocalizations.of(context)!;
+    final items = [
       TrustItem(
         icon: Icons.diamond_outlined,
         color: AppColors.iconPurple,
-        title: '100% Private',
-        subtitle: 'Your data is secure\nand encrypted',
+        title: l10n.welcomePrivateTitle,
+        subtitle: l10n.welcomePrivateSub,
       ),
       TrustItem(
         icon: Icons.bolt_rounded,
         color: AppColors.iconBlue,
-        title: 'AI-Powered',
-        subtitle: 'Smart insights that\nsave you time',
+        title: l10n.welcomeAiTitle,
+        subtitle: l10n.welcomeAiSub,
       ),
       TrustItem(
         icon: Icons.gps_fixed_rounded,
         color: AppColors.iconCyan,
-        title: 'Results-Driven',
-        subtitle: 'Get more interviews\nand opportunities',
+        title: l10n.welcomeResultsTitle,
+        subtitle: l10n.welcomeResultsSub,
       ),
     ];
 
@@ -321,38 +323,39 @@ class _FeaturePanel extends StatelessWidget {
   const _FeaturePanel();
 
   List<Widget> _tiles(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final center = Breakpoints.isMobile(context) ? false : true;
     return [
       FeatureTile(
         icon: Icons.auto_awesome_rounded,
         iconColor: AppColors.iconPurple,
         borderColor: const Color(0x4DA855F7),
-        title: 'Smart Matching',
-        subtitle: 'Find opportunities that\ntruly fit you.',
+        title: l10n.welcomeMatchingTitle,
+        subtitle: l10n.welcomeMatchingSub,
         center: center,
       ),
       FeatureTile(
         icon: Icons.diamond_outlined,
         iconColor: AppColors.iconBlue,
         borderColor: const Color(0x4D3B82F6),
-        title: 'ATS Optimization',
-        subtitle: 'Beat the system with\nAI-powered insights.',
+        title: l10n.welcomeAtsTitle,
+        subtitle: l10n.welcomeAtsSub,
         center: center,
       ),
       FeatureTile(
         icon: Icons.developer_board_rounded,
         iconColor: AppColors.iconPurple,
         borderColor: const Color(0x4DA855F7),
-        title: 'Interview Ready',
-        subtitle: 'Practice with AI and\nbuild your confidence.',
+        title: l10n.welcomeInterviewTitle,
+        subtitle: l10n.welcomeInterviewSub,
         center: center,
       ),
       FeatureTile(
         icon: Icons.trending_up_rounded,
         iconColor: AppColors.iconCyan,
         borderColor: const Color(0x4D22D3EE),
-        title: 'Career Growth',
-        subtitle: 'Track progress and\nachieve your goals.',
+        title: l10n.welcomeGrowthTitle,
+        subtitle: l10n.welcomeGrowthSub,
         center: center,
       ),
     ];
@@ -437,6 +440,7 @@ class _Actions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1380),
@@ -444,12 +448,12 @@ class _Actions extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             NexoraPrimaryButton(
-              label: 'Get Started',
+              label: l10n.welcomeGetStarted,
               onPressed: onGetStarted,
               compact: Breakpoints.isMobile(context),
             ),
             const SizedBox(height: 12),
-            NexoraSecondaryButton(label: 'I already have an account', onPressed: onSignIn),
+            NexoraSecondaryButton(label: l10n.welcomeAlreadyAccount, onPressed: onSignIn),
             const SizedBox(height: 15),
             const Center(child: PrivacyNote()),
           ],

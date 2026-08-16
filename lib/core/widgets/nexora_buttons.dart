@@ -30,6 +30,7 @@ class _NexoraPrimaryButtonState extends State<NexoraPrimaryButton> {
   @override
   Widget build(BuildContext context) {
     final height = widget.compact ? 60.0 : 66.0;
+    final rtl = Directionality.of(context) == TextDirection.rtl;
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
@@ -78,7 +79,11 @@ class _NexoraPrimaryButtonState extends State<NexoraPrimaryButton> {
                   width: 42,
                   height: 42,
                   radius: 21,
-                  child: const Icon(Icons.arrow_forward_rounded, size: 24, color: Colors.white),
+                  child: Icon(
+                    rtl ? Icons.arrow_back_rounded : Icons.arrow_forward_rounded,
+                    size: 24,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ],

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/widgets/ambient_background.dart';
 import '../../../core/widgets/brand_lockup.dart';
 import '../../../core/widgets/nexora_buttons.dart';
@@ -43,6 +44,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final signIn = _mode == AuthMode.signIn;
     return Scaffold(
       body: AmbientBackground(
@@ -71,21 +73,19 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                     const SizedBox(height: 26),
                     Text(
-                      signIn ? 'Welcome back' : 'Create your account',
+                      signIn ? l10n.authWelcomeBack : l10n.authCreateAccount,
                       style: AppTextStyles.display(30),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      signIn
-                          ? 'Sign in to continue building your Career DNA.'
-                          : 'Start with your basics — we will never publish anything.',
+                      signIn ? l10n.authSignInSub : l10n.authCreateSub,
                       textAlign: TextAlign.center,
                       style: AppTextStyles.bodySub.copyWith(fontSize: 13, height: 1.6),
                     ),
                     const SizedBox(height: 26),
                     _SocialPill(
-                      label: 'Continue with Google',
+                      label: l10n.authContinueGoogle,
                       icon: const Text(
                         'G',
                         style: TextStyle(
@@ -99,7 +99,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                     const SizedBox(height: 10),
                     _SocialPill(
-                      label: 'Continue with Apple',
+                      label: l10n.authContinueApple,
                       icon: const Icon(Icons.apple, size: 16, color: AppColors.text),
                       onPressed: () {},
                     ),
@@ -107,19 +107,19 @@ class _SignInScreenState extends State<SignInScreen> {
                     const _OrDivider(),
                     const SizedBox(height: 20),
                     if (!signIn) ...[
-                      const _FieldLabel('Full name'),
+                      _FieldLabel(l10n.authFullName),
                       _AuthField(
                         controller: _name,
-                        hint: 'Ahmed Al-Rashidi',
+                        hint: l10n.authFullNameHint,
                         icon: Icons.person_outline_rounded,
                         textInputAction: TextInputAction.next,
                       ),
                       const SizedBox(height: 14),
                     ],
-                    const _FieldLabel('Email'),
+                    _FieldLabel(l10n.authEmail),
                     _AuthField(
                       controller: _email,
-                      hint: 'you@example.com',
+                      hint: l10n.authEmailHint,
                       icon: Icons.alternate_email_rounded,
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
@@ -127,14 +127,14 @@ class _SignInScreenState extends State<SignInScreen> {
                     const SizedBox(height: 14),
                     Row(
                       children: [
-                        const _FieldLabel('Password'),
+                        _FieldLabel(l10n.authPassword),
                         const Spacer(),
                         if (signIn)
                           GestureDetector(
                             onTap: () {},
-                            child: const Text(
-                              'FORGOT?',
-                              style: TextStyle(
+                            child: Text(
+                              l10n.authForgot,
+                              style: const TextStyle(
                                 fontFamily: AppTextStyles.monoFont,
                                 fontSize: 9,
                                 letterSpacing: 1,
@@ -146,32 +146,29 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                     _AuthField(
                       controller: _password,
-                      hint: signIn ? 'Your password' : 'Min. 8 characters',
+                      hint: signIn ? l10n.authPasswordHint : l10n.authPasswordHintNew,
                       icon: Icons.lock_outline_rounded,
                       obscure: true,
                     ),
                     const SizedBox(height: 22),
                     NexoraPrimaryButton(
-                      label: signIn ? 'Sign in' : 'Create account',
+                      label: signIn ? l10n.authSignInBtn : l10n.authCreateBtn,
                       onPressed: () =>
                           context.go(signIn ? Routes.main : Routes.verify),
                       compact: true,
                     ),
                     const SizedBox(height: 10),
                     NexoraSecondaryButton(
-                      label: signIn
-                          ? 'New to Nexora? Create an account'
-                          : 'Already have an account? Sign in',
+                      label: signIn ? l10n.authNewToNexora : l10n.authAlreadyHave,
                       onPressed: () => setState(
                         () => _mode = signIn ? AuthMode.signUp : AuthMode.signIn,
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'By continuing you agree to the Terms of Service '
-                      'and Privacy Policy.',
+                    Text(
+                      l10n.authTerms,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 10,
                         height: 1.5,
                         color: AppColors.textMuted,
@@ -223,6 +220,7 @@ class _ModeToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -233,12 +231,12 @@ class _ModeToggle extends StatelessWidget {
       child: Row(
         children: [
           _Segment(
-            label: 'Sign in',
+            label: l10n.authSignInBtn,
             active: mode == AuthMode.signIn,
             onTap: () => onChanged(AuthMode.signIn),
           ),
           _Segment(
-            label: 'Create account',
+            label: l10n.authCreateBtn,
             active: mode == AuthMode.signUp,
             onTap: () => onChanged(AuthMode.signUp),
           ),
@@ -341,14 +339,15 @@ class _OrDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [
         const Expanded(child: ColoredBox(color: AppColors.border, child: SizedBox(height: 1))),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Text(
-            'OR CONTINUE WITH EMAIL',
-            style: TextStyle(
+            l10n.authOrEmail,
+            style: const TextStyle(
               fontFamily: AppTextStyles.monoFont,
               fontSize: 8,
               letterSpacing: 1,

@@ -12,12 +12,16 @@ class SectionRow extends StatelessWidget {
     required this.label,
     required this.pct,
     this.color = AppColors.teal,
+    this.onTap,
   });
 
   final IconData icon;
   final String label;
   final double pct;
   final Color color;
+
+  /// Invoked when the row is tapped (e.g. to open a section detail sheet).
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -27,53 +31,57 @@ class SectionRow extends StatelessWidget {
         : pct >= 80
             ? AppColors.textSub
             : AppColors.amber;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.border))),
-      child: Row(
-        children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: color.withValues(alpha: 0.15)),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.border))),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(11),
+                border: Border.all(color: color.withValues(alpha: 0.15)),
+              ),
+              child: Icon(icon, size: 18, color: color),
             ),
-            child: Icon(icon, size: 16, color: color),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: AppTextStyles.body),
-                const SizedBox(height: 5),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(2),
-                  child: LinearProgressIndicator(
-                    value: pct / 100,
-                    minHeight: 3,
-                    color: done ? AppColors.teal : color,
-                    backgroundColor: AppColors.border,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: AppTextStyles.body),
+                  const SizedBox(height: 5),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(2),
+                    child: LinearProgressIndicator(
+                      value: pct / 100,
+                      minHeight: 3,
+                      color: done ? AppColors.teal : color,
+                      backgroundColor: AppColors.border,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            '${pct.round()}%',
-            style: TextStyle(
-              fontSize: 11,
-              fontFamily: AppTextStyles.monoFont,
-              fontWeight: FontWeight.w600,
-              color: pctColor,
+            const SizedBox(width: 12),
+            Text(
+              '${pct.round()}%',
+              style: TextStyle(
+                fontSize: 12,
+                fontFamily: AppTextStyles.monoFont,
+                fontWeight: FontWeight.w600,
+                color: pctColor,
+              ),
             ),
-          ),
-          const SizedBox(width: 4),
-          const Icon(Icons.chevron_right, size: 14, color: AppColors.textMuted),
-        ],
+            const SizedBox(width: 4),
+            const Icon(Icons.chevron_right, size: 16, color: AppColors.textMuted),
+          ],
+        ),
       ),
     );
   }
