@@ -59,6 +59,12 @@ class JobAnalyzer {
     return map;
   }();
 
+  /// Public accessors so the Opportunity Match Engine can reuse the same
+  /// canonical skill aliases and education ranking without duplicating them.
+  static Map<String, List<String>> get skillAliases => _skillAliases;
+  static Map<String, String> get aliasToCanonical => _aliasToCanonical;
+  static Map<String, int> get educationRank => _educationRank;
+
   /// Runs the analysis and returns a fully populated [JobAnalysis].
   JobAnalysis analyze({
     required String description,

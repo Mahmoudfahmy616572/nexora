@@ -7,6 +7,7 @@
 //     "skills": ["Flutter", "Dart"],
 //     "yearsOfExperience": 3,          // optional — derived from profile if absent
 //     "education": "bachelor",         // optional — derived from profile if absent
+//     "stage": "student",              // optional — candidate career stage
 //     "profile": {                     // optional — grounds the recommendation in real data
 //       "summary": "...",
 //       "experience": [{"role": "...", "company": "...", "years": 2}],
@@ -15,12 +16,20 @@
 //       "certifications": ["..."],
 //       "achievements": ["..."],
 //       "languages": ["..."]
+//     },
+//     "target": {                      // optional — the CareerTarget being matched against
+//       "role": "...",
+//       "industry": "...",
+//       "seniority": "...",
+//       "countryRegion": "...",
+//       "language": "..."
 //     }
 //   }
 //
-// The function extracts structured facts from the posting, then computes an
-// honest match score against the candidate's declared profile. The LLM key
-// lives in the GROQ_API_KEY secret — never in the client.
+// The function EXTRACTS structured facts from the posting plus a candidate-
+// specific recommendation text. All numeric scoring happens on the client via
+// the deterministic OpportunityMatchEngine, so the score is always reproducible.
+// The LLM key lives in the GROQ_API_KEY secret — never in the client.
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 
@@ -31,14 +40,7 @@ const CORS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-const EDUCATION_RANK: Record<string, number> = {
-  none: 0,
-  'high school': 1,
-  associate: 2,
-  bachelor: 3,
-  master: 4,
-  phd: 5,
-};
+const MAX_ITEMS = 15;
 
 function normalize(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9+#./ -]/g, '').trim();
@@ -52,8 +54,6 @@ function matchesSkill(userSkill: string, requiredSkill: string): boolean {
   const userTokens = tokenize(userSkill);
   const requiredTokens = tokenize(requiredSkill);
   if (userTokens.length === 0 || requiredTokens.length === 0) return false;
-  // Coverage check: every meaningful token of the required skill must appear
-  // somewhere in the user's skill tokens.
   for (const rt of requiredTokens) {
     const hit = userTokens.some(
       (ut) => ut === rt || ut.includes(rt) || rt.includes(ut),
@@ -68,12 +68,12 @@ function num(value: unknown, fallback: number): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
-function rankEducation(level: unknown): number {
-  return EDUCATION_RANK[normalize(String(level ?? ''))] ?? 0;
-}
-
-function clampPct(value: number): number {
-  return Math.max(0, Math.min(100, Math.round(value)));
+function clampItems(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((s: unknown) => String(s).trim())
+    .filter(Boolean)
+    .slice(0, MAX_ITEMS);
 }
 
 serve(async (req) => {
@@ -89,7 +89,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY')!,
       { global: { headers: { Authorization: authHeader } } },
     );
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser(authHeader.replace(/^Bearer\s+/i, ''));
     if (!user) {
       return json({ error: 'Unauthorized' }, 401);
     }
@@ -118,9 +118,6 @@ serve(async (req) => {
     const projects = Array.isArray(profile.projects)
       ? profile.projects as Array<Record<string, unknown>>
       : [];
-    const educationRows = Array.isArray(profile.education)
-      ? profile.education as Array<Record<string, unknown>>
-      : [];
 
     // Skills proven by shipped projects count even if the user did not type
     // them into the manual Skills editor.
@@ -135,7 +132,6 @@ serve(async (req) => {
     }
     const skillPool = [...effectiveSkills];
 
-    // Prefer the explicit form value; otherwise derive from the real profile.
     const years = body.yearsOfExperience !== undefined
       ? Math.max(0, num(body.yearsOfExperience, 0))
       : experience.reduce((sum, entry) => sum + Math.max(0, num(entry.years, 0)), 0);
@@ -159,10 +155,8 @@ serve(async (req) => {
           .join(' | ')}`,
       );
     }
-    if (educationRows.length > 0) {
-      profileLines.push(
-        `- education: ${educationRows.map((e) => `${e.degree}${e.field ? ` (${e.field})` : ''}`).join('; ')}`,
-      );
+    if (Array.isArray(profile.education) && profile.education.length > 0) {
+      profileLines.push(`- education: ${profile.education.map((e: Record<string, unknown>) => `${e.degree}${e.field ? ` (${e.field})` : ''}`).join('; ')}`);
     }
     if (Array.isArray(profile.certifications) && profile.certifications.length > 0) {
       profileLines.push(`- certifications: ${profile.certifications.join(', ')}`);
@@ -174,24 +168,39 @@ serve(async (req) => {
       profileLines.push(`- languages: ${profile.languages.join(', ')}`);
     }
 
+    const target = (body.target ?? {}) as Record<string, unknown>;
+    const targetLines = Object.entries(target)
+      .filter(([_, v]) => v != null && String(v).trim() !== '')
+      .map(([k, v]) => `- ${k}: ${String(v)}`);
+    const stage = String(body.stage ?? '').trim();
+
     const prompt = [
-      'You are a career coach and ATS expert. Extract structured facts from the job posting below,',
-      'then write honest, concrete advice grounded in the candidate profile.',
+      'You are a career coach and ATS expert. Extract structured facts from the job posting below.',
       'Return ONLY a JSON object with exactly these keys:',
       '- "title": the role title (string)',
       '- "company": the hiring company name, or "" if unknown (string)',
+      '- "seniority": seniority level, one of "intern", "junior", "mid", "senior", "lead", "principal", or "" if unknown (string)',
+      '- "location_remote": one of "remote", "on-site", "hybrid", or "" if unknown (string)',
       '- "experience_years": minimum years of experience required, 0 if not specified (number)',
       '- "education": required education level, one of "none", "high school", "associate", "bachelor", "master", "phd", "not specified" (string)',
       '- "must_have_skills": array of required skills/tools/technologies explicitly demanded (array of strings)',
       '- "nice_to_have_skills": array of preferred skills (array of strings)',
+      '- "responsibilities": up to 12 key job responsibilities (array of strings)',
+      '- "technologies": all technologies/tools mentioned, even if not a named "skill" (array of strings)',
+      '- "certifications": required or preferred certifications, or [] if none (array of strings)',
+      '- "languages": human/spoken languages required, or [] if none (array of strings)',
+      '- "soft_skills": required soft skills like "communication", "leadership", or [] if none (array of strings)',
+      '- "domain_knowledge": required domain knowledge like "fintech", "healthcare", or [] if none (array of strings)',
       '- "keywords": up to 8 short keyword phrases that appear important in the posting (array of strings)',
-      "- \"recommendation\": 2-3 sentences of concrete, actionable advice tailored to THIS candidate. Reference the candidate's real projects, experience, and certifications when they are relevant to the missing requirements, and suggest exactly what to add or emphasize (string)",
+      "- \"recommendation\": 2-3 sentences of concrete, actionable advice tailored to THIS candidate. Reference the candidate's real projects, experience, and certifications when relevant to the missing requirements, and suggest exactly what to add or emphasize (string)",
       '',
       'Candidate profile:',
+      `- career stage: ${stage || 'unknown'}`,
       `- skills: ${skillPool.join(', ') || 'not provided'}`,
       `- years of experience: ${years}`,
       `- education: ${education}`,
       ...(profileLines.length > 0 ? profileLines : ['- (no profile details saved yet)']),
+      ...(targetLines.length > 0 ? ['Candidate target:', ...targetLines] : []),
       '',
       'Job posting:',
       '"""',
@@ -206,9 +215,9 @@ serve(async (req) => {
         Authorization: `Bearer ${groqKey}`,
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: 'openai/gpt-oss-120b',
         temperature: 0.2,
-        max_tokens: 900,
+        max_tokens: 1200,
         response_format: { type: 'json_object' },
         messages: [{ role: 'user', content: prompt }],
       }),
@@ -229,53 +238,33 @@ serve(async (req) => {
       return json({ error: 'AI returned malformed output' }, 502);
     }
 
-    const mustHave = (parsed.must_have_skills ?? []).map((s: unknown) => String(s)).filter(Boolean);
-    const niceToHave = (parsed.nice_to_have_skills ?? []).map((s: unknown) => String(s)).filter(Boolean);
-    const keywords = (parsed.keywords ?? []).map((s: unknown) => String(s)).filter(Boolean);
-    const requiredYears = Math.max(0, num(parsed.experience_years, 0));
-    const requiredEduRank = rankEducation(parsed.education);
-
-    // Deterministic scoring against the candidate's real profile.
-    const coveredMust = mustHave.filter((m) => skillPool.some((s) => matchesSkill(s, m)));
-    const missing = mustHave.filter((m) => !coveredMust.includes(m));
-    const strong = [...coveredMust, ...niceToHave.filter((n) => skillPool.some((s) => matchesSkill(s, n)))];
-
-    const skillsScore = mustHave.length === 0
-      ? 90
-      : clampPct((coveredMust.length / mustHave.length) * 100);
-
-    const expScore = requiredYears === 0
-      ? 100
-      : clampPct(Math.min(1, years / requiredYears) * 100);
-
-    const eduScore = requiredEduRank === 0
-      ? 100
-      : rankEducation(education) >= requiredEduRank
-        ? 100
-        : 60;
-
-    const coveredKeywords = keywords.filter((k) => skillPool.some((s) => matchesSkill(s, k)));
-    const keywordsScore = keywords.length === 0
-      ? 85
-      : clampPct((coveredKeywords.length / keywords.length) * 100);
-
-    const overall = clampPct(
-      skillsScore * 0.45 + expScore * 0.25 + eduScore * 0.15 + keywordsScore * 0.15,
-    );
+    // Build the extraction-only `detail` object. Scoring is done client-side.
+    const detail = {
+      role: String(parsed.title ?? '').trim(),
+      company: String(parsed.company ?? '').trim(),
+      seniority: String(parsed.seniority ?? '').trim(),
+      location_remote: String(parsed.location_remote ?? '').trim(),
+      experience_years: Math.max(0, num(parsed.experience_years, 0)),
+      education: String(parsed.education ?? '').toLowerCase(),
+      required_skills: clampItems(parsed.must_have_skills),
+      preferred_skills: clampItems(parsed.nice_to_have_skills),
+      responsibilities: clampItems(parsed.responsibilities),
+      technologies: clampItems(parsed.technologies),
+      certifications: clampItems(parsed.certifications),
+      languages: clampItems(parsed.languages),
+      soft_skills: clampItems(parsed.soft_skills),
+      domain_knowledge: clampItems(parsed.domain_knowledge),
+      keywords: clampItems(parsed.keywords),
+      raw_text: description,
+    };
 
     return json({
       id: `ai-${crypto.randomUUID()}`,
-      title: String(parsed.title ?? 'Opportunity'),
-      company: String(parsed.company ?? ''),
+      title: detail.role || 'Opportunity',
+      company: detail.company,
       time_ago: 'Just now',
-      overall,
-      skills: skillsScore,
-      experience: expScore,
-      education: eduScore,
-      keywords: keywordsScore,
-      strong,
-      missing,
-      ai_recommendation: String(parsed.recommendation ?? ''),
+      ai_recommendation: String(parsed.recommendation ?? '').trim(),
+      detail,
     });
   } catch (err) {
     console.error('analyze failed', err);

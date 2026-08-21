@@ -71,8 +71,9 @@ void main() {
     }
 
     // Home is the initial tab.
+    await tester.pumpAndSettle();
     expect(inScreen<HomeScreen>('Ahmed Al-Rashidi'), findsOneWidget);
-    expect(inScreen<HomeScreen>('Career DNA Health'), findsOneWidget);
+    expect(inScreen<HomeScreen>('Next best action'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -86,7 +87,11 @@ void main() {
 
     await tester.tap(find.text('Analyze Job'));
     await tester.pumpAndSettle();
-    expect(inScreen<AnalyzeScreen>('STRONG MATCHES ✓'), findsOneWidget);
+    expect(inScreen<AnalyzeScreen>('My Analyses'), findsOneWidget);
+    expect(
+      inScreen<AnalyzeScreen>('No analysis yet. Paste a job description to begin.'),
+      findsOneWidget,
+    );
 
     await goHome();
     await tester.tap(find.text('Create CV'));
@@ -161,15 +166,28 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Opportunity analyzer shows matches and missing skills', (tester) async {
+  testWidgets('Opportunity analyzer shows matched and missing requirement chips', (tester) async {
     await pumpAt(tester, const Size(390, 844));
 
     await tapNav(tester, 'Analyze');
+    await tester.tap(find.text('New Analysis'));
+    await tester.pumpAndSettle();
 
-    expect(inScreen<AnalyzeScreen>('STRONG MATCHES ✓'), findsOneWidget);
-    expect(inScreen<AnalyzeScreen>('MISSING SKILLS ✗'), findsOneWidget);
-    expect(inScreen<AnalyzeScreen>('Flutter'), findsOneWidget);
-    expect(inScreen<AnalyzeScreen>('Docker'), findsOneWidget);
+    await tester.enterText(
+      find.byType(TextField).first,
+      'Flutter Developer\nDocker and GraphQL experience required.',
+    );
+    await tester.tap(find.text('Analyze with AI'));
+    await tester.pump();
+    expect(find.text('Analyzing…'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
+
+    // Requirements from the description surface as chips (matched or not).
+    expect(inScreen<AnalyzeScreen>('Flutter'), findsWidgets);
+    expect(inScreen<AnalyzeScreen>('Docker'), findsWidgets);
+    expect(inScreen<AnalyzeScreen>('GraphQL'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
@@ -194,7 +212,7 @@ void main() {
     // Newest analysis is listed first with the derived title; skills that were
     // mentioned in the description move out of "missing".
     expect(inScreen<AnalyzeScreen>('Senior Flutter Engineer'), findsOneWidget);
-    expect(find.text('CI/CD'), findsWidgets);
+    expect(find.text('Docker'), findsWidgets);
 
     await tester.tap(find.byIcon(Icons.delete_outline_rounded).first);
     await tester.pumpAndSettle();
@@ -227,7 +245,7 @@ void main() {
     expect(find.text('AWS'), findsWidgets);
 
     // A candidate-specific (not hardcoded) recommendation is generated.
-    expect(find.textContaining('to your CV'), findsWidgets);
+    expect(find.byKey(const ValueKey('analysis_recommendation')), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
@@ -254,51 +272,39 @@ void main() {
     await tester.pumpAndSettle();
 
     // The newest analysis is listed first with the derived title.
-    expect(inScreen<AnalyzeScreen>('Flutter Developer'), findsOneWidget);
+    expect(inScreen<AnalyzeScreen>('Flutter Developer'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('CV Studio renders CVs and templates', (tester) async {
+  testWidgets('CV Studio renders header and empty state', (tester) async {
     await pumpAt(tester, const Size(390, 844));
 
     await tapNav(tester, 'Studio');
 
     expect(inScreen<StudioScreen>('CV Studio'), findsOneWidget);
-    expect(inScreen<StudioScreen>('Flutter Engineer'), findsWidgets);
-    expect(inScreen<StudioScreen>('ATS Minimal'), findsOneWidget);
+    expect(inScreen<StudioScreen>('No CVs yet'), findsOneWidget);
+    expect(find.byKey(const Key('cvCreate')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('New CV is created and can be optimized', (tester) async {
+  testWidgets('New CV opens the create sheet with the three engine templates',
+      (tester) async {
     await pumpAt(tester, const Size(390, 844));
 
     await tapNav(tester, 'Studio');
 
-    await tester.tap(find.text('New CV'));
+    await tester.tap(find.byKey(const Key('cvCreate')));
     await tester.pumpAndSettle();
-    expect(find.text('Create a new CV'), findsOneWidget);
+    expect(find.text('Create CV'), findsWidgets);
+    expect(find.text('Select a target first'), findsOneWidget);
 
-    await tester.enterText(find.byType(TextField).last, 'Lead Engineer');
-    await tester.tap(find.text('Create CV'));
+    // Open the template dropdown to reveal all engine templates.
+    await tester.tap(find.byKey(const Key('cvTemplateSelect')));
     await tester.pumpAndSettle();
+    expect(find.text('Nexora Minimal'), findsWidgets);
+    expect(find.text('Nexora Modern'), findsWidgets);
+    expect(find.text('Nexora Compact'), findsWidgets);
 
-    // New CV appears first and the count is updated. ATS = 84 + (13 % 7) = 90.
-    expect(inScreen<StudioScreen>('MY CVS (4)'), findsOneWidget);
-    expect(inScreen<StudioScreen>('Lead Engineer'), findsOneWidget);
-    expect(find.text('90'), findsOneWidget);
-
-    // Optimizing raises the ATS score (90 -> 96).
-    await tester.tap(find.text('Optimize').first);
-    await tester.pump();
-    expect(find.text('Optimizing…'), findsOneWidget);
-
-    await tester.pump(const Duration(seconds: 2));
-    await tester.pumpAndSettle();
-    expect(find.text('Optimization complete'), findsOneWidget);
-
-    await tester.tap(find.text('Done'));
-    await tester.pumpAndSettle();
-    expect(find.text('96'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

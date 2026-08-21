@@ -3379,6 +3379,1068 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'If that email exists, a reset link is on its way.'**
   String get resetPasswordSent;
+
+  /// No description provided for @ciTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Career Intelligence'**
+  String get ciTitle;
+
+  /// No description provided for @ciStrongestSkills.
+  ///
+  /// In en, this message translates to:
+  /// **'Strongest skills'**
+  String get ciStrongestSkills;
+
+  /// No description provided for @ciSupportingSkills.
+  ///
+  /// In en, this message translates to:
+  /// **'Supporting skills'**
+  String get ciSupportingSkills;
+
+  /// No description provided for @ciExperience.
+  ///
+  /// In en, this message translates to:
+  /// **'Experience'**
+  String get ciExperience;
+
+  /// No description provided for @ciEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get ciEducation;
+
+  /// No description provided for @ciDirection.
+  ///
+  /// In en, this message translates to:
+  /// **'Direction'**
+  String get ciDirection;
+
+  /// No description provided for @ciMissingInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s missing'**
+  String get ciMissingInfo;
+
+  /// No description provided for @ciWeaknesses.
+  ///
+  /// In en, this message translates to:
+  /// **'Weak spots'**
+  String get ciWeaknesses;
+
+  /// No description provided for @ciClearDirection.
+  ///
+  /// In en, this message translates to:
+  /// **'Focused'**
+  String get ciClearDirection;
+
+  /// No description provided for @ciNoDirection.
+  ///
+  /// In en, this message translates to:
+  /// **'Exploring'**
+  String get ciNoDirection;
+
+  /// No description provided for @ciAddTargetCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a target to focus your guidance'**
+  String get ciAddTargetCta;
+
+  /// No description provided for @strengthNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get strengthNone;
+
+  /// No description provided for @strengthLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Limited'**
+  String get strengthLimited;
+
+  /// No description provided for @strengthModerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderate'**
+  String get strengthModerate;
+
+  /// No description provided for @strengthStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong'**
+  String get strengthStrong;
+
+  /// No description provided for @eduBasic.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic'**
+  String get eduBasic;
+
+  /// No description provided for @eduStandard.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get eduStandard;
+
+  /// No description provided for @eduStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong'**
+  String get eduStrong;
+
+  /// No description provided for @readinessStarter.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting started'**
+  String get readinessStarter;
+
+  /// No description provided for @readinessBuilding.
+  ///
+  /// In en, this message translates to:
+  /// **'Building'**
+  String get readinessBuilding;
+
+  /// No description provided for @readinessStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong'**
+  String get readinessStrong;
+
+  /// No description provided for @readinessInterviewReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview-ready'**
+  String get readinessInterviewReady;
+
+  /// No description provided for @gapTargetRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Target role'**
+  String get gapTargetRole;
+
+  /// No description provided for @gapSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get gapSummary;
+
+  /// No description provided for @gapSkills.
+  ///
+  /// In en, this message translates to:
+  /// **'Skills'**
+  String get gapSkills;
+
+  /// No description provided for @gapExperience.
+  ///
+  /// In en, this message translates to:
+  /// **'Experience'**
+  String get gapExperience;
+
+  /// No description provided for @gapProjects.
+  ///
+  /// In en, this message translates to:
+  /// **'Projects'**
+  String get gapProjects;
+
+  /// No description provided for @gapEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get gapEducation;
+
+  /// No description provided for @gapCertifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications'**
+  String get gapCertifications;
+
+  /// No description provided for @gapAchievements.
+  ///
+  /// In en, this message translates to:
+  /// **'Achievements'**
+  String get gapAchievements;
+
+  /// No description provided for @gapLanguages.
+  ///
+  /// In en, this message translates to:
+  /// **'Languages'**
+  String get gapLanguages;
+
+  /// No description provided for @gapSkillEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Skill evidence'**
+  String get gapSkillEvidence;
+
+  /// No description provided for @targetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Targets'**
+  String get targetTitle;
+
+  /// No description provided for @targetListEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No targets yet'**
+  String get targetListEmpty;
+
+  /// No description provided for @targetListEmptySub.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a job, internship, graduate program or scholarship you\'re aiming for to focus your guidance.'**
+  String get targetListEmptySub;
+
+  /// No description provided for @targetAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add target'**
+  String get targetAdd;
+
+  /// No description provided for @targetEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit target'**
+  String get targetEdit;
+
+  /// No description provided for @targetType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get targetType;
+
+  /// No description provided for @targetTypeJob.
+  ///
+  /// In en, this message translates to:
+  /// **'Job'**
+  String get targetTypeJob;
+
+  /// No description provided for @targetTypeInternship.
+  ///
+  /// In en, this message translates to:
+  /// **'Internship'**
+  String get targetTypeInternship;
+
+  /// No description provided for @targetTypeGraduateProgram.
+  ///
+  /// In en, this message translates to:
+  /// **'Graduate Program'**
+  String get targetTypeGraduateProgram;
+
+  /// No description provided for @targetTypeAcademicApplication.
+  ///
+  /// In en, this message translates to:
+  /// **'Academic Application'**
+  String get targetTypeAcademicApplication;
+
+  /// No description provided for @targetTypeCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get targetTypeCustom;
+
+  /// No description provided for @targetRoleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Role / Title'**
+  String get targetRoleLabel;
+
+  /// No description provided for @targetRoleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Flutter Developer'**
+  String get targetRoleHint;
+
+  /// No description provided for @targetIndustryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Industry'**
+  String get targetIndustryLabel;
+
+  /// No description provided for @targetIndustryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Fintech'**
+  String get targetIndustryHint;
+
+  /// No description provided for @targetCountryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Country / Region'**
+  String get targetCountryLabel;
+
+  /// No description provided for @targetSeniorityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Seniority'**
+  String get targetSeniorityLabel;
+
+  /// No description provided for @targetLanguageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get targetLanguageLabel;
+
+  /// No description provided for @targetCompanyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Company / University'**
+  String get targetCompanyLabel;
+
+  /// No description provided for @targetUrlLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get targetUrlLabel;
+
+  /// No description provided for @targetDescriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Description / Requirements'**
+  String get targetDescriptionLabel;
+
+  /// No description provided for @targetSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save target'**
+  String get targetSave;
+
+  /// No description provided for @targetDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete target'**
+  String get targetDelete;
+
+  /// No description provided for @targetDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this target? This can\'t be undone.'**
+  String get targetDeleteConfirm;
+
+  /// No description provided for @targetOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get targetOpen;
+
+  /// No description provided for @analyzeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a job, internship or program description. We\'ll score it against your Career DNA and explain every result.'**
+  String get analyzeSubtitle;
+
+  /// No description provided for @analyzeDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste the job description here…'**
+  String get analyzeDescriptionHint;
+
+  /// No description provided for @analyzeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze'**
+  String get analyzeButton;
+
+  /// No description provided for @analyzeJustAnalyze.
+  ///
+  /// In en, this message translates to:
+  /// **'Just analyze'**
+  String get analyzeJustAnalyze;
+
+  /// No description provided for @analyzeNewTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'New target'**
+  String get analyzeNewTarget;
+
+  /// No description provided for @analyzeMatchScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Match score'**
+  String get analyzeMatchScore;
+
+  /// No description provided for @analyzeOverall.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall'**
+  String get analyzeOverall;
+
+  /// No description provided for @analyzeRecommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommendation'**
+  String get analyzeRecommendation;
+
+  /// No description provided for @analyzePartialMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Partial matches'**
+  String get analyzePartialMatches;
+
+  /// No description provided for @analyzeNotEvidenced.
+  ///
+  /// In en, this message translates to:
+  /// **'Not yet evidenced'**
+  String get analyzeNotEvidenced;
+
+  /// No description provided for @analyzeMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Mismatch'**
+  String get analyzeMismatch;
+
+  /// No description provided for @analyzeUnclear.
+  ///
+  /// In en, this message translates to:
+  /// **'Unclear'**
+  String get analyzeUnclear;
+
+  /// No description provided for @analyzeRequiredSkills.
+  ///
+  /// In en, this message translates to:
+  /// **'Required skills'**
+  String get analyzeRequiredSkills;
+
+  /// No description provided for @analyzePreferredSkills.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferred skills'**
+  String get analyzePreferredSkills;
+
+  /// No description provided for @analyzeTechnologies.
+  ///
+  /// In en, this message translates to:
+  /// **'Technologies'**
+  String get analyzeTechnologies;
+
+  /// No description provided for @analyzeResponsibilities.
+  ///
+  /// In en, this message translates to:
+  /// **'Responsibilities'**
+  String get analyzeResponsibilities;
+
+  /// No description provided for @analyzeCertifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications'**
+  String get analyzeCertifications;
+
+  /// No description provided for @analyzeLanguages.
+  ///
+  /// In en, this message translates to:
+  /// **'Languages'**
+  String get analyzeLanguages;
+
+  /// No description provided for @analyzeSoftSkills.
+  ///
+  /// In en, this message translates to:
+  /// **'Soft skills'**
+  String get analyzeSoftSkills;
+
+  /// No description provided for @analyzeDomainKnowledge.
+  ///
+  /// In en, this message translates to:
+  /// **'Domain knowledge'**
+  String get analyzeDomainKnowledge;
+
+  /// No description provided for @analyzeKeywordsList.
+  ///
+  /// In en, this message translates to:
+  /// **'Keywords'**
+  String get analyzeKeywordsList;
+
+  /// No description provided for @analyzeExperienceReq.
+  ///
+  /// In en, this message translates to:
+  /// **'Experience'**
+  String get analyzeExperienceReq;
+
+  /// No description provided for @analyzeEducationReq.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get analyzeEducationReq;
+
+  /// No description provided for @analyzeAgainstTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzed against target'**
+  String get analyzeAgainstTarget;
+
+  /// No description provided for @analyzeCreateCv.
+  ///
+  /// In en, this message translates to:
+  /// **'Create CV for this Target'**
+  String get analyzeCreateCv;
+
+  /// No description provided for @analyzeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No analysis yet. Paste a job description to begin.'**
+  String get analyzeEmpty;
+
+  /// No description provided for @analyzeRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get analyzeRemove;
+
+  /// No description provided for @analyzeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get analyzeRequired;
+
+  /// No description provided for @analyzePreferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferred'**
+  String get analyzePreferred;
+
+  /// No description provided for @analyzeCatStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong match'**
+  String get analyzeCatStrong;
+
+  /// No description provided for @analyzeCatGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Good match'**
+  String get analyzeCatGood;
+
+  /// No description provided for @analyzeCatModerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderate match'**
+  String get analyzeCatModerate;
+
+  /// No description provided for @analyzeCatWeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Weak match'**
+  String get analyzeCatWeak;
+
+  /// No description provided for @cvNoCvs.
+  ///
+  /// In en, this message translates to:
+  /// **'No CVs yet'**
+  String get cvNoCvs;
+
+  /// No description provided for @cvCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create CV'**
+  String get cvCreate;
+
+  /// No description provided for @cvTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get cvTarget;
+
+  /// No description provided for @cvTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Template'**
+  String get cvTemplate;
+
+  /// No description provided for @cvGenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate'**
+  String get cvGenerate;
+
+  /// No description provided for @cvUseFactual.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Factual CV'**
+  String get cvUseFactual;
+
+  /// No description provided for @cvRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get cvRetry;
+
+  /// No description provided for @cvExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get cvExport;
+
+  /// No description provided for @cvVersions.
+  ///
+  /// In en, this message translates to:
+  /// **'Versions'**
+  String get cvVersions;
+
+  /// No description provided for @cvVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {n}'**
+  String cvVersion(Object n);
+
+  /// No description provided for @cvFactualLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Factual CV'**
+  String get cvFactualLabel;
+
+  /// No description provided for @cvAiTailored.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Tailored'**
+  String get cvAiTailored;
+
+  /// No description provided for @cvGenerating.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating…'**
+  String get cvGenerating;
+
+  /// No description provided for @cvGenerationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Generation failed'**
+  String get cvGenerationFailed;
+
+  /// No description provided for @cvSelectTargetFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a target first'**
+  String get cvSelectTargetFirst;
+
+  /// No description provided for @cvCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get cvCopy;
+
+  /// No description provided for @cvExportText.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy this CV as text'**
+  String get cvExportText;
+
+  /// No description provided for @cvSourceFactual.
+  ///
+  /// In en, this message translates to:
+  /// **'Built only from verified facts'**
+  String get cvSourceFactual;
+
+  /// No description provided for @cvBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get cvBack;
+
+  /// No description provided for @cvOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get cvOpen;
+
+  /// No description provided for @cvConfirmDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this CV? This can\'t be undone.'**
+  String get cvConfirmDelete;
+
+  /// No description provided for @cvTemplateMinimal.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimal'**
+  String get cvTemplateMinimal;
+
+  /// No description provided for @cvTemplateModern.
+  ///
+  /// In en, this message translates to:
+  /// **'Modern'**
+  String get cvTemplateModern;
+
+  /// No description provided for @cvTemplateCompact.
+  ///
+  /// In en, this message translates to:
+  /// **'Compact'**
+  String get cvTemplateCompact;
+
+  /// No description provided for @cvEditSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get cvEditSummary;
+
+  /// No description provided for @cvEditSkills.
+  ///
+  /// In en, this message translates to:
+  /// **'Skills (comma separated)'**
+  String get cvEditSkills;
+
+  /// No description provided for @cvEditName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name'**
+  String get cvEditName;
+
+  /// No description provided for @cvEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Headline'**
+  String get cvEditTitle;
+
+  /// No description provided for @cvEditEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get cvEditEmail;
+
+  /// No description provided for @cvEditPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get cvEditPhone;
+
+  /// No description provided for @cvEditLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get cvEditLocation;
+
+  /// No description provided for @cvEditSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtitle'**
+  String get cvEditSubtitle;
+
+  /// No description provided for @cvSavedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved as version {n}'**
+  String cvSavedToast(int n);
+
+  /// No description provided for @cvFactualToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing your Factual CV'**
+  String get cvFactualToast;
+
+  /// No description provided for @cvValidationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Generated content could not be verified'**
+  String get cvValidationFailed;
+
+  /// No description provided for @cvPreviewEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to preview yet'**
+  String get cvPreviewEmpty;
+
+  /// No description provided for @cvEvaluateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CV Evaluation'**
+  String get cvEvaluateTitle;
+
+  /// No description provided for @cvScoreOverall.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall'**
+  String get cvScoreOverall;
+
+  /// No description provided for @cvScoreAts.
+  ///
+  /// In en, this message translates to:
+  /// **'ATS / Parseability'**
+  String get cvScoreAts;
+
+  /// No description provided for @cvScoreTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target Alignment'**
+  String get cvScoreTarget;
+
+  /// No description provided for @cvScoreContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Content Strength'**
+  String get cvScoreContent;
+
+  /// No description provided for @cvScoreEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence Strength'**
+  String get cvScoreEvidence;
+
+  /// No description provided for @cvScoreReadability.
+  ///
+  /// In en, this message translates to:
+  /// **'Readability'**
+  String get cvScoreReadability;
+
+  /// No description provided for @cvScoreClarity.
+  ///
+  /// In en, this message translates to:
+  /// **'Clarity'**
+  String get cvScoreClarity;
+
+  /// No description provided for @cvScoreStructure.
+  ///
+  /// In en, this message translates to:
+  /// **'Structure'**
+  String get cvScoreStructure;
+
+  /// No description provided for @cvScoreKeyword.
+  ///
+  /// In en, this message translates to:
+  /// **'Keyword Alignment'**
+  String get cvScoreKeyword;
+
+  /// No description provided for @cvScoreSkill.
+  ///
+  /// In en, this message translates to:
+  /// **'Skill Alignment'**
+  String get cvScoreSkill;
+
+  /// No description provided for @cvScoreSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Section Completeness'**
+  String get cvScoreSection;
+
+  /// No description provided for @cvDeterministicOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing structural checks only (AI explanations are unavailable). Scores are fully deterministic.'**
+  String get cvDeterministicOnly;
+
+  /// No description provided for @cvNoSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'No improvement suggestions — this CV looks strong for the target.'**
+  String get cvNoSuggestions;
+
+  /// No description provided for @cvSuggestionProblem.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue'**
+  String get cvSuggestionProblem;
+
+  /// No description provided for @cvSuggestionCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get cvSuggestionCurrent;
+
+  /// No description provided for @cvSuggestionSuggested.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested'**
+  String get cvSuggestionSuggested;
+
+  /// No description provided for @cvSuggestionWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Why it helps'**
+  String get cvSuggestionWhy;
+
+  /// No description provided for @cvSuggestionTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target requirement'**
+  String get cvSuggestionTarget;
+
+  /// No description provided for @cvApplySuggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get cvApplySuggestion;
+
+  /// No description provided for @cvDismissSuggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get cvDismissSuggestion;
+
+  /// No description provided for @cvEditSuggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get cvEditSuggestion;
+
+  /// No description provided for @cvReEvaluate.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-evaluate'**
+  String get cvReEvaluate;
+
+  /// No description provided for @cvAppliedSuggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Applied — new version created.'**
+  String get cvAppliedSuggestion;
+
+  /// No description provided for @cvEvaluateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not evaluate the CV. Please try again.'**
+  String get cvEvaluateFailed;
+
+  /// No description provided for @acLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Next best action'**
+  String get acLabel;
+
+  /// No description provided for @acTitleCompleteDna.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete your Career DNA'**
+  String get acTitleCompleteDna;
+
+  /// No description provided for @acDescCompleteDna.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your skills, experience, and goals so we can guide your next step.'**
+  String get acDescCompleteDna;
+
+  /// No description provided for @acCtaCompleteDna.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Profile'**
+  String get acCtaCompleteDna;
+
+  /// No description provided for @acTitleDefineTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Define your target'**
+  String get acTitleDefineTarget;
+
+  /// No description provided for @acDescDefineTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the role you\'re aiming for so we can tailor everything to it.'**
+  String get acDescDefineTarget;
+
+  /// No description provided for @acCtaDefineTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Define Target'**
+  String get acCtaDefineTarget;
+
+  /// No description provided for @acTitleAnalyzeOpportunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze an opportunity'**
+  String get acTitleAnalyzeOpportunity;
+
+  /// No description provided for @acDescAnalyzeOpportunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Review how well you match a real job and where the gaps are.'**
+  String get acDescAnalyzeOpportunity;
+
+  /// No description provided for @acCtaAnalyzeOpportunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze Opportunity'**
+  String get acCtaAnalyzeOpportunity;
+
+  /// No description provided for @acTitleCreateCv.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a CV for {role}'**
+  String acTitleCreateCv(String role);
+
+  /// No description provided for @acDescCreateCv.
+  ///
+  /// In en, this message translates to:
+  /// **'Build a targeted CV for {role} from your verified Career DNA.'**
+  String acDescCreateCv(String role);
+
+  /// No description provided for @acCtaCreateCv.
+  ///
+  /// In en, this message translates to:
+  /// **'Create CV'**
+  String get acCtaCreateCv;
+
+  /// No description provided for @acTitleEvaluateCv.
+  ///
+  /// In en, this message translates to:
+  /// **'Evaluate your CV'**
+  String get acTitleEvaluateCv;
+
+  /// No description provided for @acDescEvaluateCv.
+  ///
+  /// In en, this message translates to:
+  /// **'See how your CV scores and get concrete ways to improve it.'**
+  String get acDescEvaluateCv;
+
+  /// No description provided for @acCtaEvaluateCv.
+  ///
+  /// In en, this message translates to:
+  /// **'Evaluate CV'**
+  String get acCtaEvaluateCv;
+
+  /// No description provided for @acTitleImproveCv.
+  ///
+  /// In en, this message translates to:
+  /// **'Improve your CV'**
+  String get acTitleImproveCv;
+
+  /// No description provided for @acDescImproveCv.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply the suggested changes to strengthen your CV.'**
+  String get acDescImproveCv;
+
+  /// No description provided for @acCtaImproveCv.
+  ///
+  /// In en, this message translates to:
+  /// **'Review Improvements'**
+  String get acCtaImproveCv;
+
+  /// No description provided for @acTitleTrackApplications.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re ready to apply'**
+  String get acTitleTrackApplications;
+
+  /// No description provided for @acDescTrackApplications.
+  ///
+  /// In en, this message translates to:
+  /// **'Your CV is strong. Start tracking the roles you apply to.'**
+  String get acDescTrackApplications;
+
+  /// No description provided for @acCtaTrackApplications.
+  ///
+  /// In en, this message translates to:
+  /// **'Track Applications'**
+  String get acCtaTrackApplications;
+
+  /// No description provided for @acLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Finding your next step…'**
+  String get acLoading;
+
+  /// No description provided for @acTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get acTarget;
+
+  /// No description provided for @acScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Score'**
+  String get acScore;
+
+  /// No description provided for @acPending.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} improvements'**
+  String acPending(int count);
 }
 
 class _AppLocalizationsDelegate

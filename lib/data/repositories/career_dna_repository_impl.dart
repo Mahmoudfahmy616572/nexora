@@ -56,7 +56,7 @@ class CareerDnaRepositoryImpl implements CareerDnaRepository {
       throw Exception('Could not save Career DNA: $e');
     } finally {
       await _local.writeCareerDna(updated.toRow());
-      final versions = await _local.readVersions();
+      final versions = [...await _local.readVersions()];
       versions.insert(0, updated.toVersionRow());
       await _local.writeVersions(versions.take(20).toList());
     }

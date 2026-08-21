@@ -84,6 +84,45 @@ class CareerRemoteDataSource {
     return data;
   }
 
+  /// Runs the hosted AI CV generation edge function with the user's JWT.
+  /// Returns the raw JSON `{ content, sourceLabel }` where `content` is the
+  /// structured CV content object.
+  Future<Map<String, dynamic>> runCvGenerate(Map<String, dynamic> input) async {
+    final client = _client;
+    final response = await client.functions
+        .invoke('cv_generate', body: input)
+        .timeout(const Duration(seconds: 60));
+    final data = response.data;
+    if (data is! Map<String, dynamic>) {
+      throw StateError('AI returned an unexpected response');
+    }
+    if (data['error'] != null) {
+      throw StateError(data['error'] as String);
+    }
+    if (data['content'] is! Map) {
+      throw StateError('AI returned incomplete CV content');
+    }
+    return data;
+  }
+
+  /// Runs the hosted AI CV evaluation edge function with the user's JWT.
+  /// Returns the raw JSON `{ explanations, suggestions }`. The deterministic
+  /// numeric scores are computed client-side and are NOT taken from here.
+  Future<Map<String, dynamic>> runCvEvaluate(Map<String, dynamic> input) async {
+    final client = _client;
+    final response = await client.functions
+        .invoke('cv_evaluate', body: input)
+        .timeout(const Duration(seconds: 60));
+    final data = response.data;
+    if (data is! Map<String, dynamic>) {
+      throw StateError('AI returned an unexpected response');
+    }
+    if (data['error'] != null) {
+      throw StateError(data['error'] as String);
+    }
+    return data;
+  }
+
   /// Runs the hosted AI profile-builder edge function with the user's JWT.
   ///
   /// [input] mirrors the local [generateProfile] parameters:

@@ -1717,4 +1717,557 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get resetPasswordSent =>
       'If that email exists, a reset link is on its way.';
+
+  @override
+  String get ciTitle => 'Career Intelligence';
+
+  @override
+  String get ciStrongestSkills => 'Strongest skills';
+
+  @override
+  String get ciSupportingSkills => 'Supporting skills';
+
+  @override
+  String get ciExperience => 'Experience';
+
+  @override
+  String get ciEducation => 'Education';
+
+  @override
+  String get ciDirection => 'Direction';
+
+  @override
+  String get ciMissingInfo => 'What\'s missing';
+
+  @override
+  String get ciWeaknesses => 'Weak spots';
+
+  @override
+  String get ciClearDirection => 'Focused';
+
+  @override
+  String get ciNoDirection => 'Exploring';
+
+  @override
+  String get ciAddTargetCta => 'Add a target to focus your guidance';
+
+  @override
+  String get strengthNone => 'None';
+
+  @override
+  String get strengthLimited => 'Limited';
+
+  @override
+  String get strengthModerate => 'Moderate';
+
+  @override
+  String get strengthStrong => 'Strong';
+
+  @override
+  String get eduBasic => 'Basic';
+
+  @override
+  String get eduStandard => 'Standard';
+
+  @override
+  String get eduStrong => 'Strong';
+
+  @override
+  String get readinessStarter => 'Getting started';
+
+  @override
+  String get readinessBuilding => 'Building';
+
+  @override
+  String get readinessStrong => 'Strong';
+
+  @override
+  String get readinessInterviewReady => 'Interview-ready';
+
+  @override
+  String get gapTargetRole => 'Target role';
+
+  @override
+  String get gapSummary => 'Summary';
+
+  @override
+  String get gapSkills => 'Skills';
+
+  @override
+  String get gapExperience => 'Experience';
+
+  @override
+  String get gapProjects => 'Projects';
+
+  @override
+  String get gapEducation => 'Education';
+
+  @override
+  String get gapCertifications => 'Certifications';
+
+  @override
+  String get gapAchievements => 'Achievements';
+
+  @override
+  String get gapLanguages => 'Languages';
+
+  @override
+  String get gapSkillEvidence => 'Skill evidence';
+
+  @override
+  String get targetTitle => 'Targets';
+
+  @override
+  String get targetListEmpty => 'No targets yet';
+
+  @override
+  String get targetListEmptySub =>
+      'Add a job, internship, graduate program or scholarship you\'re aiming for to focus your guidance.';
+
+  @override
+  String get targetAdd => 'Add target';
+
+  @override
+  String get targetEdit => 'Edit target';
+
+  @override
+  String get targetType => 'Type';
+
+  @override
+  String get targetTypeJob => 'Job';
+
+  @override
+  String get targetTypeInternship => 'Internship';
+
+  @override
+  String get targetTypeGraduateProgram => 'Graduate Program';
+
+  @override
+  String get targetTypeAcademicApplication => 'Academic Application';
+
+  @override
+  String get targetTypeCustom => 'Custom';
+
+  @override
+  String get targetRoleLabel => 'Role / Title';
+
+  @override
+  String get targetRoleHint => 'e.g. Flutter Developer';
+
+  @override
+  String get targetIndustryLabel => 'Industry';
+
+  @override
+  String get targetIndustryHint => 'e.g. Fintech';
+
+  @override
+  String get targetCountryLabel => 'Country / Region';
+
+  @override
+  String get targetSeniorityLabel => 'Seniority';
+
+  @override
+  String get targetLanguageLabel => 'Language';
+
+  @override
+  String get targetCompanyLabel => 'Company / University';
+
+  @override
+  String get targetUrlLabel => 'Link';
+
+  @override
+  String get targetDescriptionLabel => 'Description / Requirements';
+
+  @override
+  String get targetSave => 'Save target';
+
+  @override
+  String get targetDelete => 'Delete target';
+
+  @override
+  String get targetDeleteConfirm =>
+      'Delete this target? This can\'t be undone.';
+
+  @override
+  String get targetOpen => 'Open';
+
+  @override
+  String get analyzeSubtitle =>
+      'Paste a job, internship or program description. We\'ll score it against your Career DNA and explain every result.';
+
+  @override
+  String get analyzeDescriptionHint => 'Paste the job description here…';
+
+  @override
+  String get analyzeButton => 'Analyze';
+
+  @override
+  String get analyzeJustAnalyze => 'Just analyze';
+
+  @override
+  String get analyzeNewTarget => 'New target';
+
+  @override
+  String get analyzeMatchScore => 'Match score';
+
+  @override
+  String get analyzeOverall => 'Overall';
+
+  @override
+  String get analyzeRecommendation => 'Recommendation';
+
+  @override
+  String get analyzePartialMatches => 'Partial matches';
+
+  @override
+  String get analyzeNotEvidenced => 'Not yet evidenced';
+
+  @override
+  String get analyzeMismatch => 'Mismatch';
+
+  @override
+  String get analyzeUnclear => 'Unclear';
+
+  @override
+  String get analyzeRequiredSkills => 'Required skills';
+
+  @override
+  String get analyzePreferredSkills => 'Preferred skills';
+
+  @override
+  String get analyzeTechnologies => 'Technologies';
+
+  @override
+  String get analyzeResponsibilities => 'Responsibilities';
+
+  @override
+  String get analyzeCertifications => 'Certifications';
+
+  @override
+  String get analyzeLanguages => 'Languages';
+
+  @override
+  String get analyzeSoftSkills => 'Soft skills';
+
+  @override
+  String get analyzeDomainKnowledge => 'Domain knowledge';
+
+  @override
+  String get analyzeKeywordsList => 'Keywords';
+
+  @override
+  String get analyzeExperienceReq => 'Experience';
+
+  @override
+  String get analyzeEducationReq => 'Education';
+
+  @override
+  String get analyzeAgainstTarget => 'Analyzed against target';
+
+  @override
+  String get analyzeCreateCv => 'Create CV for this Target';
+
+  @override
+  String get analyzeEmpty =>
+      'No analysis yet. Paste a job description to begin.';
+
+  @override
+  String get analyzeRemove => 'Remove';
+
+  @override
+  String get analyzeRequired => 'Required';
+
+  @override
+  String get analyzePreferred => 'Preferred';
+
+  @override
+  String get analyzeCatStrong => 'Strong match';
+
+  @override
+  String get analyzeCatGood => 'Good match';
+
+  @override
+  String get analyzeCatModerate => 'Moderate match';
+
+  @override
+  String get analyzeCatWeak => 'Weak match';
+
+  @override
+  String get cvNoCvs => 'No CVs yet';
+
+  @override
+  String get cvCreate => 'Create CV';
+
+  @override
+  String get cvTarget => 'Target';
+
+  @override
+  String get cvTemplate => 'Template';
+
+  @override
+  String get cvGenerate => 'Generate';
+
+  @override
+  String get cvUseFactual => 'Use Factual CV';
+
+  @override
+  String get cvRetry => 'Retry';
+
+  @override
+  String get cvExport => 'Export';
+
+  @override
+  String get cvVersions => 'Versions';
+
+  @override
+  String cvVersion(Object n) {
+    return 'Version $n';
+  }
+
+  @override
+  String get cvFactualLabel => 'Factual CV';
+
+  @override
+  String get cvAiTailored => 'AI Tailored';
+
+  @override
+  String get cvGenerating => 'Generating…';
+
+  @override
+  String get cvGenerationFailed => 'Generation failed';
+
+  @override
+  String get cvSelectTargetFirst => 'Select a target first';
+
+  @override
+  String get cvCopy => 'Copy';
+
+  @override
+  String get cvExportText => 'Copy this CV as text';
+
+  @override
+  String get cvSourceFactual => 'Built only from verified facts';
+
+  @override
+  String get cvBack => 'Back';
+
+  @override
+  String get cvOpen => 'Open';
+
+  @override
+  String get cvConfirmDelete => 'Delete this CV? This can\'t be undone.';
+
+  @override
+  String get cvTemplateMinimal => 'Minimal';
+
+  @override
+  String get cvTemplateModern => 'Modern';
+
+  @override
+  String get cvTemplateCompact => 'Compact';
+
+  @override
+  String get cvEditSummary => 'Summary';
+
+  @override
+  String get cvEditSkills => 'Skills (comma separated)';
+
+  @override
+  String get cvEditName => 'Full name';
+
+  @override
+  String get cvEditTitle => 'Headline';
+
+  @override
+  String get cvEditEmail => 'Email';
+
+  @override
+  String get cvEditPhone => 'Phone';
+
+  @override
+  String get cvEditLocation => 'Location';
+
+  @override
+  String get cvEditSubtitle => 'Subtitle';
+
+  @override
+  String cvSavedToast(int n) {
+    return 'Saved as version $n';
+  }
+
+  @override
+  String get cvFactualToast => 'Showing your Factual CV';
+
+  @override
+  String get cvValidationFailed => 'Generated content could not be verified';
+
+  @override
+  String get cvPreviewEmpty => 'Nothing to preview yet';
+
+  @override
+  String get cvEvaluateTitle => 'CV Evaluation';
+
+  @override
+  String get cvScoreOverall => 'Overall';
+
+  @override
+  String get cvScoreAts => 'ATS / Parseability';
+
+  @override
+  String get cvScoreTarget => 'Target Alignment';
+
+  @override
+  String get cvScoreContent => 'Content Strength';
+
+  @override
+  String get cvScoreEvidence => 'Evidence Strength';
+
+  @override
+  String get cvScoreReadability => 'Readability';
+
+  @override
+  String get cvScoreClarity => 'Clarity';
+
+  @override
+  String get cvScoreStructure => 'Structure';
+
+  @override
+  String get cvScoreKeyword => 'Keyword Alignment';
+
+  @override
+  String get cvScoreSkill => 'Skill Alignment';
+
+  @override
+  String get cvScoreSection => 'Section Completeness';
+
+  @override
+  String get cvDeterministicOnly =>
+      'Showing structural checks only (AI explanations are unavailable). Scores are fully deterministic.';
+
+  @override
+  String get cvNoSuggestions =>
+      'No improvement suggestions — this CV looks strong for the target.';
+
+  @override
+  String get cvSuggestionProblem => 'Issue';
+
+  @override
+  String get cvSuggestionCurrent => 'Current';
+
+  @override
+  String get cvSuggestionSuggested => 'Suggested';
+
+  @override
+  String get cvSuggestionWhy => 'Why it helps';
+
+  @override
+  String get cvSuggestionTarget => 'Target requirement';
+
+  @override
+  String get cvApplySuggestion => 'Apply';
+
+  @override
+  String get cvDismissSuggestion => 'Dismiss';
+
+  @override
+  String get cvEditSuggestion => 'Edit';
+
+  @override
+  String get cvReEvaluate => 'Re-evaluate';
+
+  @override
+  String get cvAppliedSuggestion => 'Applied — new version created.';
+
+  @override
+  String get cvEvaluateFailed => 'Could not evaluate the CV. Please try again.';
+
+  @override
+  String get acLabel => 'Next best action';
+
+  @override
+  String get acTitleCompleteDna => 'Complete your Career DNA';
+
+  @override
+  String get acDescCompleteDna =>
+      'Add your skills, experience, and goals so we can guide your next step.';
+
+  @override
+  String get acCtaCompleteDna => 'Complete Profile';
+
+  @override
+  String get acTitleDefineTarget => 'Define your target';
+
+  @override
+  String get acDescDefineTarget =>
+      'Pick the role you\'re aiming for so we can tailor everything to it.';
+
+  @override
+  String get acCtaDefineTarget => 'Define Target';
+
+  @override
+  String get acTitleAnalyzeOpportunity => 'Analyze an opportunity';
+
+  @override
+  String get acDescAnalyzeOpportunity =>
+      'Review how well you match a real job and where the gaps are.';
+
+  @override
+  String get acCtaAnalyzeOpportunity => 'Analyze Opportunity';
+
+  @override
+  String acTitleCreateCv(String role) {
+    return 'Create a CV for $role';
+  }
+
+  @override
+  String acDescCreateCv(String role) {
+    return 'Build a targeted CV for $role from your verified Career DNA.';
+  }
+
+  @override
+  String get acCtaCreateCv => 'Create CV';
+
+  @override
+  String get acTitleEvaluateCv => 'Evaluate your CV';
+
+  @override
+  String get acDescEvaluateCv =>
+      'See how your CV scores and get concrete ways to improve it.';
+
+  @override
+  String get acCtaEvaluateCv => 'Evaluate CV';
+
+  @override
+  String get acTitleImproveCv => 'Improve your CV';
+
+  @override
+  String get acDescImproveCv =>
+      'Apply the suggested changes to strengthen your CV.';
+
+  @override
+  String get acCtaImproveCv => 'Review Improvements';
+
+  @override
+  String get acTitleTrackApplications => 'You\'re ready to apply';
+
+  @override
+  String get acDescTrackApplications =>
+      'Your CV is strong. Start tracking the roles you apply to.';
+
+  @override
+  String get acCtaTrackApplications => 'Track Applications';
+
+  @override
+  String get acLoading => 'Finding your next step…';
+
+  @override
+  String get acTarget => 'Target';
+
+  @override
+  String get acScore => 'Score';
+
+  @override
+  String acPending(int count) {
+    return '$count improvements';
+  }
 }

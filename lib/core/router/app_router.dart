@@ -14,6 +14,10 @@ import '../../presentation/onboarding/stage_screen.dart';
 import '../../presentation/sign_in/sign_in_screen.dart';
 import '../../presentation/verify_email/verify_email_screen.dart';
 import '../../presentation/welcome/welcome_screen.dart';
+import '../../presentation/target/target_list_screen.dart';
+import '../../presentation/target/target_form_screen.dart';
+import '../../features/main/presentation/studio/evaluation/cv_evaluation_screen.dart';
+import '../../domain/entities/career_target.dart';
 
 /// Route names for the entire application.
 abstract final class Routes {
@@ -91,6 +95,20 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: Routes.settings,
       builder: (context, state) => const SettingsScreen(),
+    ),
+    GoRoute(
+      path: '/targets',
+      builder: (context, state) => const TargetListScreen(),
+    ),
+    GoRoute(
+      path: '/targets/form',
+      builder: (context, state) => TargetFormScreen(target: state.extra as CareerTarget?),
+    ),
+    GoRoute(
+      path: '/cv/:id/evaluate',
+      builder: (context, state) => CvEvaluationScreen(
+        documentId: state.pathParameters['id'] ?? '',
+      ),
     ),
   ],
 );

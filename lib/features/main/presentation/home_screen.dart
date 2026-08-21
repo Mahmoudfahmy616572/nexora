@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/localization/locale_cubit.dart';
 import '../../../core/theme/app_colors.dart';
@@ -9,11 +10,16 @@ import '../../../domain/entities/app_language.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/router/app_router.dart';
 import '../../../data/data_sources/auth_remote_data_source.dart';
+import '../../../data/data_sources/career_local_data_source.dart';
+import '../../../data/data_sources/career_remote_data_source.dart';
 import '../../../data/repositories/auth_repository_impl.dart';
+import '../../../data/repositories/career_dna_repository_impl.dart';
+import '../../../data/repositories/career_repository_impl.dart';
+import '../../../data/repositories/cv_evaluation_repository_impl.dart';
+import '../../../data/repositories/cv_suggestion_repository_impl.dart';
+import '../../../features/main/presentation/home/action_center_cubit.dart';
+import '../../../features/main/presentation/home/action_center_hero.dart';
 import 'main_tab.dart';
-import 'widgets/app_chip.dart';
-import 'widgets/progress_bar.dart';
-import 'widgets/progress_ring.dart';
 import 'widgets/section_label.dart';
 
 /// Home dashboard — mirrors the design's Home screen.
@@ -32,10 +38,25 @@ class _HomeScreenState extends State<HomeScreen> {
   /// (cold start without a stored session, widget tests, etc.).
   String _displayName = 'Ahmed Al-Rashidi';
 
+  late final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+
   @override
   void initState() {
     super.initState();
     _loadUser();
+  }
+
+  ActionCenterCubit _buildActionCenterCubit(SharedPreferences prefs) {
+    final local = CareerLocalDataSource(prefs);
+    final remote = CareerRemoteDataSource();
+    return ActionCenterCubit(
+      dnaRepo: CareerDnaRepositoryImpl(remote: remote, local: local),
+      targetRepo: CareerTargetRepositoryImpl(remote, local),
+      analysisRepo: JobAnalysisRepositoryImpl(remote, local),
+      docRepo: CvDocumentRepositoryImpl(remote, local),
+      evalRepo: CvEvaluationRepositoryImpl(remote, local, CvSuggestionRepositoryImpl(local)),
+      suggestionRepo: CvSuggestionRepositoryImpl(local),
+    );
   }
 
   void _loadUser() {
@@ -74,7 +95,22 @@ class _HomeScreenState extends State<HomeScreen> {
             onOpenProfile: () => GoRouter.of(context).push(Routes.settings),
           ),
           const SizedBox(height: 4),
-          const _DnaHealthCard(),
+          FutureBuilder<SharedPreferences>(
+            future: _prefs,
+            builder: (context, snap) {
+              if (snap.connectionState != ConnectionState.done ||
+                  snap.data == null) {
+                return const SizedBox(
+                  height: 120,
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              return BlocProvider<ActionCenterCubit>(
+                create: (_) => _buildActionCenterCubit(snap.data!)..load(),
+                child: ActionCenterHero(onOpenTab: widget.onOpenTab),
+              );
+            },
+          ),
           const SizedBox(height: 14),
           _QuickActions(onOpenTab: widget.onOpenTab),
           const _RecentActivity(),
@@ -167,61 +203,6 @@ class _HomeHeader extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DnaHealthCard extends StatelessWidget {
-  const _DnaHealthCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.card, AppColors.cardHi],
-        ),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.borderMed),
-      ),
-      child: Row(
-        children: [
-          const ProgressRing(
-            value: 82,
-            center: RingScore(value: '82', caption: 'DNA'),
-          ),
-          const SizedBox(width: 18),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Text(l10n.homeDnaHealth, style: AppTextStyles.cardTitle),
-                    ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      fit: FlexFit.loose,
-                      child: AppChip(label: l10n.homeOnTrack),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                ProgressBar(label: l10n.homeProfile, value: 95),
-                ProgressBar(label: l10n.homeActivity, value: 68, color: AppColors.purple),
-                ProgressBar(label: l10n.homeMatchRate, value: 84, color: AppColors.amber),
-              ],
-            ),
           ),
         ],
       ),

@@ -27,7 +27,7 @@
 
 // Groq's API is OpenAI-compatible; we just point at its endpoint and use one of
 // its models. Swap MODEL to any Groq chat model that supports JSON mode.
-const GROQ_MODEL = 'llama-3.3-70b-versatile';
+const GROQ_MODEL = 'openai/gpt-oss-120b';
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 Deno.serve(async (req) => {

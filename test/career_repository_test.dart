@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nexora/data/data_sources/career_local_data_source.dart';
 import 'package:nexora/data/data_sources/career_remote_data_source.dart';
 import 'package:nexora/data/repositories/career_repository_impl.dart';
+import 'package:nexora/domain/entities/career_dna.dart';
 import 'package:nexora/domain/entities/cv_profile.dart';
 import 'package:nexora/domain/entities/job_analysis.dart';
 import 'package:nexora/domain/entities/job_application.dart';
@@ -102,19 +103,19 @@ void main() {
       expect(await ProfileSectionRepositoryImpl(remote, local).load(), hasLength(1));
     });
 
-    test('analyze throws when Supabase is unavailable so screens can fall back', () async {
+    test('analyze falls back to the offline engine when Supabase is unavailable', () async {
       final repo = JobAnalysisRepositoryImpl(
         CareerRemoteDataSource(),
         CareerLocalDataSource(await SharedPreferences.getInstance()),
       );
 
-      await expectLater(
-        repo.analyze(
-          description: 'Flutter Engineer with 3+ years',
-          skills: const ['Flutter'],
-        ),
-        throwsA(anything),
+      final result = await repo.analyze(
+        description: 'Flutter Engineer with 3+ years',
+        dna: CareerDna(skills: const ['Flutter']),
       );
+
+      expect(result, isA<JobAnalysis>());
+      expect(result.detail, isNotNull, reason: 'offline engine should still produce detail');
     });
 
     test('profile skills round-trip through local storage', () async {

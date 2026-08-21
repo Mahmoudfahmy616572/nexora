@@ -1,5 +1,6 @@
+import '../entities/career_dna.dart';
+import '../entities/career_target.dart';
 import '../entities/job_analysis.dart';
-import '../entities/profile_data.dart';
 
 /// Repository for the user's opportunity analyses (Analyze tab).
 abstract class JobAnalysisRepository {
@@ -9,16 +10,15 @@ abstract class JobAnalysisRepository {
 
   Future<void> saveAll(List<JobAnalysis> analyses);
 
-  /// Runs a real analysis on [description] against the candidate's profile
-  /// using the hosted AI edge function. Throws when the AI is unavailable.
+  /// Runs an analysis on [description] for the given [CareerDna] (and optional
+  /// [CareerTarget]) using the hosted AI edge function when available, falling
+  /// back to the offline deterministic [OpportunityMatchEngine].
   ///
-  /// [profile] grounds the AI's recommendation in the user's actual
-  /// experience, projects, education, and certifications.
+  /// The deterministic engine is the single source of truth for the numeric
+  /// score; the AI only supplies richer extraction + a recommendation.
   Future<JobAnalysis> analyze({
     required String description,
-    required List<String> skills,
-    int? yearsOfExperience,
-    String? education,
-    ProfileData? profile,
+    required CareerDna dna,
+    CareerTarget? target,
   });
 }

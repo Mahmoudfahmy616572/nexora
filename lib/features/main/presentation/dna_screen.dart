@@ -17,6 +17,7 @@ import '../../../domain/repositories/profile_repository.dart';
 import '../../../domain/repositories/profile_section_repository.dart';
 import '../../../domain/repositories/profile_skills_repository.dart';
 import '../../../presentation/career_dna/cubit/career_dna_cubit.dart';
+import '../../../presentation/career_intelligence/career_intelligence_panel.dart';
 import '../../../presentation/onboarding/choice_options.dart';
 import 'smart_builder_screen.dart';
 import 'widgets/app_chip.dart';
@@ -548,6 +549,17 @@ class _DnaScreenState extends State<DnaScreen> {
           const SizedBox(height: 14),
           const _EvidenceNote(),
           const SizedBox(height: 14),
+          BlocBuilder<CareerDnaCubit, CareerDnaState>(
+            builder: (context, dnaState) {
+              final dna = dnaState.dna;
+              if (dna == null || !_ready) return const SizedBox.shrink();
+              return CareerIntelligencePanel(
+                dna: dna,
+                profile: _profile,
+                skills: _skills,
+              );
+            },
+          ),
           _ProfileSections(
             sections: _sections,
             onSectionTap: _openSection,

@@ -65,7 +65,7 @@ void main() {
         await pumpAt(tester, entry.value, language);
 
         final tabs = [
-          ('home', 'Career DNA Health'),
+          ('home', 'Next best action'),
           ('dna', 'Personal Profile'),
           ('analyze', 'My Analyses'),
           ('studio', 'CV Studio'),

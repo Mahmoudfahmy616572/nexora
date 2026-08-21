@@ -36,7 +36,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY')!,
       { global: { headers: { Authorization: authHeader } } },
     );
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser(authHeader.replace(/^Bearer\s+/i, ''));
     if (!user) {
       return json({ error: 'Unauthorized' }, 401);
     }
@@ -126,7 +126,7 @@ serve(async (req) => {
         Authorization: `Bearer ${groqKey}`,
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: 'openai/gpt-oss-120b',
         temperature: 0.5,
         max_tokens: 1600,
         response_format: { type: 'json_object' },

@@ -1701,4 +1701,554 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get resetPasswordSent => 'إذا كان البريد موجودًا، فالرابط في طريقه.';
+
+  @override
+  String get ciTitle => 'ذكاء المسار الوظيفي';
+
+  @override
+  String get ciStrongestSkills => 'أقوى المهارات';
+
+  @override
+  String get ciSupportingSkills => 'مهارات داعمة';
+
+  @override
+  String get ciExperience => 'الخبرة';
+
+  @override
+  String get ciEducation => 'التعليم';
+
+  @override
+  String get ciDirection => 'الوجهة';
+
+  @override
+  String get ciMissingInfo => 'ما الذي ينقصك';
+
+  @override
+  String get ciWeaknesses => 'نقاط الضعف';
+
+  @override
+  String get ciClearDirection => 'مركز';
+
+  @override
+  String get ciNoDirection => 'يستكشف';
+
+  @override
+  String get ciAddTargetCta => 'أضف هدفاً لتركيز إرشاداتك';
+
+  @override
+  String get strengthNone => 'لا يوجد';
+
+  @override
+  String get strengthLimited => 'محدودة';
+
+  @override
+  String get strengthModerate => 'متوسطة';
+
+  @override
+  String get strengthStrong => 'قوية';
+
+  @override
+  String get eduBasic => 'أساسي';
+
+  @override
+  String get eduStandard => 'معياري';
+
+  @override
+  String get eduStrong => 'متقدم';
+
+  @override
+  String get readinessStarter => 'في البداية';
+
+  @override
+  String get readinessBuilding => 'قيد البناء';
+
+  @override
+  String get readinessStrong => 'قوي';
+
+  @override
+  String get readinessInterviewReady => 'جاهز للمقابلات';
+
+  @override
+  String get gapTargetRole => 'الدور المستهدف';
+
+  @override
+  String get gapSummary => 'الملخص';
+
+  @override
+  String get gapSkills => 'المهارات';
+
+  @override
+  String get gapExperience => 'الخبرة';
+
+  @override
+  String get gapProjects => 'المشاريع';
+
+  @override
+  String get gapEducation => 'التعليم';
+
+  @override
+  String get gapCertifications => 'الشهادات';
+
+  @override
+  String get gapAchievements => 'الإنجازات';
+
+  @override
+  String get gapLanguages => 'اللغات';
+
+  @override
+  String get gapSkillEvidence => 'إثبات المهارات';
+
+  @override
+  String get targetTitle => 'الأهداف';
+
+  @override
+  String get targetListEmpty => 'لا توجد أهداف بعد';
+
+  @override
+  String get targetListEmptySub =>
+      'أضف وظيفة أو تدريباً أو برنامج دراسات عليا أو منحة تستهدفها لتركيز إرشاداتك.';
+
+  @override
+  String get targetAdd => 'إضافة هدف';
+
+  @override
+  String get targetEdit => 'تعديل الهدف';
+
+  @override
+  String get targetType => 'النوع';
+
+  @override
+  String get targetTypeJob => 'وظيفة';
+
+  @override
+  String get targetTypeInternship => 'تدريب';
+
+  @override
+  String get targetTypeGraduateProgram => 'برنامج دراسات عليا';
+
+  @override
+  String get targetTypeAcademicApplication => 'طلب أكاديمي';
+
+  @override
+  String get targetTypeCustom => 'مخصص';
+
+  @override
+  String get targetRoleLabel => 'الدور / المسمى';
+
+  @override
+  String get targetRoleHint => 'مثال: مطور Flutter';
+
+  @override
+  String get targetIndustryLabel => 'القطاع';
+
+  @override
+  String get targetIndustryHint => 'مثال: التقنية المالية';
+
+  @override
+  String get targetCountryLabel => 'الدولة / المنطقة';
+
+  @override
+  String get targetSeniorityLabel => 'المستوى';
+
+  @override
+  String get targetLanguageLabel => 'اللغة';
+
+  @override
+  String get targetCompanyLabel => 'الشركة / الجامعة';
+
+  @override
+  String get targetUrlLabel => 'رابط';
+
+  @override
+  String get targetDescriptionLabel => 'الوصف / المتطلبات';
+
+  @override
+  String get targetSave => 'حفظ الهدف';
+
+  @override
+  String get targetDelete => 'حذف الهدف';
+
+  @override
+  String get targetDeleteConfirm => 'حذف هذا الهدف؟ لا يمكن التراجع.';
+
+  @override
+  String get targetOpen => 'فتح';
+
+  @override
+  String get analyzeSubtitle =>
+      'الصق وصف وظيفة أو تدريب أو برنامج. سنقيمه مقابل بصمتك المهنية ونشرح كل نتيجة.';
+
+  @override
+  String get analyzeDescriptionHint => 'الصق وصف الوظيفة هنا…';
+
+  @override
+  String get analyzeButton => 'حلل';
+
+  @override
+  String get analyzeJustAnalyze => 'تحليل فقط';
+
+  @override
+  String get analyzeNewTarget => 'هدف جديد';
+
+  @override
+  String get analyzeMatchScore => 'درجة التطابق';
+
+  @override
+  String get analyzeOverall => 'الإجمالي';
+
+  @override
+  String get analyzeRecommendation => 'التوصية';
+
+  @override
+  String get analyzePartialMatches => 'تطابق جزئي';
+
+  @override
+  String get analyzeNotEvidenced => 'غير مدعومة بعد';
+
+  @override
+  String get analyzeMismatch => 'عدم تطابق';
+
+  @override
+  String get analyzeUnclear => 'غير واضح';
+
+  @override
+  String get analyzeRequiredSkills => 'المهارات المطلوبة';
+
+  @override
+  String get analyzePreferredSkills => 'المهارات المفضلة';
+
+  @override
+  String get analyzeTechnologies => 'التقنيات';
+
+  @override
+  String get analyzeResponsibilities => 'المسؤوليات';
+
+  @override
+  String get analyzeCertifications => 'الشهادات';
+
+  @override
+  String get analyzeLanguages => 'اللغات';
+
+  @override
+  String get analyzeSoftSkills => 'المهارات الشخصية';
+
+  @override
+  String get analyzeDomainKnowledge => 'المعرفة بالمجال';
+
+  @override
+  String get analyzeKeywordsList => 'الكلمات المفتاحية';
+
+  @override
+  String get analyzeExperienceReq => 'الخبرة';
+
+  @override
+  String get analyzeEducationReq => 'التعليم';
+
+  @override
+  String get analyzeAgainstTarget => 'حُلل مقابل الهدف';
+
+  @override
+  String get analyzeCreateCv => 'أنشئ سيرة لهذا الهدف';
+
+  @override
+  String get analyzeEmpty => 'لا يوجد تحليل بعد. الصق وصف وظيفة للبدء.';
+
+  @override
+  String get analyzeRemove => 'إزالة';
+
+  @override
+  String get analyzeRequired => 'مطلوب';
+
+  @override
+  String get analyzePreferred => 'مفضل';
+
+  @override
+  String get analyzeCatStrong => 'تطابق قوي';
+
+  @override
+  String get analyzeCatGood => 'تطابق جيد';
+
+  @override
+  String get analyzeCatModerate => 'تطابق متوسط';
+
+  @override
+  String get analyzeCatWeak => 'تطابق ضعيف';
+
+  @override
+  String get cvNoCvs => 'لا توجد سير ذاتية بعد';
+
+  @override
+  String get cvCreate => 'إنشاء سيرة';
+
+  @override
+  String get cvTarget => 'الهدف';
+
+  @override
+  String get cvTemplate => 'القالب';
+
+  @override
+  String get cvGenerate => 'إنشاء';
+
+  @override
+  String get cvUseFactual => 'السيرة الحقائقية';
+
+  @override
+  String get cvRetry => 'إعادة المحاولة';
+
+  @override
+  String get cvExport => 'تصدير';
+
+  @override
+  String get cvVersions => 'الإصدارات';
+
+  @override
+  String cvVersion(Object n) {
+    return 'الإصدار $n';
+  }
+
+  @override
+  String get cvFactualLabel => 'سيرة حقائقية';
+
+  @override
+  String get cvAiTailored => 'مُهيّأ بالذكاء الاصطناعي';
+
+  @override
+  String get cvGenerating => 'جارٍ الإنشاء…';
+
+  @override
+  String get cvGenerationFailed => 'فشل الإنشاء';
+
+  @override
+  String get cvSelectTargetFirst => 'اختر هدفًا أولًا';
+
+  @override
+  String get cvCopy => 'نسخ';
+
+  @override
+  String get cvExportText => 'انسخ هذه السيرة كنص';
+
+  @override
+  String get cvSourceFactual => 'مبنية فقط من حقائق موثّقة';
+
+  @override
+  String get cvBack => 'رجوع';
+
+  @override
+  String get cvOpen => 'فتح';
+
+  @override
+  String get cvConfirmDelete => 'حذف هذه السيرة؟ لا يمكن التراجع.';
+
+  @override
+  String get cvTemplateMinimal => 'بسيط';
+
+  @override
+  String get cvTemplateModern => 'عصري';
+
+  @override
+  String get cvTemplateCompact => 'مكثّف';
+
+  @override
+  String get cvEditSummary => 'الملخص';
+
+  @override
+  String get cvEditSkills => 'المهارات (مفصولة بفواصل)';
+
+  @override
+  String get cvEditName => 'الاسم الكامل';
+
+  @override
+  String get cvEditTitle => 'العنوان';
+
+  @override
+  String get cvEditEmail => 'البريد الإلكتروني';
+
+  @override
+  String get cvEditPhone => 'الهاتف';
+
+  @override
+  String get cvEditLocation => 'الموقع';
+
+  @override
+  String get cvEditSubtitle => 'العنوان الفرعي';
+
+  @override
+  String cvSavedToast(int n) {
+    return 'تم الحفظ كإصدار $n';
+  }
+
+  @override
+  String get cvFactualToast => 'عرض سيرتك الحقائقية';
+
+  @override
+  String get cvValidationFailed => 'تعذّر التحقق من المحتوى المُولّد';
+
+  @override
+  String get cvPreviewEmpty => 'لا يوجد شيء للمعاينة بعد';
+
+  @override
+  String get cvEvaluateTitle => 'تقييم السيرة الذاتية';
+
+  @override
+  String get cvScoreOverall => 'الإجمالي';
+
+  @override
+  String get cvScoreAts => 'قابلية التحليل الآلي (ATS)';
+
+  @override
+  String get cvScoreTarget => 'ملاءمة الهدف';
+
+  @override
+  String get cvScoreContent => 'قوة المحتوى';
+
+  @override
+  String get cvScoreEvidence => 'قوة الأدلة';
+
+  @override
+  String get cvScoreReadability => 'قابلية القراءة';
+
+  @override
+  String get cvScoreClarity => 'الوضوح';
+
+  @override
+  String get cvScoreStructure => 'البنية';
+
+  @override
+  String get cvScoreKeyword => 'توافق الكلمات المفتاحية';
+
+  @override
+  String get cvScoreSkill => 'توافق المهارات';
+
+  @override
+  String get cvScoreSection => 'اكتمال الأقسام';
+
+  @override
+  String get cvDeterministicOnly =>
+      'يتم عرض الفحوص الهيكلية فقط (تعذّر الحصول على تفسيرات الذكاء الاصطناعي). النتائج حتمية بالكامل.';
+
+  @override
+  String get cvNoSuggestions =>
+      'لا توجد اقتراحات لتحسين — تبدو هذه السيرة قوية للهدف.';
+
+  @override
+  String get cvSuggestionProblem => 'المشكلة';
+
+  @override
+  String get cvSuggestionCurrent => 'الحالي';
+
+  @override
+  String get cvSuggestionSuggested => 'المقترح';
+
+  @override
+  String get cvSuggestionWhy => 'لماذا يفيد';
+
+  @override
+  String get cvSuggestionTarget => 'المتطلب المستهدف';
+
+  @override
+  String get cvApplySuggestion => 'تطبيق';
+
+  @override
+  String get cvDismissSuggestion => 'تجاهل';
+
+  @override
+  String get cvEditSuggestion => 'تعديل';
+
+  @override
+  String get cvReEvaluate => 'إعادة التقييم';
+
+  @override
+  String get cvAppliedSuggestion => 'تم التطبيق — تم إنشاء نسخة جديدة.';
+
+  @override
+  String get cvEvaluateFailed => 'تعذّر تقييم السيرة الذاتية. حاول مرة أخرى.';
+
+  @override
+  String get acLabel => 'الخطوة التالية';
+
+  @override
+  String get acTitleCompleteDna => 'أكمل بياناتك المهنية';
+
+  @override
+  String get acDescCompleteDna =>
+      'أضف مهاراتك وخبراتك وأهدافك لنتمكّن من توجيه خطوتك التالية.';
+
+  @override
+  String get acCtaCompleteDna => 'إكمال الملف';
+
+  @override
+  String get acTitleDefineTarget => 'حدد هدفك';
+
+  @override
+  String get acDescDefineTarget =>
+      'اختر الدور الذي تطمح إليه لنخصّص كل شيء من أجله.';
+
+  @override
+  String get acCtaDefineTarget => 'تحديد الهدف';
+
+  @override
+  String get acTitleAnalyzeOpportunity => 'حلّل فرصة';
+
+  @override
+  String get acDescAnalyzeOpportunity =>
+      'راجع مدى تطابقك مع وظيفة حقيقية وأين تكمن الفجوات.';
+
+  @override
+  String get acCtaAnalyzeOpportunity => 'تحليل الفرصة';
+
+  @override
+  String acTitleCreateCv(String role) {
+    return 'أنشئ سيرة ذاتية لـ $role';
+  }
+
+  @override
+  String acDescCreateCv(String role) {
+    return 'أنشئ سيرة ذاتية موجّهة لـ $role من بياناتك المهنية الموثّقة.';
+  }
+
+  @override
+  String get acCtaCreateCv => 'إنشاء سيرة';
+
+  @override
+  String get acTitleEvaluateCv => 'قيّم سيرتك الذاتية';
+
+  @override
+  String get acDescEvaluateCv =>
+      'اطّلع على درجة سيرتك واحصل على طرق ملموسة لتحسينها.';
+
+  @override
+  String get acCtaEvaluateCv => 'تقييم السيرة';
+
+  @override
+  String get acTitleImproveCv => 'حسّن سيرتك الذاتية';
+
+  @override
+  String get acDescImproveCv => 'طبّق التحسينات المقترحة لتقوية سيرتك الذاتية.';
+
+  @override
+  String get acCtaImproveCv => 'مراجعة التحسينات';
+
+  @override
+  String get acTitleTrackApplications => 'أنت جاهز للتقديم';
+
+  @override
+  String get acDescTrackApplications =>
+      'سيرتك قوية. ابدأ بتتبّع الوظائف التي تتقدّم إليها.';
+
+  @override
+  String get acCtaTrackApplications => 'تتبّع الطلبات';
+
+  @override
+  String get acLoading => 'نحدد خطوتك التالية…';
+
+  @override
+  String get acTarget => 'الهدف';
+
+  @override
+  String get acScore => 'النتيجة';
+
+  @override
+  String acPending(int count) {
+    return '$count تحسينات';
+  }
 }

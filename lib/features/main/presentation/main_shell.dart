@@ -25,14 +25,35 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   late MainTab _tab = widget.initialTab;
+  String? _studioTargetId;
+  String? _studioAnalysisId;
 
   late final List<Widget> _screens = [
     HomeScreen(onOpenTab: (tab) => setState(() => _tab = tab)),
     const DnaScreen(),
-    const AnalyzeScreen(),
-    const StudioScreen(),
+    AnalyzeScreen(onOpenStudio: _openStudio),
     const TrackerScreen(),
   ];
+
+  void _openStudio(String? targetId, String? analysisId) {
+    setState(() {
+      _studioTargetId = targetId;
+      _studioAnalysisId = analysisId;
+      _tab = MainTab.studio;
+    });
+  }
+
+  Widget _currentScreen() {
+    if (_tab == MainTab.studio) {
+      return StudioScreen(
+        key: const ValueKey('studio'),
+        targetId: _studioTargetId,
+        analysisId: _studioAnalysisId,
+      );
+    }
+    final index = _tab.index > 2 ? _tab.index - 1 : _tab.index;
+    return _screens[index];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +88,7 @@ class _MainShellState extends State<MainShell> {
                 switchOutCurve: Curves.easeIn,
                 child: KeyedSubtree(
                   key: ValueKey(_tab),
-                  child: _screens[_tab.index],
+                  child: _currentScreen(),
                 ),
               ),
             ),
