@@ -2258,6 +2258,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get acCtaTrackApplications => 'Track Applications';
 
   @override
+  String get acTitlePrepareInterview => 'Prepare for your interview';
+
+  @override
+  String get acDescPrepareInterview =>
+      'You have an interview-stage application. Practice the gaps that matter for this role.';
+
+  @override
+  String get acCtaPrepareInterview => 'Prepare Interview';
+
+  @override
   String get acLoading => 'Finding your next step…';
 
   @override
@@ -2270,4 +2280,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String acPending(int count) {
     return '$count improvements';
   }
+
+  @override
+  String get prepTitle => 'Interview Readiness';
+
+  @override
+  String get prepDesc =>
+      'Focused practice for the gaps that matter in this role.';
+
+  @override
+  String prepForRole(String role) {
+    return 'for $role';
+  }
+
+  @override
+  String get prepFocusTitle => 'Focus areas';
+
+  @override
+  String get prepWhyLabel => 'Why prepare this';
+
+  @override
+  String get prepQuestionLabel => 'Practice question';
+
+  @override
+  String get prepCoachingLabel => 'Coaching';
+
+  @override
+  String get prepLikelyQuestions => 'Likely questions';
+
+  @override
+  String get prepTips => 'Tips';
+
+  @override
+  String get prepRegenerate => 'Regenerate';
+
+  @override
+  String get prepAiUnavailable =>
+      'AI is unavailable — showing your key gaps to prepare. Nothing is fabricated.';
+
+  @override
+  String get prepNoAnalysis =>
+      'No opportunity analysis found for this role. Preparing from your skills; analyze the role for sharper prep.';
+
+  @override
+  String get prepEmptyNoInterview =>
+      'Nothing to prepare yet. Analyze a role and track your applications to unlock focused practice.';
 }

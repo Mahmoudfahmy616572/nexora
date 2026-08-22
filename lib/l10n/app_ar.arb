@@ -802,6 +802,9 @@
   "acTitleTrackApplications": "أنت جاهز للتقديم",
   "acDescTrackApplications": "سيرتك قوية. ابدأ بتتبّع الوظائف التي تتقدّم إليها.",
   "acCtaTrackApplications": "تتبّع الطلبات",
+  "acTitlePrepareInterview": "استعد لمقابلتك",
+  "acDescPrepareInterview": "لديك طلب في مرحلة المقابلة. تدرّب على الفجوات المهمة لهذا الدور.",
+  "acCtaPrepareInterview": "استعد للمقابلة",
   "acLoading": "نحدد خطوتك التالية…",
   "acTarget": "الهدف",
   "acScore": "النتيجة",
@@ -817,6 +820,24 @@
     }
   },
   "@acDescCreateCv": {
+    "placeholders": {
+      "role": { "type": "String" }
+    }
+  },
+  "prepTitle": "جاهزية المقابلة",
+  "prepDesc": "تدريب مركّز على الفجوات المهمة في هذا الدور.",
+  "prepForRole": "لـ {role}",
+  "prepFocusTitle": "مجالات التركيز",
+  "prepWhyLabel": "لماذا نستعد لها",
+  "prepQuestionLabel": "سؤال تدريبي",
+  "prepCoachingLabel": "توجيه",
+  "prepLikelyQuestions": "أسئلة متوقعة",
+  "prepTips": "نصائح",
+  "prepRegenerate": "إعادة التوليد",
+  "prepAiUnavailable": "الذكاء الاصطناعي غير متاح — نعرض فجواتك الأساسية للتحضير. لا شيء مُختلق.",
+  "prepNoAnalysis": "لا يوجد تحليل للفرصة لهذا الدور. التحضير من مهاراتك؛ حلّل الدور لتحضير أدق.",
+  "prepEmptyNoInterview": "لا شيء للتحضير بعد. حلّل دورًا وتتبّع طلباتك لتفعيل التدريب المركّز.",
+  "@prepForRole": {
     "placeholders": {
       "role": { "type": "String" }
     }

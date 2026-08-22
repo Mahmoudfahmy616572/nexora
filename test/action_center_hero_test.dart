@@ -11,6 +11,7 @@ import 'package:nexora/domain/entities/cv_document.dart';
 import 'package:nexora/domain/entities/cv_content.dart';
 import 'package:nexora/domain/entities/cv_evaluation.dart';
 import 'package:nexora/domain/entities/job_analysis.dart';
+import 'package:nexora/domain/entities/job_application.dart';
 import 'package:nexora/domain/entities/profile_data.dart';
 import 'package:nexora/domain/repositories/career_dna_repository.dart';
 import 'package:nexora/domain/repositories/career_target_repository.dart';
@@ -18,6 +19,7 @@ import 'package:nexora/domain/repositories/cv_document_repository.dart';
 import 'package:nexora/domain/repositories/cv_evaluation_repository.dart';
 import 'package:nexora/domain/repositories/cv_suggestion_repository.dart';
 import 'package:nexora/domain/repositories/job_analysis_repository.dart';
+import 'package:nexora/domain/repositories/job_application_repository.dart';
 import 'package:nexora/features/main/presentation/home/action_center_cubit.dart';
 import 'package:nexora/features/main/presentation/home/action_center_hero.dart';
 import 'package:nexora/l10n/app_localizations.dart';
@@ -167,6 +169,13 @@ class _FakeSuggestion implements CvSuggestionRepository {
   dynamic noSuchMethod(_) => throw UnimplementedError();
 }
 
+class _FakeApplication implements JobApplicationRepository {
+  @override
+  Future<List<JobApplication>?> load() async => const [];
+  @override
+  Future<void> saveAll(List<JobApplication> apps) async {}
+}
+
 // --- tests ------------------------------------------------------------------
 
 Future<void> _pumpCard(
@@ -268,6 +277,7 @@ void main() {
         docRepo: _FakeDoc(),
         evalRepo: _FakeEval(),
         suggestionRepo: _FakeSuggestion(),
+        applicationRepo: _FakeApplication(),
       );
       await tester.pumpWidget(
         MaterialApp(
@@ -298,6 +308,7 @@ void main() {
         docRepo: _FakeDoc(),
         evalRepo: _FakeEval(),
         suggestionRepo: _others(),
+        applicationRepo: _FakeApplication(),
       );
       await tester.pumpWidget(
         MaterialApp(

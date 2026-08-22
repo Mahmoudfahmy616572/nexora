@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:nexora/domain/entities/career_dna.dart';
 import 'package:nexora/domain/entities/intake_question.dart';
+import 'package:nexora/domain/entities/interview_prep.dart';
 import 'package:nexora/domain/entities/profile_data.dart';
 import 'package:nexora/domain/profile_generator.dart';
 import 'package:nexora/domain/repositories/career_dna_repository.dart';
@@ -52,6 +53,15 @@ class _FakeInterviewRepo implements CareerDnaRepository {
     required String skills,
   }) async =>
       GeneratedProfile(data: const ProfileData(), skills: const []);
+  @override
+  Future<InterviewPrepPlan> generateInterviewPlan({
+    required Map<String, dynamic> context,
+    required List<String> focusAreas,
+    required String language,
+    String? targetRole,
+    String? company,
+  }) async =>
+      const InterviewPrepPlan(focusAreas: []);
 }
 
 class _FakeDnaRepo implements CareerDnaRepository {
@@ -74,6 +84,15 @@ class _FakeDnaRepo implements CareerDnaRepository {
     required String skills,
   }) async =>
       GeneratedProfile(data: const ProfileData(), skills: const []);
+  @override
+  Future<InterviewPrepPlan> generateInterviewPlan({
+    required Map<String, dynamic> context,
+    required List<String> focusAreas,
+    required String language,
+    String? targetRole,
+    String? company,
+  }) async =>
+      const InterviewPrepPlan(focusAreas: []);
   @override
   Future<InterviewResult> interview({
     required Map<String, dynamic> context,

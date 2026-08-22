@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:nexora/domain/entities/career_dna.dart';
 import 'package:nexora/domain/entities/career_target.dart';
+import 'package:nexora/domain/entities/interview_prep.dart';
 import 'package:nexora/domain/entities/job_analysis.dart';
 import 'package:nexora/domain/entities/opportunity_analysis.dart';
 import 'package:nexora/domain/entities/profile_data.dart';
@@ -95,6 +96,15 @@ class FakeDnaRepo implements CareerDnaRepository {
     required bool finish,
   }) async =>
       const InterviewResult(done: true, profile: ProfileData());
+  @override
+  Future<InterviewPrepPlan> generateInterviewPlan({
+    required Map<String, dynamic> context,
+    required List<String> focusAreas,
+    required String language,
+    String? targetRole,
+    String? company,
+  }) async =>
+      const InterviewPrepPlan(focusAreas: []);
 }
 
 class FakeTargetRepo implements CareerTargetRepository {

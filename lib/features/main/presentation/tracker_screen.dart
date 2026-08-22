@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../l10n/app_localizations.dart';
@@ -164,6 +166,14 @@ class _TrackerScreenState extends State<TrackerScreen> {
       return;
     }
     final newStatus = result.status;
+    if (result.prepare) {
+      if (!mounted) return;
+      context.push(
+        Routes.interviewPrep,
+        extra: {'role': app.role, 'company': app.company, 'applicationId': app.id},
+      );
+      return;
+    }
     if (newStatus == null || newStatus == app.status) return;
     setState(() {
       _apps = [
@@ -626,12 +636,17 @@ class _AddAppSheetState extends State<_AddAppSheet> {
   }
 }
 
+bool _isInterviewStage(String status) =>
+    status == 'Interview' || status == 'Assessment';
+
 class _AppEditResult {
-  const _AppEditResult.status(this.status) : delete = false;
-  const _AppEditResult.delete() : status = null, delete = true;
+  const _AppEditResult.status(this.status) : delete = false, prepare = false;
+  const _AppEditResult.delete() : status = null, delete = true, prepare = false;
+  const _AppEditResult.prepare() : status = null, delete = false, prepare = true;
 
   final String? status;
   final bool delete;
+  final bool prepare;
 }
 
 class _AppDetailSheet extends StatelessWidget {
@@ -704,6 +719,22 @@ class _AppDetailSheet extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
+          if (_isInterviewStage(app.status)) ...[
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: FilledButton.icon(
+                onPressed: () => Navigator.of(context).pop(const _AppEditResult.prepare()),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.teal,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                icon: const Icon(Icons.psychology_alt_outlined, size: 18),
+                label: Text(l10n.acCtaPrepareInterview),
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
           SizedBox(
             width: double.infinity,
             height: 44,

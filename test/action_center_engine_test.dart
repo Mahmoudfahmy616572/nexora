@@ -10,6 +10,7 @@ import 'package:nexora/domain/entities/cv_document.dart';
 import 'package:nexora/domain/entities/cv_content.dart';
 import 'package:nexora/domain/entities/cv_evaluation.dart';
 import 'package:nexora/domain/entities/job_analysis.dart';
+import 'package:nexora/domain/entities/job_application.dart';
 import 'package:nexora/domain/entities/opportunity_analysis.dart';
 import 'package:nexora/domain/entities/profile_data.dart';
 
@@ -131,6 +132,22 @@ CvSuggestion _suggestion({
       targetRequirement: targetRequirement,
       status: status,
       createdAt: DateTime(2024, 1, 1),
+    );
+
+JobApplication _application({
+  required String id,
+  String company = 'Acme',
+  String role = 'Flutter Developer',
+  String status = 'Applied',
+}) =>
+    JobApplication(
+      id: id,
+      company: company,
+      role: role,
+      status: status,
+      date: 'Aug 22',
+      match: 80,
+      ats: 84,
     );
 
 ActionCenterState _derive(ActionCenterInput input) => ActionCenterEngine.derive(input);
@@ -377,6 +394,62 @@ void main() {
       ));
       expect(d.actionType, ActionType.createCv);
       expect(d.analysisId, 'a2');
+    });
+
+    test('15. ready + interview-stage application -> prepareInterview', () {
+      final dna = _dna();
+      final target = _target(id: 't1');
+      final analysis = _analysis(id: 'a1', targetId: 't1');
+      final doc = _document(id: 'doc1', analysisId: 'a1');
+      final version = _version(id: 'v1', documentId: 'doc1', evaluationId: 'e1');
+      final evaluation = _evaluation(id: 'e1', versionId: 'v1');
+      final d = _derive(ActionCenterInput(
+        dna: dna,
+        intelligence: _intelligence(dna),
+        targets: [target],
+        analyses: [analysis],
+        documents: [doc],
+        versionsByDoc: {'doc1': [version]},
+        evaluations: [evaluation],
+        suggestions: const [],
+        applications: [
+          _application(id: 'app2', status: 'Applied'),
+          _application(
+            id: 'app1',
+            company: 'Google',
+            role: 'Flutter Engineer',
+            status: 'Interview',
+          ),
+        ],
+      ));
+      expect(d.actionType, ActionType.prepareInterview);
+      expect(d.metadata!['applicationId'], 'app1');
+      expect(d.metadata!['targetRole'], 'Flutter Engineer');
+      expect(d.metadata!['company'], 'Google');
+    });
+
+    test('16. ready + only early-stage applications -> trackApplications', () {
+      final dna = _dna();
+      final target = _target(id: 't1');
+      final analysis = _analysis(id: 'a1', targetId: 't1');
+      final doc = _document(id: 'doc1', analysisId: 'a1');
+      final version = _version(id: 'v1', documentId: 'doc1', evaluationId: 'e1');
+      final evaluation = _evaluation(id: 'e1', versionId: 'v1');
+      final d = _derive(ActionCenterInput(
+        dna: dna,
+        intelligence: _intelligence(dna),
+        targets: [target],
+        analyses: [analysis],
+        documents: [doc],
+        versionsByDoc: {'doc1': [version]},
+        evaluations: [evaluation],
+        suggestions: const [],
+        applications: [
+          _application(id: 'app3', status: 'Applied'),
+          _application(id: 'app4', company: 'Careem', status: 'Rejected'),
+        ],
+      ));
+      expect(d.actionType, ActionType.trackApplications);
     });
   });
 }

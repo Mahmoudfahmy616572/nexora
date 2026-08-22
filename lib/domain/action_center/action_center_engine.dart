@@ -4,6 +4,7 @@ import '../entities/career_target.dart';
 import '../entities/cv_document.dart';
 import '../entities/cv_evaluation.dart';
 import '../entities/job_analysis.dart';
+import '../entities/job_application.dart';
 import 'action_center.dart';
 
 /// Deterministic "next best action" engine for the Action Center.
@@ -105,6 +106,21 @@ class ActionCenterEngine {
     }
 
     // 7. Everything is ready → track applications.
+    // 7b. …unless an application has reached an interview stage, in which case
+    //     preparing for it is the most urgent next step.
+    final interviewApp = _firstInterviewStageApplication(input.applications);
+    if (interviewApp != null) {
+      return _decision(
+        ActionType.prepareInterview,
+        priority: 20,
+        metadata: {
+          'targetRole': interviewApp.role,
+          'company': interviewApp.company,
+          'applicationId': interviewApp.id,
+        },
+      );
+    }
+
     return _decision(
       ActionType.trackApplications,
       targetId: target.id,
@@ -118,6 +134,26 @@ class ActionCenterEngine {
         'documentTitle': doc.title,
       },
     );
+  }
+
+  // --- Interview-stage applications -----------------------------------------
+
+  /// True when [status] indicates the candidate is actively interviewing
+  /// (interview / assessment / offer stages) and should prepare.
+  static bool _isInterviewStage(String status) {
+    final s = status.toLowerCase();
+    return s.contains('interview') ||
+        s.contains('assessment') ||
+        s.startsWith('offer');
+  }
+
+  static JobApplication? _firstInterviewStageApplication(
+    List<JobApplication> applications,
+  ) {
+    for (final a in applications) {
+      if (_isInterviewStage(a.status)) return a;
+    }
+    return null;
   }
 
   // --- DNA completeness ------------------------------------------------------

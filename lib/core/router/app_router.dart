@@ -17,6 +17,7 @@ import '../../presentation/welcome/welcome_screen.dart';
 import '../../presentation/target/target_list_screen.dart';
 import '../../presentation/target/target_form_screen.dart';
 import '../../features/main/presentation/studio/evaluation/cv_evaluation_screen.dart';
+import '../../features/main/presentation/prep/interview_prep_screen.dart';
 import '../../domain/entities/career_target.dart';
 
 /// Route names for the entire application.
@@ -33,6 +34,7 @@ abstract final class Routes {
   static const String intake = '/intake';
   static const String interview = '/interview';
   static const String dna = '/dna';
+  static const String interviewPrep = '/interview-prep';
 }
 
 final GoRouter appRouter = GoRouter(
@@ -81,6 +83,12 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: Routes.dna,
       builder: (context, state) => const CareerDnaReviewScreen(),
+    ),
+    GoRoute(
+      path: Routes.interviewPrep,
+      builder: (context, state) => InterviewPrepScreen(
+        extra: state.extra is Map ? state.extra! as Map<String, dynamic> : null,
+      ),
     ),
     GoRoute(
       path: Routes.login,

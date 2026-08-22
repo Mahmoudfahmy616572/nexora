@@ -1,4 +1,5 @@
 import '../entities/career_dna.dart';
+import '../entities/interview_prep.dart';
 import '../entities/profile_data.dart';
 import '../profile_generator.dart';
 
@@ -57,5 +58,17 @@ abstract interface class CareerDnaRepository {
     required List<Map<String, dynamic>> history,
     required String language,
     required bool finish,
+  });
+
+  /// Generates an interview readiness plan for [targetRole] (optional [company])
+  /// grounded strictly in the candidate [context] (their real Career DNA / CV)
+  /// and the given [focusAreas] (deterministic gap labels). Throws on hard
+  /// failure so the caller can fall back to a deterministic plan.
+  Future<InterviewPrepPlan> generateInterviewPlan({
+    required Map<String, dynamic> context,
+    required List<String> focusAreas,
+    required String language,
+    String? targetRole,
+    String? company,
   });
 }

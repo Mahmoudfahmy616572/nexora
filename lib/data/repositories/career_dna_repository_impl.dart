@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../domain/entities/career_dna.dart';
+import '../../domain/entities/interview_prep.dart';
 import '../../domain/entities/profile_data.dart';
 import '../../domain/profile_generator.dart';
 import '../../domain/repositories/career_dna_repository.dart';
@@ -134,6 +135,36 @@ class CareerDnaRepositoryImpl implements CareerDnaRepository {
     } on Object catch (e) {
       debugPrint('interview AI failed: $e');
       throw Exception('AI interview failed: $e');
+    }
+  }
+
+  @override
+  Future<InterviewPrepPlan> generateInterviewPlan({
+    required Map<String, dynamic> context,
+    required List<String> focusAreas,
+    required String language,
+    String? targetRole,
+    String? company,
+  }) async {
+    try {
+      final data = await _remote.runAiInterview({
+        'context': context,
+        'history': const [],
+        'language': language,
+        'finish': true,
+        'mode': 'interview_plan',
+        'focusAreas': focusAreas,
+        'targetRole': targetRole,
+        'company': company,
+      });
+      final plan = data['plan'];
+      if (plan is Map) {
+        return InterviewPrepPlan.fromJson(Map<String, dynamic>.from(plan));
+      }
+      throw Exception('AI returned no plan');
+    } on Object catch (e) {
+      debugPrint('interview plan AI failed: $e');
+      throw Exception('AI interview plan failed: $e');
     }
   }
 }

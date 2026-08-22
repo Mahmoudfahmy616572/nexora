@@ -2239,6 +2239,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acCtaTrackApplications => 'تتبّع الطلبات';
 
   @override
+  String get acTitlePrepareInterview => 'استعد لمقابلتك';
+
+  @override
+  String get acDescPrepareInterview =>
+      'لديك طلب في مرحلة المقابلة. تدرّب على الفجوات المهمة لهذا الدور.';
+
+  @override
+  String get acCtaPrepareInterview => 'استعد للمقابلة';
+
+  @override
   String get acLoading => 'نحدد خطوتك التالية…';
 
   @override
@@ -2251,4 +2261,48 @@ class AppLocalizationsAr extends AppLocalizations {
   String acPending(int count) {
     return '$count تحسينات';
   }
+
+  @override
+  String get prepTitle => 'جاهزية المقابلة';
+
+  @override
+  String get prepDesc => 'تدريب مركّز على الفجوات المهمة في هذا الدور.';
+
+  @override
+  String prepForRole(String role) {
+    return 'لـ $role';
+  }
+
+  @override
+  String get prepFocusTitle => 'مجالات التركيز';
+
+  @override
+  String get prepWhyLabel => 'لماذا نستعد لها';
+
+  @override
+  String get prepQuestionLabel => 'سؤال تدريبي';
+
+  @override
+  String get prepCoachingLabel => 'توجيه';
+
+  @override
+  String get prepLikelyQuestions => 'أسئلة متوقعة';
+
+  @override
+  String get prepTips => 'نصائح';
+
+  @override
+  String get prepRegenerate => 'إعادة التوليد';
+
+  @override
+  String get prepAiUnavailable =>
+      'الذكاء الاصطناعي غير متاح — نعرض فجواتك الأساسية للتحضير. لا شيء مُختلق.';
+
+  @override
+  String get prepNoAnalysis =>
+      'لا يوجد تحليل للفرصة لهذا الدور. التحضير من مهاراتك؛ حلّل الدور لتحضير أدق.';
+
+  @override
+  String get prepEmptyNoInterview =>
+      'لا شيء للتحضير بعد. حلّل دورًا وتتبّع طلباتك لتفعيل التدريب المركّز.';
 }

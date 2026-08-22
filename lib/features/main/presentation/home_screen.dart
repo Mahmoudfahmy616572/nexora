@@ -56,6 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
       docRepo: CvDocumentRepositoryImpl(remote, local),
       evalRepo: CvEvaluationRepositoryImpl(remote, local, CvSuggestionRepositoryImpl(local)),
       suggestionRepo: CvSuggestionRepositoryImpl(local),
+      applicationRepo: JobApplicationRepositoryImpl(remote, local),
     );
   }
 

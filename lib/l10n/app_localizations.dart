@@ -4418,6 +4418,24 @@ abstract class AppLocalizations {
   /// **'Track Applications'**
   String get acCtaTrackApplications;
 
+  /// No description provided for @acTitlePrepareInterview.
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare for your interview'**
+  String get acTitlePrepareInterview;
+
+  /// No description provided for @acDescPrepareInterview.
+  ///
+  /// In en, this message translates to:
+  /// **'You have an interview-stage application. Practice the gaps that matter for this role.'**
+  String get acDescPrepareInterview;
+
+  /// No description provided for @acCtaPrepareInterview.
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare Interview'**
+  String get acCtaPrepareInterview;
+
   /// No description provided for @acLoading.
   ///
   /// In en, this message translates to:
@@ -4441,6 +4459,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} improvements'**
   String acPending(int count);
+
+  /// No description provided for @prepTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview Readiness'**
+  String get prepTitle;
+
+  /// No description provided for @prepDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Focused practice for the gaps that matter in this role.'**
+  String get prepDesc;
+
+  /// No description provided for @prepForRole.
+  ///
+  /// In en, this message translates to:
+  /// **'for {role}'**
+  String prepForRole(String role);
+
+  /// No description provided for @prepFocusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus areas'**
+  String get prepFocusTitle;
+
+  /// No description provided for @prepWhyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Why prepare this'**
+  String get prepWhyLabel;
+
+  /// No description provided for @prepQuestionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice question'**
+  String get prepQuestionLabel;
+
+  /// No description provided for @prepCoachingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Coaching'**
+  String get prepCoachingLabel;
+
+  /// No description provided for @prepLikelyQuestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Likely questions'**
+  String get prepLikelyQuestions;
+
+  /// No description provided for @prepTips.
+  ///
+  /// In en, this message translates to:
+  /// **'Tips'**
+  String get prepTips;
+
+  /// No description provided for @prepRegenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerate'**
+  String get prepRegenerate;
+
+  /// No description provided for @prepAiUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'AI is unavailable — showing your key gaps to prepare. Nothing is fabricated.'**
+  String get prepAiUnavailable;
+
+  /// No description provided for @prepNoAnalysis.
+  ///
+  /// In en, this message translates to:
+  /// **'No opportunity analysis found for this role. Preparing from your skills; analyze the role for sharper prep.'**
+  String get prepNoAnalysis;
+
+  /// No description provided for @prepEmptyNoInterview.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to prepare yet. Analyze a role and track your applications to unlock focused practice.'**
+  String get prepEmptyNoInterview;
 }
 
 class _AppLocalizationsDelegate

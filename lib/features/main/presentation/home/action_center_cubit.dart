@@ -13,6 +13,8 @@ import '../../../../domain/repositories/cv_document_repository.dart';
 import '../../../../domain/repositories/cv_evaluation_repository.dart';
 import '../../../../domain/repositories/cv_suggestion_repository.dart';
 import '../../../../domain/repositories/job_analysis_repository.dart';
+import '../../../../domain/repositories/job_application_repository.dart';
+import '../../../../domain/entities/job_application.dart';
 import 'action_center_state.dart';
 
 /// Loads the canonical career state and derives the single next best action.
@@ -27,6 +29,7 @@ class ActionCenterCubit extends Cubit<ActionCenterCubitState> {
     required this.docRepo,
     required this.evalRepo,
     required this.suggestionRepo,
+    required this.applicationRepo,
   }) : super(const ActionCenterCubitState());
 
   final CareerDnaRepository dnaRepo;
@@ -35,6 +38,7 @@ class ActionCenterCubit extends Cubit<ActionCenterCubitState> {
   final CvDocumentRepository docRepo;
   final CvEvaluationRepository evalRepo;
   final CvSuggestionRepository suggestionRepo;
+  final JobApplicationRepository applicationRepo;
 
   Future<T> _safe<T>(Future<T> Function() run, T fallback) async {
     try {
@@ -88,6 +92,9 @@ class ActionCenterCubit extends Cubit<ActionCenterCubitState> {
       suggestions.addAll(list);
     }
 
+    final applications =
+        await _safe(() => applicationRepo.load(), null) ?? const <JobApplication>[];
+
     final decision = ActionCenterEngine.derive(ActionCenterInput(
       dna: dna,
       intelligence: intelligence,
@@ -97,6 +104,7 @@ class ActionCenterCubit extends Cubit<ActionCenterCubitState> {
       versionsByDoc: versionsByDoc,
       evaluations: evaluations,
       suggestions: suggestions,
+      applications: applications,
     ));
 
     emit(ActionCenterCubitState(

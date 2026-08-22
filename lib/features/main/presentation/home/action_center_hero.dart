@@ -137,6 +137,18 @@ class ActionCenterHero extends StatelessWidget {
         }
       case ActionType.trackApplications:
         onOpenTab(MainTab.track);
+      case ActionType.prepareInterview:
+        final role = d.metadata?['targetRole'] as String? ?? '';
+        final company = d.metadata?['company'] as String? ?? '';
+        final applicationId = d.metadata?['applicationId'] as String?;
+        GoRouter.of(context).push(
+          Routes.interviewPrep,
+          extra: {
+            'role': role,
+            'company': company,
+            'applicationId': applicationId,
+          },
+        );
       case ActionType.none:
         break;
     }
@@ -225,6 +237,13 @@ _Copy _resolve(AppLocalizations l10n, ActionCenterState d) {
         l10n.acDescTrackApplications,
         l10n.acCtaTrackApplications,
         Icons.send,
+      );
+    case ActionType.prepareInterview:
+      return _Copy(
+        l10n.acTitlePrepareInterview,
+        l10n.acDescPrepareInterview,
+        l10n.acCtaPrepareInterview,
+        Icons.record_voice_over,
       );
     case ActionType.none:
       return _Copy(l10n.acTitleCompleteDna, l10n.acDescCompleteDna,

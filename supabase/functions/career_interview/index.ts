@@ -13,6 +13,12 @@
 //   { "done": false, "question": "..." }            -> ask the user this question
 //   { "done": true,  "profile": { summary, experience, projects, ... } }
 //
+// Interview prep mode (Phase 4): send "mode": "interview_plan" plus
+//   "focusAreas": ["..."], "targetRole": "...", "company": "..."
+// and it returns:
+//   { "done": true, "plan": { "focusAreas": [{requirement, why, question,
+//      coaching}], "likelyQuestions": [...], "tips": "..." } }
+//
 // The LLM key lives in GROQ_API_KEY — never in the client.
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
@@ -51,6 +57,13 @@ serve(async (req) => {
     const history = Array.isArray(body.history) ? body.history : [];
     const language = String(body.language ?? 'en');
     const finish = Boolean(body.finish);
+    const mode = String(body.mode ?? 'profile_build');
+    const isPlan = mode === 'interview_plan';
+    const focusAreas = Array.isArray(body.focusAreas)
+      ? body.focusAreas.map((f: unknown) => String(f)).filter(Boolean)
+      : [];
+    const targetRole = String(body.targetRole ?? '');
+    const company = String(body.company ?? '');
 
     const contextText = [
       `Target role: ${String(context.target ?? '').trim()}`,
@@ -96,7 +109,27 @@ serve(async (req) => {
         ? 'You have enough signal. Produce the final structured profile now (set done=true).'
         : 'Ask the single most useful NEXT question to draw out missing, concrete detail. Do not repeat prior questions.');
 
-    const prompt = [
+    const prompt = isPlan ? [
+      'You are a concise, honest interview coach preparing ONE candidate for a specific role.',
+      `Respond in ${language === 'ar' ? 'Arabic' : 'English'}.`,
+      'Ground rules:',
+      '- Base everything ONLY on the candidate context below, the listed focus areas, and well-known general interview practice.',
+      '- NEVER invent facts about the candidate (companies, dates, degrees, metrics, achievements).',
+      '- Be specific and practical; prefer STAR-style preparation advice.',
+      '',
+      'Return ONLY a JSON object exactly:',
+      '{ "plan": { "focusAreas": [{"requirement": string, "why": string, "question": string, "coaching": string}], "likelyQuestions": [string], "tips": string } }',
+      '- focusAreas: 3-6 items covering the provided focus areas. why = one sentence explaining why it matters for THIS role grounded in the gap; question = one realistic interviewer question for it; coaching = 1-2 sentences of concrete prep advice.',
+      '- likelyQuestions: up to 5 additional likely interview questions for this role and company.',
+      '- tips: one short paragraph of overall preparation tips.',
+      '',
+      `Target role: ${targetRole}`,
+      company ? `Company: ${company}` : 'Company: (unknown)',
+      `Focus areas:\n${focusAreas.length ? focusAreas.map((f: string) => `- ${f}`).join('\n') : '- (none provided; infer the most important areas from the candidate context)'}`,
+      '',
+      'Candidate context:',
+      contextText,
+    ].join('\n') : [
       'You are a warm, concise career coach running a short interview to build a candidate\'s Career DNA.',
       `Respond in ${language === 'ar' ? 'Arabic' : 'English'}.`,
       'Rules:',
@@ -151,6 +184,36 @@ serve(async (req) => {
 
     const cleanArray = (value: unknown) =>
       Array.isArray(value) ? value.map((v) => String(v)).filter(Boolean) : [];
+
+    if (isPlan) {
+      const p = parsed.plan;
+      if (!p || typeof p !== 'object') {
+        return json({ error: 'AI returned malformed plan' }, 502);
+      }
+      const plan = p as Record<string, unknown>;
+      const rawAreas = Array.isArray(plan.focusAreas) ? plan.focusAreas : [];
+      const areas = rawAreas
+        .map((f) => {
+          const o = f && typeof f === 'object'
+            ? f as Record<string, unknown>
+            : {};
+          return {
+            requirement: String(o.requirement ?? ''),
+            why: String(o.why ?? ''),
+            question: String(o.question ?? ''),
+            coaching: String(o.coaching ?? ''),
+          };
+        })
+        .filter((f) => Boolean(f.requirement));
+      return json({
+        done: true,
+        plan: {
+          focusAreas: areas,
+          likelyQuestions: cleanArray(plan.likelyQuestions),
+          tips: String(plan.tips ?? ''),
+        },
+      });
+    }
 
     if (parsed.done === true) {
       return json({

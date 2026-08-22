@@ -6,6 +6,7 @@ import '../entities/career_target.dart';
 import '../entities/cv_document.dart';
 import '../entities/cv_evaluation.dart';
 import '../entities/job_analysis.dart';
+import '../entities/job_application.dart';
 
 /// The single, deterministic "next best action" the app recommends.
 enum ActionType {
@@ -16,6 +17,7 @@ enum ActionType {
   evaluateCv,
   improveCv,
   trackApplications,
+  prepareInterview,
 
   /// No specific action could be derived (degenerate input). The UI treats this
   /// as a safe default rather than a misleading "you're ready to apply".
@@ -83,6 +85,7 @@ class ActionCenterInput {
     this.versionsByDoc = const {},
     this.evaluations = const [],
     this.suggestions = const [],
+    this.applications = const [],
   });
 
   final CareerDna? dna;
@@ -96,4 +99,9 @@ class ActionCenterInput {
 
   final List<CvEvaluation> evaluations;
   final List<CvSuggestion> suggestions;
+
+  /// Tracked job applications, used to recommend interview preparation when one
+  /// has reached an interview-stage status. Optional so existing callers (and
+  /// tests) that omit it keep behaving exactly as before.
+  final List<JobApplication> applications;
 }
