@@ -204,13 +204,7 @@ class _Meter extends StatelessWidget {
               FractionallySizedBox(
                 widthFactor: value.clamp(0, 1),
                 child: const DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: AppColors.signatureGradient,
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                  ),
+                  decoration: BoxDecoration(color: AppColors.brand),
                 ),
               ),
             ],

@@ -19,6 +19,10 @@ enum ActionType {
   trackApplications,
   prepareInterview,
 
+  /// Practice the interview for a role whose readiness plan already exists.
+  /// Takes priority over [prepareInterview] once a plan can be built.
+  practiceInterview,
+
   /// No specific action could be derived (degenerate input). The UI treats this
   /// as a safe default rather than a misleading "you're ready to apply".
   none,
@@ -59,6 +63,27 @@ class ActionCenterState extends Equatable {
   /// Contextual facts for secondary display (target role, score, pending count…).
   final Map<String, dynamic>? metadata;
 
+  ActionCenterState copyWith({
+    ActionType? actionType,
+    String? targetId,
+    String? analysisId,
+    String? documentId,
+    String? versionId,
+    String? evaluationId,
+    int? priority,
+    Map<String, dynamic>? metadata,
+  }) =>
+      ActionCenterState(
+        actionType: actionType ?? this.actionType,
+        targetId: targetId ?? this.targetId,
+        analysisId: analysisId ?? this.analysisId,
+        documentId: documentId ?? this.documentId,
+        versionId: versionId ?? this.versionId,
+        evaluationId: evaluationId ?? this.evaluationId,
+        priority: priority ?? this.priority,
+        metadata: metadata ?? this.metadata,
+      );
+
   @override
   List<Object?> get props => [
         actionType,
@@ -86,6 +111,7 @@ class ActionCenterInput {
     this.evaluations = const [],
     this.suggestions = const [],
     this.applications = const [],
+    this.hasInterviewPrep = false,
   });
 
   final CareerDna? dna;
@@ -104,4 +130,34 @@ class ActionCenterInput {
   /// has reached an interview-stage status. Optional so existing callers (and
   /// tests) that omit it keep behaving exactly as before.
   final List<JobApplication> applications;
+
+  /// True when the user already has everything needed to build an Interview
+  /// Readiness plan (DNA complete, a target, and an analysis or skills). When
+  /// set, the Action Center recommends [ActionType.practiceInterview].
+  final bool hasInterviewPrep;
+
+  ActionCenterInput copyWith({
+    CareerDna? dna,
+    CareerIntelligence? intelligence,
+    List<CareerTarget>? targets,
+    List<JobAnalysis>? analyses,
+    List<CvDocument>? documents,
+    Map<String, List<CvVersion>>? versionsByDoc,
+    List<CvEvaluation>? evaluations,
+    List<CvSuggestion>? suggestions,
+    List<JobApplication>? applications,
+    bool? hasInterviewPrep,
+  }) =>
+      ActionCenterInput(
+        dna: dna ?? this.dna,
+        intelligence: intelligence ?? this.intelligence,
+        targets: targets ?? this.targets,
+        analyses: analyses ?? this.analyses,
+        documents: documents ?? this.documents,
+        versionsByDoc: versionsByDoc ?? this.versionsByDoc,
+        evaluations: evaluations ?? this.evaluations,
+        suggestions: suggestions ?? this.suggestions,
+        applications: applications ?? this.applications,
+        hasInterviewPrep: hasInterviewPrep ?? this.hasInterviewPrep,
+      );
 }

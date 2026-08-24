@@ -210,13 +210,7 @@ class _SmartBuilderScreenState extends State<SmartBuilderScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [AppColors.background, AppColors.backgroundGradientMid],
-          ),
-        ),
+        color: AppColors.background,
         child: SafeArea(
           child: Stack(
             children: [
@@ -487,7 +481,7 @@ class _DraftingOverlayState extends State<_DraftingOverlay> {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: AppColors.signatureGradient),
+                    color: AppColors.brand,
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: const Icon(Icons.auto_awesome_rounded, size: 26, color: AppColors.background),
@@ -539,9 +533,8 @@ class _SuccessView extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: AppColors.signatureGradient),
+                color: AppColors.brand,
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [BoxShadow(color: AppColors.fabShadow, blurRadius: 24, offset: Offset(0, 6))],
               ),
               child: const Icon(Icons.auto_awesome_rounded, size: 40, color: AppColors.background),
             ),
@@ -898,7 +891,7 @@ class _ReviewStep extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: AppColors.signatureGradient),
+            color: AppColors.brand,
             borderRadius: BorderRadius.circular(14),
           ),
           child: Row(

@@ -38,7 +38,7 @@ class LanguageSelector extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.surfaceGlass,
                 borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: const Color(0x3894A0B8)),
+                border: Border.all(color: AppColors.borderMed),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,

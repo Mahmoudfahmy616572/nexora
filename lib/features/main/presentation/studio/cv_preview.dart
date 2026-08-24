@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../../../../domain/cv/cv_section_ordering.dart';
 import '../../../../domain/cv/cv_template_registry.dart';
 import '../../../../domain/entities/cv_content.dart';
 
 /// Renders structured [CvContent] into a printable CV using the selected
 /// template. The template changes only styling/priority — never the content.
+///
+/// Supports: structured bullets, grouped skills, target-aware section ordering,
+/// multi-page content flow, RTL, and A4-appropriate layout.
 class CvPreview extends StatelessWidget {
   const CvPreview({
     required this.content,
@@ -18,9 +22,7 @@ class CvPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final template = CvTemplateRegistry.get(templateId);
-    final theme = Theme.of(context);
-    final headerStyle = theme.textTheme;
-    final accent = template.accent;
+    final sections = CvSectionOrdering.orderedSections(content: content);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -29,124 +31,21 @@ class CvPreview extends StatelessWidget {
           alignment: Alignment.topCenter,
           child: Container(
             width: width,
-            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(template.radius),
               boxShadow: const [
                 BoxShadow(
-                  color: Color(0x11000000),
-                  blurRadius: 8,
-                  offset: Offset(0, 2),
+                  color: Color(0x0A000000),
+                  blurRadius: 6,
+                  offset: Offset(0, 1),
                 ),
               ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _Header(
-                  content: content,
-                  template: template,
-                  accent: accent,
-                  textTheme: headerStyle,
-                ),
-                if (content.summary.trim().isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  _SectionTitle(title: 'SUMMARY', accent: accent),
-                  const SizedBox(height: 4),
-                  Text(
-                    content.summary,
-                    style: headerStyle.bodyMedium,
-                    softWrap: true,
-                  ),
-                ],
-                if (content.experience.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  _SectionTitle(title: 'EXPERIENCE', accent: accent),
-                  const SizedBox(height: 4),
-                  for (final e in content.experience) ...[
-                    _ExperienceItem(item: e, template: template),
-                    const SizedBox(height: 8),
-                  ],
-                ],
-                if (content.projects.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  _SectionTitle(title: 'PROJECTS', accent: accent),
-                  const SizedBox(height: 4),
-                  for (final p in content.projects) ...[
-                    _ProjectItem(item: p, template: template),
-                    const SizedBox(height: 8),
-                  ],
-                ],
-                if (content.education.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  _SectionTitle(title: 'EDUCATION', accent: accent),
-                  const SizedBox(height: 4),
-                  for (final e in content.education)
-                    _EducationItem(item: e, accent: accent),
-                ],
-                if (content.skillGroups.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  _SectionTitle(title: 'SKILLS', accent: accent),
-                  const SizedBox(height: 4),
-                  for (final g in content.skillGroups) ...[
-                    Text(
-                      g.title,
-                      style: headerStyle.bodyMedium
-                          ?.copyWith(fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 2),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      children: [
-                        for (final s in g.skills)
-                          Chip(
-                            visualDensity: VisualDensity.compact,
-                            label: Text(s),
-                            backgroundColor: accent.withValues(alpha: 0.12),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                  ],
-                ],
-                if (content.certifications.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  _SectionTitle(title: 'CERTIFICATIONS', accent: accent),
-                  const SizedBox(height: 4),
-                  for (final c in content.certifications)
-                    Text(
-                      c.display,
-                      style: headerStyle.bodyMedium,
-                      softWrap: true,
-                    ),
-                ],
-                if (content.achievements.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  _SectionTitle(title: 'ACHIEVEMENTS', accent: accent),
-                  const SizedBox(height: 4),
-                  for (final a in content.achievements)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: Text(
-                        '• ${a.text}',
-                        style: headerStyle.bodyMedium,
-                        softWrap: true,
-                      ),
-                    ),
-                ],
-                if (content.languages.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  _SectionTitle(title: 'LANGUAGES', accent: accent),
-                  const SizedBox(height: 4),
-                  Text(
-                    content.languages.map((l) => l.display).join(' · '),
-                    style: headerStyle.bodyMedium,
-                    softWrap: true,
-                  ),
-                ],
-              ],
+            child: _CvBody(
+              content: content,
+              template: template,
+              sections: sections,
             ),
           ),
         );
@@ -155,102 +54,299 @@ class CvPreview extends StatelessWidget {
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title, required this.accent});
-  final String title;
-  final Color accent;
-
-  @override
-  Widget build(BuildContext context) => Text(
-        title,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: accent,
-              letterSpacing: 1.2,
-              fontWeight: FontWeight.w700,
-            ),
-      );
-}
-
-class _Header extends StatelessWidget {
-  const _Header({
+/// The main CV body — renders header + all sections with proper typography.
+class _CvBody extends StatelessWidget {
+  const _CvBody({
     required this.content,
     required this.template,
-    required this.accent,
-    required this.textTheme,
+    required this.sections,
   });
+
   final CvContent content;
   final CvTemplate template;
-  final Color accent;
-  final TextTheme textTheme;
+  final List<CvSection> sections;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: template.marginHorizontal,
+        vertical: template.marginVertical,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _Header(content: content, template: template),
+          for (final section in sections) ...[
+            SizedBox(height: template.sectionSpacing),
+            _SectionDivider(template: template),
+            SizedBox(height: template.spacing * 0.4),
+            _buildSection(section),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSection(CvSection section) {
+    switch (section) {
+      case CvSection.summary:
+        return _SummarySection(content: content, template: template);
+      case CvSection.experience:
+        return _ExperienceSection(content: content, template: template);
+      case CvSection.projects:
+        return _ProjectsSection(content: content, template: template);
+      case CvSection.education:
+        return _EducationSection(content: content, template: template);
+      case CvSection.skills:
+        return _SkillsSection(content: content, template: template);
+      case CvSection.certifications:
+        return _CertificationsSection(content: content, template: template);
+      case CvSection.achievements:
+        return _AchievementsSection(content: content, template: template);
+      case CvSection.languages:
+        return _LanguagesSection(content: content, template: template);
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Section Divider
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _SectionDivider extends StatelessWidget {
+  const _SectionDivider({required this.template});
+  final CvTemplate template;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!template.showSectionDivider) return const SizedBox.shrink();
+    return Container(
+      height: 0.5,
+      color: template.dividerColor,
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Section Title
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({required this.title, required this.template});
+  final String title;
+  final CvTemplate template;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: template.sectionTitleSize,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.8,
+        color: template.accent,
+        fontFamily: template.fontFamily,
+        height: 1.2,
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Header
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _Header extends StatelessWidget {
+  const _Header({required this.content, required this.template});
+  final CvContent content;
+  final CvTemplate template;
 
   @override
   Widget build(BuildContext context) {
     final h = content.header;
-    final contact = [
-      if (h.email.isNotEmpty) h.email,
-      if (h.phone.isNotEmpty) h.phone,
-      if (h.location.isNotEmpty) h.location,
-    ].join('  •  ');
-    final child = Column(
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ── Name ──
         if (h.name.isNotEmpty)
           Text(
             h.name,
-            style: textTheme.titleLarge?.copyWith(
+            style: TextStyle(
               fontSize: template.headerNameSize,
               fontWeight: FontWeight.w800,
+              color: template.bodyColor,
+              fontFamily: template.fontFamily,
+              height: 1.15,
             ),
-            softWrap: true,
+            textDirection: TextDirection.ltr,
           ),
-        if (h.title.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Text(
-              h.title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: accent,
-                    fontWeight: FontWeight.w600,
-                  ),
-              softWrap: true,
-            ),
-          ),
-        if (h.subtitle.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Text(
-              h.subtitle,
-              style: Theme.of(context).textTheme.bodySmall,
-              softWrap: true,
+
+        // ── Title / Role ──
+        if (h.title.isNotEmpty) ...[
+          SizedBox(height: template.spacing * 0.2),
+          Text(
+            h.title,
+            style: TextStyle(
+              fontSize: template.baseTextSize + 1.5,
+              fontWeight: FontWeight.w600,
+              color: template.accent,
+              fontFamily: template.fontFamily,
+              height: 1.3,
             ),
           ),
-        if (contact.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(contact, style: Theme.of(context).textTheme.bodySmall),
-          ),
-        if (h.links.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Text(
-              h.links.join('  •  '),
-              style: Theme.of(context).textTheme.bodySmall,
+        ],
+
+        // ── Subtitle ──
+        if (h.subtitle.isNotEmpty && h.subtitle != h.title) ...[
+          SizedBox(height: 1),
+          Text(
+            h.subtitle,
+            style: TextStyle(
+              fontSize: template.metaTextSize,
+              color: template.mutedColor,
+              fontFamily: template.fontFamily,
+              height: 1.3,
             ),
           ),
+        ],
+
+        // ── Contact Row ──
+        _ContactRow(template: template, header: h, isRtl: isRtl),
+
+        // ── Links ──
+        if (h.links.isNotEmpty) ...[
+          SizedBox(height: template.spacing * 0.15),
+          Text(
+            h.links.join('  •  '),
+            style: TextStyle(
+              fontSize: template.metaTextSize,
+              color: template.mutedColor,
+              fontFamily: template.fontFamily,
+              height: 1.3,
+            ),
+          ),
+        ],
       ],
     );
-    if (template.showHeaderBar) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: accent.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: child,
-      );
+  }
+}
+
+class _ContactRow extends StatelessWidget {
+  const _ContactRow({
+    required this.template,
+    required this.header,
+    required this.isRtl,
+  });
+  final CvTemplate template;
+  final CvHeader header;
+  final bool isRtl;
+
+  @override
+  Widget build(BuildContext context) {
+    final items = <_ContactItem>[];
+    if (header.email.isNotEmpty) {
+      items.add(_ContactItem(icon: Icons.email_outlined, text: header.email));
     }
-    return child;
+    if (header.phone.isNotEmpty) {
+      items.add(_ContactItem(icon: Icons.phone_outlined, text: header.phone));
+    }
+    if (header.location.isNotEmpty) {
+      items.add(_ContactItem(icon: Icons.location_on_outlined, text: header.location));
+    }
+
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: EdgeInsets.only(top: template.spacing * 0.25),
+      child: Wrap(
+        spacing: template.spacing * 0.6,
+        runSpacing: 2,
+        children: [
+          for (final item in items)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(item.icon, size: template.metaTextSize + 1, color: template.mutedColor),
+                SizedBox(width: 3),
+                Text(
+                  item.text,
+                  style: TextStyle(
+                    fontSize: template.metaTextSize,
+                    color: template.mutedColor,
+                    fontFamily: template.fontFamily,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ContactItem {
+  const _ContactItem({required this.icon, required this.text});
+  final IconData icon;
+  final String text;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Summary Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _SummarySection extends StatelessWidget {
+  const _SummarySection({required this.content, required this.template});
+  final CvContent content;
+  final CvTemplate template;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionTitle(title: 'PROFILE', template: template),
+        SizedBox(height: template.spacing * 0.3),
+        Text(
+          content.summary,
+          style: TextStyle(
+            fontSize: template.baseTextSize,
+            color: template.bodyColor,
+            fontFamily: template.fontFamily,
+            height: 1.45,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Experience Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ExperienceSection extends StatelessWidget {
+  const _ExperienceSection({required this.content, required this.template});
+  final CvContent content;
+  final CvTemplate template;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionTitle(title: 'EXPERIENCE', template: template),
+        SizedBox(height: template.spacing * 0.3),
+        for (int i = 0; i < content.experience.length; i++) ...[
+          _ExperienceItem(item: content.experience[i], template: template),
+          if (i < content.experience.length - 1)
+            SizedBox(height: template.itemSpacing),
+        ],
+      ],
+    );
   }
 }
 
@@ -261,35 +357,129 @@ class _ExperienceItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final bullets = item.effectiveBullets;
+    final dateStr = _formatDateRange(item.startDate, item.endDate, item.yearsLabel);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ── Role — Company ──
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: Text(
-                '${item.role} — ${item.company}',
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(fontWeight: FontWeight.w700),
-                softWrap: true,
+                item.company.isNotEmpty ? '${item.role} — ${item.company}' : item.role,
+                style: TextStyle(
+                  fontSize: template.baseTextSize,
+                  fontWeight: FontWeight.w700,
+                  color: template.bodyColor,
+                  fontFamily: template.fontFamily,
+                  height: 1.3,
+                ),
               ),
             ),
-            if (item.yearsLabel.isNotEmpty)
-              Text(item.yearsLabel,
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: template.accent)),
+            if (dateStr.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Text(
+                  dateStr,
+                  style: TextStyle(
+                    fontSize: template.metaTextSize,
+                    color: template.mutedColor,
+                    fontFamily: template.fontFamily,
+                    height: 1.3,
+                  ),
+                ),
+              ),
           ],
         ),
-        if (item.description.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Text(
-              item.description,
-              style: theme.textTheme.bodySmall,
-              softWrap: true,
+
+        // ── Location ──
+        if (item.location.isNotEmpty) ...[
+          SizedBox(height: 1),
+          Text(
+            item.location,
+            style: TextStyle(
+              fontSize: template.metaTextSize,
+              color: template.mutedColor,
+              fontStyle: FontStyle.italic,
+              fontFamily: template.fontFamily,
+              height: 1.3,
             ),
           ),
+        ],
+
+        // ── Bullets ──
+        if (bullets.isNotEmpty) ...[
+          SizedBox(height: template.bulletSpacing + 1),
+          for (final b in bullets)
+            Padding(
+              padding: EdgeInsets.only(bottom: template.bulletSpacing, left: 0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '•  ',
+                    style: TextStyle(
+                      fontSize: template.baseTextSize,
+                      color: template.mutedColor,
+                      fontFamily: template.fontFamily,
+                      height: 1.45,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      b,
+                      style: TextStyle(
+                        fontSize: template.baseTextSize,
+                        color: template.bodyColor,
+                        fontFamily: template.fontFamily,
+                        height: 1.45,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ] else if (item.description.isNotEmpty) ...[
+          SizedBox(height: template.bulletSpacing + 1),
+          Text(
+            item.description,
+            style: TextStyle(
+              fontSize: template.baseTextSize,
+              color: template.bodyColor,
+              fontFamily: template.fontFamily,
+              height: 1.45,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Projects Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ProjectsSection extends StatelessWidget {
+  const _ProjectsSection({required this.content, required this.template});
+  final CvContent content;
+  final CvTemplate template;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionTitle(title: 'PROJECTS', template: template),
+        SizedBox(height: template.spacing * 0.3),
+        for (int i = 0; i < content.projects.length; i++) ...[
+          _ProjectItem(item: content.projects[i], template: template),
+          if (i < content.projects.length - 1)
+            SizedBox(height: template.itemSpacing),
+        ],
       ],
     );
   }
@@ -302,35 +492,270 @@ class _ProjectItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final bullets = item.effectiveBullets;
+    final links = item.effectiveLinks;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ── Name + Tech + Links ──
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Text(
-                item.tech.isNotEmpty
-                    ? '${item.name} (${item.tech.join(", ")})'
-                    : item.name,
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(fontWeight: FontWeight.w700),
-                softWrap: true,
+              child: RichText(
+                text: TextSpan(
+                  children: [
+                    if (item.role.isNotEmpty)
+                      TextSpan(
+                        text: '${item.role} — ',
+                        style: TextStyle(
+                          fontSize: template.baseTextSize,
+                          fontWeight: FontWeight.w600,
+                          color: template.bodyColor,
+                          fontFamily: template.fontFamily,
+                          height: 1.3,
+                        ),
+                      ),
+                    TextSpan(
+                      text: item.name,
+                      style: TextStyle(
+                        fontSize: template.baseTextSize,
+                        fontWeight: FontWeight.w700,
+                        color: template.bodyColor,
+                        fontFamily: template.fontFamily,
+                        height: 1.3,
+                      ),
+                    ),
+                    if (item.tech.isNotEmpty)
+                      TextSpan(
+                        text: '  |  ${item.tech.join(', ')}',
+                        style: TextStyle(
+                          fontSize: template.metaTextSize,
+                          fontWeight: FontWeight.w400,
+                          color: template.mutedColor,
+                          fontFamily: template.fontFamily,
+                          height: 1.3,
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
-            if (item.link.isNotEmpty)
-              Text(item.link,
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: template.accent)),
+            if (links.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Text(
+                  links.join(' | '),
+                  style: TextStyle(
+                    fontSize: template.metaTextSize,
+                    color: template.accent,
+                    fontFamily: template.fontFamily,
+                    height: 1.3,
+                  ),
+                ),
+              ),
           ],
         ),
-        if (item.description.isNotEmpty)
+
+        // ── Bullets ──
+        if (bullets.isNotEmpty) ...[
+          SizedBox(height: template.bulletSpacing + 1),
+          for (final b in bullets)
+            Padding(
+              padding: EdgeInsets.only(bottom: template.bulletSpacing),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '•  ',
+                    style: TextStyle(
+                      fontSize: template.baseTextSize,
+                      color: template.mutedColor,
+                      fontFamily: template.fontFamily,
+                      height: 1.45,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      b,
+                      style: TextStyle(
+                        fontSize: template.baseTextSize,
+                        color: template.bodyColor,
+                        fontFamily: template.fontFamily,
+                        height: 1.45,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ] else if (item.description.isNotEmpty) ...[
+          SizedBox(height: template.bulletSpacing + 1),
+          Text(
+            item.description,
+            style: TextStyle(
+              fontSize: template.baseTextSize,
+              color: template.bodyColor,
+              fontFamily: template.fontFamily,
+              height: 1.45,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Education Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _EducationSection extends StatelessWidget {
+  const _EducationSection({required this.content, required this.template});
+  final CvContent content;
+  final CvTemplate template;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionTitle(title: 'EDUCATION', template: template),
+        SizedBox(height: template.spacing * 0.3),
+        for (final e in content.education)
+          _EducationItem(item: e, template: template),
+      ],
+    );
+  }
+}
+
+class _EducationItem extends StatelessWidget {
+  const _EducationItem({required this.item, required this.template});
+  final CvEducation item;
+  final CvTemplate template;
+
+  @override
+  Widget build(BuildContext context) {
+    final title = [
+      if (item.degree.isNotEmpty) item.degree,
+      if (item.field.isNotEmpty) item.field,
+    ].join(' in ');
+    final sub = [
+      if (item.institution.isNotEmpty) item.institution,
+      if (item.year.isNotEmpty) item.year,
+    ].join('  •  ');
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: template.itemSpacing),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (title.isNotEmpty)
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: template.baseTextSize,
+                fontWeight: FontWeight.w700,
+                color: template.bodyColor,
+                fontFamily: template.fontFamily,
+                height: 1.3,
+              ),
+            ),
+          if (sub.isNotEmpty)
+            Text(
+              sub,
+              style: TextStyle(
+                fontSize: template.metaTextSize,
+                color: template.accent,
+                fontFamily: template.fontFamily,
+                height: 1.3,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Skills Section — Grouped by category
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _SkillsSection extends StatelessWidget {
+  const _SkillsSection({required this.content, required this.template});
+  final CvContent content;
+  final CvTemplate template;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionTitle(title: 'SKILLS', template: template),
+        SizedBox(height: template.spacing * 0.3),
+        for (final g in content.skillGroups) ...[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${g.title}:  ',
+                style: TextStyle(
+                  fontSize: template.baseTextSize,
+                  fontWeight: FontWeight.w600,
+                  color: template.bodyColor,
+                  fontFamily: template.fontFamily,
+                  height: 1.4,
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  g.skills.join(' / '),
+                  style: TextStyle(
+                    fontSize: template.baseTextSize,
+                    color: template.bodyColor,
+                    fontFamily: template.fontFamily,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (content.skillGroups.indexOf(g) < content.skillGroups.length - 1)
+            SizedBox(height: template.bulletSpacing + 1),
+        ],
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Certifications Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _CertificationsSection extends StatelessWidget {
+  const _CertificationsSection({required this.content, required this.template});
+  final CvContent content;
+  final CvTemplate template;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionTitle(title: 'CERTIFICATIONS', template: template),
+        SizedBox(height: template.spacing * 0.3),
+        for (final c in content.certifications)
           Padding(
-            padding: const EdgeInsets.only(top: 2),
+            padding: EdgeInsets.only(bottom: template.bulletSpacing),
             child: Text(
-              item.description,
-              style: theme.textTheme.bodySmall,
-              softWrap: true,
+              c.display,
+              style: TextStyle(
+                fontSize: template.baseTextSize,
+                color: template.bodyColor,
+                fontFamily: template.fontFamily,
+                height: 1.4,
+              ),
             ),
           ),
       ],
@@ -338,36 +763,94 @@ class _ProjectItem extends StatelessWidget {
   }
 }
 
-class _EducationItem extends StatelessWidget {
-  const _EducationItem({required this.item, required this.accent});
-  final CvEducation item;
-  final Color accent;
+// ─────────────────────────────────────────────────────────────────────────────
+// Achievements Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _AchievementsSection extends StatelessWidget {
+  const _AchievementsSection({required this.content, required this.template});
+  final CvContent content;
+  final CvTemplate template;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final title = [
-      if (item.degree.isNotEmpty) item.degree,
-      if (item.field.isNotEmpty) item.field,
-    ].join(' ');
-    final sub = [
-      if (item.institution.isNotEmpty) item.institution,
-      if (item.year.isNotEmpty) item.year,
-    ].join('  •  ');
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (title.isNotEmpty)
-            Text(title,
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(fontWeight: FontWeight.w600),
-                softWrap: true),
-          if (sub.isNotEmpty)
-            Text(sub, style: theme.textTheme.bodySmall?.copyWith(color: accent)),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionTitle(title: 'ACHIEVEMENTS', template: template),
+        SizedBox(height: template.spacing * 0.3),
+        for (final a in content.achievements)
+          Padding(
+            padding: EdgeInsets.only(bottom: template.bulletSpacing),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '•  ',
+                  style: TextStyle(
+                    fontSize: template.baseTextSize,
+                    color: template.mutedColor,
+                    fontFamily: template.fontFamily,
+                    height: 1.45,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    a.text,
+                    style: TextStyle(
+                      fontSize: template.baseTextSize,
+                      color: template.bodyColor,
+                      fontFamily: template.fontFamily,
+                      height: 1.45,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Languages Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _LanguagesSection extends StatelessWidget {
+  const _LanguagesSection({required this.content, required this.template});
+  final CvContent content;
+  final CvTemplate template;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionTitle(title: 'LANGUAGES', template: template),
+        SizedBox(height: template.spacing * 0.3),
+        Text(
+          content.languages.map((l) => l.display).join('  •  '),
+          style: TextStyle(
+            fontSize: template.baseTextSize,
+            color: template.bodyColor,
+            fontFamily: template.fontFamily,
+            height: 1.4,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+String _formatDateRange(String start, String end, String yearsLabel) {
+  final parts = <String>[];
+  if (start.isNotEmpty) parts.add(start);
+  if (end.isNotEmpty) parts.add(end);
+  if (parts.isEmpty && yearsLabel.isNotEmpty) parts.add(yearsLabel);
+  return parts.join(' – ');
 }

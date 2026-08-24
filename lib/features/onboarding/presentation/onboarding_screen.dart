@@ -216,14 +216,7 @@ class _OnboardingSlide extends StatelessWidget {
                   TextSpan(text: titleLead),
                   TextSpan(
                     text: titleAccent,
-                    style: TextStyle(
-                      foreground: Paint()
-                        ..shader = const LinearGradient(
-                          colors: AppColors.headlineGradient,
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ).createShader(const Rect.fromLTWH(0, 0, 420, 300)),
-                    ),
+                    style: const TextStyle(color: AppColors.brand),
                   ),
                 ],
               ),
@@ -272,9 +265,7 @@ class _Scene extends StatelessWidget {
               height: 180,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(90),
-                gradient: RadialGradient(
-                  colors: [glow.withValues(alpha: 0.18), glow.withValues(alpha: 0)],
-                ),
+                color: glow.withValues(alpha: 0.12),
               ),
             ),
           ),
@@ -303,18 +294,14 @@ class _PhoneFrame extends StatelessWidget {
       height: 350,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.card, AppColors.cardHi],
-        ),
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(color: AppColors.borderMed),
         boxShadow: [
           BoxShadow(
             color: AppColors.panelShadow,
-            blurRadius: 60,
-            offset: const Offset(0, 24),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -335,15 +322,11 @@ class _MockHeader extends StatelessWidget {
         Container(
           width: 20,
           height: 20,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: AppColors.signatureGradient,
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+          decoration: BoxDecoration(
+            color: AppColors.brand,
             borderRadius: BorderRadius.all(Radius.circular(6)),
           ),
-          child: const Icon(Icons.bolt_rounded, size: 11, color: Colors.white),
+          child: const Icon(Icons.bolt_rounded, size: 11, color: AppColors.background),
         ),
         const SizedBox(width: 8),
         Expanded(

@@ -50,14 +50,17 @@ class _InterviewView extends StatefulWidget {
 
 class _InterviewViewState extends State<_InterviewView> {
   final _controller = TextEditingController();
+  bool _started = false;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
     final dna = widget.initialDna ?? context.read<CareerDnaCubit>().state.dna;
     if (dna != null) {
       final language = Localizations.localeOf(context).languageCode;
       context.read<InterviewCubit>().start(dna, language);
+      _started = true;
     }
   }
 
@@ -170,11 +173,7 @@ class _InterviewViewState extends State<_InterviewView> {
                                     child: Container(
                                       height: 52,
                                       decoration: BoxDecoration(
-                                        gradient: const LinearGradient(
-                                          colors: AppColors.primaryButtonGradient,
-                                          begin: Alignment.centerLeft,
-                                          end: Alignment.centerRight,
-                                        ),
+                                        color: AppColors.brand,
                                         borderRadius: BorderRadius.circular(16),
                                       ),
                                       alignment: Alignment.center,

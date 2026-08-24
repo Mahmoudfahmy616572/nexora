@@ -105,6 +105,18 @@ class FakeDnaRepo implements CareerDnaRepository {
     String? company,
   }) async =>
       const InterviewPrepPlan(focusAreas: []);
+
+  @override
+  Future<Map<String, dynamic>> generateMockFeedback({
+    required Map<String, dynamic> context,
+    required String question,
+    required String answer,
+    required String focusArea,
+    String? targetRole,
+    String? company,
+    required String language,
+  }) async =>
+      const {};
 }
 
 class FakeTargetRepo implements CareerTargetRepository {

@@ -232,16 +232,33 @@ class CareerDna {
         ],
         'experience': [
           for (final e in profile.experience)
-            {'role': e.role, 'company': e.company, 'years': e.years},
+            {
+              'role': e.role,
+              'company': e.company,
+              'years': e.years,
+              if (e.role.isNotEmpty || e.company.isNotEmpty)
+                'hint': 'Worked as ${e.role}${e.company.isNotEmpty ? ' at ${e.company}' : ''}',
+            },
         ],
         'projects': [
           for (final p in profile.projects)
-            {'name': p.name, 'description': p.description, 'tech': p.tech},
+            {
+              'name': p.name,
+              'description': p.description,
+              'tech': p.tech,
+              'bullets_hint': p.description.split(RegExp(r'(?<=[.!?\n])\s+')).where((s) => s.trim().length > 15).toList(),
+            },
         ],
         'skills': skills,
         'certifications': profile.certifications,
         'achievements': profile.achievements,
         'languages': profile.languages,
+        '_instructions': {
+          'bullet_format': 'ACTION + WHAT + HOW + SCALE/RESULT. Only use facts present in the input. Never invent metrics, companies, technologies, dates, or responsibilities.',
+          'experience_output': 'Each experience MUST have a bullets[] array. Never output a single description string. Generate bullets from the role, company, and years provided.',
+          'project_output': 'Each project MUST have a bullets[] array. Decompose the description into specific technical bullets. Never output a single description string.',
+          'skills_output': 'Group skills into meaningful categories. Output skillGroups[] with title and skills[] per group.',
+        },
       };
 }
 

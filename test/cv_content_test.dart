@@ -47,4 +47,128 @@ void main() {
     expect(h.name, 'A');
     expect(h.email, 'x@y.z');
   });
+
+  group('CvExperience bullets', () {
+    test('bullets field round-trips through toJson/fromJson', () {
+      const e = CvExperience(
+        role: 'Dev',
+        company: 'ACME',
+        bullets: ['Built the app', 'Integrated APIs'],
+      );
+      final back = CvExperience.fromJson(e.toJson());
+      expect(back.bullets, ['Built the app', 'Integrated APIs']);
+      expect(back.description, '');
+    });
+
+    test('effectiveBullets returns bullets when present', () {
+      const e = CvExperience(
+        role: 'Dev',
+        bullets: ['Bullet 1', 'Bullet 2'],
+      );
+      expect(e.effectiveBullets, ['Bullet 1', 'Bullet 2']);
+    });
+
+    test('effectiveBullets falls back to description', () {
+      const e = CvExperience(
+        role: 'Dev',
+        description: 'Did some work',
+      );
+      expect(e.effectiveBullets, ['Did some work']);
+    });
+
+    test('effectiveBullets returns empty when both empty', () {
+      const e = CvExperience(role: 'Dev');
+      expect(e.effectiveBullets, isEmpty);
+    });
+
+    test('backward compat: old format without bullets key', () {
+      final old = CvExperience.fromJson({
+        'role': 'Dev',
+        'company': 'Co',
+        'description': 'Built stuff',
+      });
+      expect(old.bullets, ['Built stuff']);
+      expect(old.effectiveBullets, ['Built stuff']);
+    });
+
+    test('backward compat: empty description produces no bullets', () {
+      final old = CvExperience.fromJson({
+        'role': 'Dev',
+        'company': 'Co',
+      });
+      expect(old.bullets, isEmpty);
+      expect(old.effectiveBullets, isEmpty);
+    });
+  });
+
+  group('CvProject bullets and links', () {
+    test('bullets field round-trips through toJson/fromJson', () {
+      const p = CvProject(
+        name: 'App',
+        bullets: ['Built UI', 'Added auth'],
+        tech: ['Flutter'],
+      );
+      final back = CvProject.fromJson(p.toJson());
+      expect(back.bullets, ['Built UI', 'Added auth']);
+      expect(back.description, '');
+    });
+
+    test('effectiveBullets returns bullets when present', () {
+      const p = CvProject(name: 'App', bullets: ['B1', 'B2']);
+      expect(p.effectiveBullets, ['B1', 'B2']);
+    });
+
+    test('effectiveBullets falls back to description', () {
+      const p = CvProject(name: 'App', description: 'A delivery app');
+      expect(p.effectiveBullets, ['A delivery app']);
+    });
+
+    test('effectiveLinks returns links when present', () {
+      const p = CvProject(
+        name: 'App',
+        links: ['https://github.com/app', 'https://demo.app'],
+      );
+      expect(p.effectiveLinks, ['https://github.com/app', 'https://demo.app']);
+    });
+
+    test('effectiveLinks falls back to single link', () {
+      const p = CvProject(name: 'App', link: 'https://github.com/app');
+      expect(p.effectiveLinks, ['https://github.com/app']);
+    });
+
+    test('effectiveLinks returns empty when none', () {
+      const p = CvProject(name: 'App');
+      expect(p.effectiveLinks, isEmpty);
+    });
+
+    test('role field round-trips', () {
+      const p = CvProject(name: 'App', role: 'Founder');
+      final back = CvProject.fromJson(p.toJson());
+      expect(back.role, 'Founder');
+    });
+
+    test('date field round-trips', () {
+      const p = CvProject(name: 'App', date: '2024');
+      final back = CvProject.fromJson(p.toJson());
+      expect(back.date, '2024');
+    });
+
+    test('backward compat: old format without bullets key', () {
+      final old = CvProject.fromJson({
+        'name': 'App',
+        'description': 'Built a delivery app',
+        'tech': ['Flutter'],
+      });
+      expect(old.bullets, ['Built a delivery app']);
+      expect(old.effectiveBullets, ['Built a delivery app']);
+    });
+  });
+
+  group('CvExperience location', () {
+    test('location round-trips', () {
+      const e = CvExperience(role: 'Dev', location: 'Cairo, Egypt');
+      final back = CvExperience.fromJson(e.toJson());
+      expect(back.location, 'Cairo, Egypt');
+    });
+  });
 }

@@ -66,14 +66,7 @@ class _HeroContent extends StatelessWidget {
               TextSpan(text: '${l10n.welcomeTitleUnderstood}\n'),
               TextSpan(
                 text: l10n.welcomeTitleElevated,
-                style: TextStyle(
-                  foreground: Paint()
-                    ..shader = LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: AppColors.headlineGradient,
-                    ).createShader(const Rect.fromLTWH(0, 0, 500, 300)),
-                ),
+                style: const TextStyle(color: AppColors.brand),
               ),
             ],
           ),
@@ -139,7 +132,7 @@ class _TrustRow extends StatelessWidget {
 
     Widget divider() => const Padding(
           padding: EdgeInsets.symmetric(horizontal: 22),
-          child: SizedBox(width: 1, height: 38, child: ColoredBox(color: Color(0x2694A0B8))),
+          child: SizedBox(width: 1, height: 38, child: ColoredBox(color: AppColors.borderMed)),
         );
 
     return LayoutBuilder(

@@ -40,8 +40,15 @@ class CvCubit extends Cubit<CvState> {
   Future<CareerDna> _ensureDna(CareerDna? cached) async =>
       cached ?? (await _dnaRepo.load()) ?? CareerDna();
 
+  /// Emits only when the cubit is still open. Guards async methods that may
+  /// complete after the cubit was closed (e.g. during navigation), which would
+  /// otherwise throw `Bad state: Cannot emit new states after calling close`.
+  void _safeEmit(CvState next) {
+    if (!isClosed) emit(next);
+  }
+
   Future<void> load() async {
-    emit(state.copyWith(status: CvStatus.loading, clearMessage: true));
+    _safeEmit(state.copyWith(status: CvStatus.loading, clearMessage: true));
     try {
       final results = await Future.wait([
         _docRepo.loadDocuments(),
@@ -52,7 +59,7 @@ class CvCubit extends Cubit<CvState> {
       final documents = results[0] as List<CvDocument>;
       final targets = results[1] as List<CareerTarget>;
       final analyses = results[2] as List<JobAnalysis>? ?? const [];
-      emit(state.copyWith(
+      _safeEmit(state.copyWith(
         status: documents.isEmpty ? CvStatus.initial : CvStatus.ready,
         documents: documents,
         targets: targets,
@@ -60,7 +67,7 @@ class CvCubit extends Cubit<CvState> {
         dna: dna,
       ));
     } on Object {
-      emit(state.copyWith(
+      _safeEmit(state.copyWith(
         status: CvStatus.failure,
         message: 'Could not load your CVs. Please try again.',
       ));
@@ -68,13 +75,13 @@ class CvCubit extends Cubit<CvState> {
   }
 
   void selectTarget(String? id) =>
-      emit(state.copyWith(targetId: id, clearTargetId: id == null));
+      _safeEmit(state.copyWith(targetId: id, clearTargetId: id == null));
 
   void setAnalysisId(String? id) =>
-      emit(state.copyWith(analysisId: id, clearAnalysisId: id == null));
+      _safeEmit(state.copyWith(analysisId: id, clearAnalysisId: id == null));
 
   /// Returns from the editor to the CV list without creating a version.
-  void backToList() => emit(state.copyWith(
+  void backToList() => _safeEmit(state.copyWith(
         clearSelectedDocument: true,
         content: null,
         targetId: null,
@@ -101,7 +108,7 @@ class CvCubit extends Cubit<CvState> {
       updatedAt: now,
       analysisId: analysisId,
     );
-    emit(state.copyWith(
+    _safeEmit(state.copyWith(
       status: CvStatus.generating,
       selectedDocument: doc,
       templateId: templateId,
@@ -116,7 +123,7 @@ class CvCubit extends Cubit<CvState> {
     final dna = await _ensureDna(state.dna);
     final target = _first(state.targets, (t) => t.id == state.targetId);
     if (target == null) {
-      emit(state.copyWith(
+      _safeEmit(state.copyWith(
         status: CvStatus.failure,
         message: 'A target is required to generate a CV.',
       ));
@@ -125,7 +132,7 @@ class CvCubit extends Cubit<CvState> {
     final analysis = state.analysisId == null
         ? null
         : _first(state.analyses, (a) => a.id == state.analysisId);
-    emit(state.copyWith(status: CvStatus.generating, clearMessage: true, dna: dna));
+    _safeEmit(state.copyWith(status: CvStatus.generating, clearMessage: true, dna: dna));
     try {
       final content = await _genRepo.generate(
         dna: dna,
@@ -136,7 +143,7 @@ class CvCubit extends Cubit<CvState> {
       );
       final result = CvContentValidator.validate(content, dna);
       if (!result.valid) {
-        emit(state.copyWith(
+        _safeEmit(state.copyWith(
           status: CvStatus.failure,
           content: content,
           isAiGenerated: true,
@@ -146,14 +153,14 @@ class CvCubit extends Cubit<CvState> {
         ));
         return;
       }
-      emit(state.copyWith(
+      _safeEmit(state.copyWith(
         status: CvStatus.ready,
         content: content,
         isAiGenerated: true,
         validationIssues: const [],
       ));
     } on Object {
-      emit(state.copyWith(
+      _safeEmit(state.copyWith(
         status: CvStatus.failure,
         message: 'AI generation is unavailable. You can still use your '
             'Factual CV — built only from verified facts.',
@@ -169,7 +176,7 @@ class CvCubit extends Cubit<CvState> {
     final dna = await _ensureDna(state.dna);
     final target = _first(state.targets, (t) => t.id == state.targetId);
     final content = CvFactualBuilder.build(dna, target: target);
-    emit(state.copyWith(
+    _safeEmit(state.copyWith(
       status: CvStatus.ready,
       content: content,
       isAiGenerated: false,
@@ -181,17 +188,17 @@ class CvCubit extends Cubit<CvState> {
   /// Applies manual edits to the current content. Edits are authoritative for
   /// the CV version and MUST NOT mutate CareerDna.
   void editContent(CvContent updated) =>
-      emit(state.copyWith(content: updated, clearMessage: true));
+      _safeEmit(state.copyWith(content: updated, clearMessage: true));
 
   /// Switches the active template without changing factual content.
   void switchTemplate(String templateId) =>
-      emit(state.copyWith(templateId: templateId, clearMessage: true));
+      _safeEmit(state.copyWith(templateId: templateId, clearMessage: true));
 
   /// Persists the current content as a new version (creating the document the
   /// first time). Loading/viewing never creates a version.
   Future<void> save() async {
     if (state.content == null) return;
-    emit(state.copyWith(status: CvStatus.saving, clearMessage: true));
+    _safeEmit(state.copyWith(status: CvStatus.saving, clearMessage: true));
     try {
       final dna = await _ensureDna(state.dna);
       final now = DateTime.now();
@@ -226,7 +233,7 @@ class CvCubit extends Cubit<CvState> {
         version.copyWith(documentId: savedDoc.id, userId: savedDoc.userId),
       );
       final versions = await _docRepo.loadVersions(savedDoc.id);
-      emit(state.copyWith(
+      _safeEmit(state.copyWith(
         status: CvStatus.ready,
         selectedDocument: savedDoc,
         dna: dna,
@@ -234,7 +241,7 @@ class CvCubit extends Cubit<CvState> {
         message: 'Saved as version ${savedVersion.version}.',
       ));
     } on Object {
-      emit(state.copyWith(
+      _safeEmit(state.copyWith(
         status: CvStatus.failure,
         message: 'Could not save the CV. Please try again.',
       ));
@@ -243,18 +250,18 @@ class CvCubit extends Cubit<CvState> {
 
   /// Opens an existing document and loads its latest version for preview/edit.
   Future<void> openDocument(String documentId) async {
-    emit(state.copyWith(status: CvStatus.loading, clearMessage: true));
+    _safeEmit(state.copyWith(status: CvStatus.loading, clearMessage: true));
     try {
       final doc = await _docRepo.loadDocument(documentId);
       final version = await _docRepo.loadLatestVersion(documentId);
       if (doc == null || version == null) {
-        emit(state.copyWith(
+        _safeEmit(state.copyWith(
           status: CvStatus.failure,
           message: 'This CV could not be found.',
         ));
         return;
       }
-      emit(state.copyWith(
+      _safeEmit(state.copyWith(
         status: CvStatus.ready,
         selectedDocument: doc,
         content: version.content,
@@ -264,7 +271,7 @@ class CvCubit extends Cubit<CvState> {
         versions: await _docRepo.loadVersions(documentId),
       ));
     } on Object {
-      emit(state.copyWith(
+      _safeEmit(state.copyWith(
         status: CvStatus.failure,
         message: 'Could not open the CV.',
       ));
@@ -273,14 +280,14 @@ class CvCubit extends Cubit<CvState> {
 
   Future<void> loadVersions(String documentId) async {
     final versions = await _docRepo.loadVersions(documentId);
-    emit(state.copyWith(versions: versions));
+    _safeEmit(state.copyWith(versions: versions));
   }
 
   /// Loads a specific version into the editor/preview.
   Future<void> openVersion(String versionId) async {
     final version = await _docRepo.loadVersion(versionId);
     if (version == null) return;
-    emit(state.copyWith(
+    _safeEmit(state.copyWith(
       content: version.content,
       templateId: version.templateId,
       selectedDocument: state.selectedDocument?.copyWith(
@@ -292,10 +299,10 @@ class CvCubit extends Cubit<CvState> {
   Future<void> deleteDocument(String id) async {
     try {
       await _docRepo.deleteDocument(id);
-      emit(const CvState(status: CvStatus.deleted));
+      _safeEmit(const CvState(status: CvStatus.deleted));
       await load();
     } on Object {
-      emit(state.copyWith(
+      _safeEmit(state.copyWith(
         status: CvStatus.failure,
         message: 'Could not delete the CV.',
       ));

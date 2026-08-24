@@ -9,12 +9,13 @@ abstract final class AppTheme {
 
   static ThemeData _buildDark() {
     final colorScheme = const ColorScheme.dark(
-      primary: AppColors.teal,
+      primary: AppColors.brand,
       onPrimary: AppColors.background,
-      secondary: AppColors.purple,
-      tertiary: AppColors.green,
+      secondary: AppColors.accent,
+      tertiary: AppColors.success,
       surface: AppColors.card,
       onSurface: AppColors.text,
+      outline: AppColors.border,
     );
 
     return ThemeData(
@@ -26,6 +27,8 @@ abstract final class AppTheme {
       splashFactory: InkRipple.splashFactory,
       textTheme: TextTheme(
         displayLarge: AppTextStyles.display(76),
+        headlineSmall: AppTextStyles.screenTitle,
+        titleMedium: AppTextStyles.cardTitle,
         bodyMedium: AppTextStyles.description,
         bodySmall: AppTextStyles.featureSubtitle,
         labelLarge: AppTextStyles.primaryButton,

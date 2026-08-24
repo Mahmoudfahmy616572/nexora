@@ -1057,6 +1057,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trackerDeleteApplication => 'Delete application';
 
   @override
+  String get trackerPractice => 'Practice for this role';
+
+  @override
   String get authWelcomeBack => 'Welcome back';
 
   @override
@@ -2268,6 +2271,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get acCtaPrepareInterview => 'Prepare Interview';
 
   @override
+  String get acTitlePracticeInterview => 'Practice your interview';
+
+  @override
+  String get acDescPracticeInterview =>
+      'Run a mock interview for this role and get scored, grounded coaching on your answers.';
+
+  @override
+  String get acCtaPracticeInterview => 'Practice Interview';
+
+  @override
   String get acLoading => 'Finding your next step…';
 
   @override
@@ -2315,6 +2328,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get prepRegenerate => 'Regenerate';
 
   @override
+  String get prepPractice => 'Practice';
+
+  @override
   String get prepAiUnavailable =>
       'AI is unavailable — showing your key gaps to prepare. Nothing is fabricated.';
 
@@ -2325,4 +2341,86 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get prepEmptyNoInterview =>
       'Nothing to prepare yet. Analyze a role and track your applications to unlock focused practice.';
+
+  @override
+  String get practiceTitle => 'Interview Practice';
+
+  @override
+  String get practiceDesc =>
+      'Building your mock interview from your readiness plan…';
+
+  @override
+  String get practiceError =>
+      'Something went wrong while preparing the practice session.';
+
+  @override
+  String get practiceEmpty => 'No questions available for this role yet.';
+
+  @override
+  String practiceProgress(int index, int total) {
+    return 'Question $index of $total';
+  }
+
+  @override
+  String get practiceAnswerHint =>
+      'Type your answer here. Use a real example if you can.';
+
+  @override
+  String get practiceSubmit => 'Submit answer';
+
+  @override
+  String get practiceFinish => 'See results';
+
+  @override
+  String get practiceNext => 'Next question';
+
+  @override
+  String get practiceRelevance => 'Relevance';
+
+  @override
+  String get practiceSpecificity => 'Specificity';
+
+  @override
+  String get practiceStructure => 'Structure';
+
+  @override
+  String get practiceConsistency => 'Profile consistency';
+
+  @override
+  String get practiceStrengths => 'What went well';
+
+  @override
+  String get practiceImprove => 'Ways to improve';
+
+  @override
+  String get practiceCoaching => 'Coaching';
+
+  @override
+  String get practiceUnverified => 'Unverified claims';
+
+  @override
+  String get practiceStrong => 'Strong answer';
+
+  @override
+  String get practiceGood => 'Good answer';
+
+  @override
+  String get practiceNeedsImprovement => 'Needs improvement';
+
+  @override
+  String get practiceSummaryTitle => 'Practice summary';
+
+  @override
+  String practiceSummaryScore(int count) {
+    return 'Scored on $count answers';
+  }
+
+  @override
+  String get practiceRecommended => 'Recommended focus next time';
+
+  @override
+  String get practiceAgain => 'Practice again';
+
+  @override
+  String get practiceDone => 'Done';
 }

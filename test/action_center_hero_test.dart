@@ -238,6 +238,13 @@ void main() {
       expect(find.text('تتبّع الطلبات'), findsOneWidget);
     });
 
+    testWidgets('shows the Practice Interview CTA for practiceInterview', (tester) async {
+      final decision = _readyDecision().copyWith(actionType: ActionType.practiceInterview);
+      await _pumpCard(tester, decision: decision, locale: const Locale('en'));
+      expect(find.text('Practice Interview'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('invokes onAction when CTA tapped', (tester) async {
       var tapped = false;
       tester.view.physicalSize = const Size(390, 844);
@@ -326,7 +333,7 @@ void main() {
       await cubit.load();
       await tester.pumpAndSettle();
       expect(find.byType(CircularProgressIndicator), findsNothing);
-      expect(find.text('Track Applications'), findsOneWidget);
+      expect(find.text('Practice Interview'), findsOneWidget);
     });
   });
 }

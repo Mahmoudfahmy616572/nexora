@@ -194,6 +194,25 @@ class CareerRemoteDataSource {
     return data;
   }
 
+  /// Runs the hosted AI interview edge function in `mock_feedback` mode, which
+  /// returns qualitative coaching for a single answered question. The numeric
+  /// scores are computed client-side by [InterviewPracticeEngine] and are NOT
+  /// taken from here. Returns `{ feedback: {...} }`.
+  Future<Map<String, dynamic>> runAiMockFeedback(Map<String, dynamic> body) async {
+    final client = _client;
+    final response = await client.functions
+        .invoke('career_interview', body: body)
+        .timeout(const Duration(seconds: 30));
+    final data = response.data;
+    if (data is! Map<String, dynamic>) {
+      throw StateError('AI returned an unexpected response');
+    }
+    if (data['error'] != null) {
+      throw StateError(data['error'] as String);
+    }
+    return data;
+  }
+
   /// The current Career DNA row from `career_dna`, or `null` if none yet.
   Future<Map<String, dynamic>?> fetchCareerDna() async {
     final client = _client;

@@ -384,6 +384,7 @@
     }
   },
   "trackerDeleteApplication": "Delete application",
+  "trackerPractice": "Practice for this role",
   "authWelcomeBack": "Welcome back",
   "authCreateAccount": "Create your account",
   "authSignInSub": "Sign in to continue building your Career DNA.",
@@ -807,6 +808,9 @@
     "acTitlePrepareInterview": "Prepare for your interview",
     "acDescPrepareInterview": "You have an interview-stage application. Practice the gaps that matter for this role.",
     "acCtaPrepareInterview": "Prepare Interview",
+    "acTitlePracticeInterview": "Practice your interview",
+    "acDescPracticeInterview": "Run a mock interview for this role and get scored, grounded coaching on your answers.",
+    "acCtaPracticeInterview": "Practice Interview",
     "acLoading": "Finding your next step…",
   "acTarget": "Target",
   "acScore": "Score",
@@ -836,12 +840,49 @@
   "prepLikelyQuestions": "Likely questions",
   "prepTips": "Tips",
   "prepRegenerate": "Regenerate",
+  "prepPractice": "Practice",
   "prepAiUnavailable": "AI is unavailable — showing your key gaps to prepare. Nothing is fabricated.",
   "prepNoAnalysis": "No opportunity analysis found for this role. Preparing from your skills; analyze the role for sharper prep.",
   "prepEmptyNoInterview": "Nothing to prepare yet. Analyze a role and track your applications to unlock focused practice.",
+  "practiceTitle": "Interview Practice",
+  "practiceDesc": "Building your mock interview from your readiness plan…",
+  "practiceError": "Something went wrong while preparing the practice session.",
+  "practiceEmpty": "No questions available for this role yet.",
+  "practiceProgress": "Question {index} of {total}",
+  "practiceAnswerHint": "Type your answer here. Use a real example if you can.",
+  "practiceSubmit": "Submit answer",
+  "practiceFinish": "See results",
+  "practiceNext": "Next question",
+  "practiceRelevance": "Relevance",
+  "practiceSpecificity": "Specificity",
+  "practiceStructure": "Structure",
+  "practiceConsistency": "Profile consistency",
+  "practiceStrengths": "What went well",
+  "practiceImprove": "Ways to improve",
+  "practiceCoaching": "Coaching",
+  "practiceUnverified": "Unverified claims",
+  "practiceStrong": "Strong answer",
+  "practiceGood": "Good answer",
+  "practiceNeedsImprovement": "Needs improvement",
+  "practiceSummaryTitle": "Practice summary",
+  "practiceSummaryScore": "Scored on {count} answers",
+  "practiceRecommended": "Recommended focus next time",
+  "practiceAgain": "Practice again",
+  "practiceDone": "Done",
   "@prepForRole": {
     "placeholders": {
       "role": { "type": "String" }
+    }
+  },
+  "@practiceProgress": {
+    "placeholders": {
+      "index": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "@practiceSummaryScore": {
+    "placeholders": {
+      "count": { "type": "int" }
     }
   }
 }

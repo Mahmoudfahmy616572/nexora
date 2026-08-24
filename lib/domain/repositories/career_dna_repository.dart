@@ -71,4 +71,20 @@ abstract interface class CareerDnaRepository {
     String? targetRole,
     String? company,
   });
+
+  /// Returns qualitative coaching for a single answered practice question
+  /// (`mock_feedback` mode). Returns a map with a `feedback` object containing
+  /// `strengths`, `improvements`, `coaching` and `sketch`. Numeric scores are
+  /// never produced by this call — they are computed client-side by
+  /// [InterviewPracticeEngine]. Throws on hard failure so the caller can fall
+  /// back to a deterministic coaching hint.
+  Future<Map<String, dynamic>> generateMockFeedback({
+    required Map<String, dynamic> context,
+    required String question,
+    required String answer,
+    required String focusArea,
+    String? targetRole,
+    String? company,
+    required String language,
+  });
 }

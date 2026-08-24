@@ -46,17 +46,13 @@ class _NexoraPrimaryButtonState extends State<NexoraPrimaryButton> {
           width: double.infinity,
           transform: Matrix4.translationValues(0, _hovered && !_pressed ? -2 : 0, 0),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: AppColors.primaryButtonGradient,
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
+            color: AppColors.brand,
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
                 color: _hovered ? AppColors.primaryShadowHover : AppColors.primaryShadow,
-                blurRadius: _hovered ? 50 : 40,
-                offset: Offset(0, _hovered ? 20 : 15),
+                blurRadius: _hovered ? 24 : 16,
+                offset: Offset(0, _hovered ? 10 : 6),
               ),
             ],
           ),
@@ -69,10 +65,10 @@ class _NexoraPrimaryButtonState extends State<NexoraPrimaryButton> {
                   width: 38,
                   height: 38,
                   radius: 12,
-                  child: const Icon(Icons.auto_awesome_rounded, size: 18, color: Colors.white),
+                  child: const Icon(Icons.auto_awesome_rounded, size: 18, color: AppColors.background),
                 ),
               ),
-              Text(widget.label, style: AppTextStyles.primaryButton),
+              Text(widget.label, style: AppTextStyles.primaryButton.copyWith(color: AppColors.background)),
               Positioned(
                 right: 18,
                 child: _Well(
@@ -82,7 +78,7 @@ class _NexoraPrimaryButtonState extends State<NexoraPrimaryButton> {
                   child: Icon(
                     rtl ? Icons.arrow_back_rounded : Icons.arrow_forward_rounded,
                     size: 24,
-                    color: Colors.white,
+                    color: AppColors.background,
                   ),
                 ),
               ),
@@ -126,10 +122,10 @@ class _NexoraSecondaryButtonState extends State<NexoraSecondaryButton> {
           width: double.infinity,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: _hovered ? const Color(0x147C3AED) : const Color(0x8C030714),
+            color: _hovered ? AppColors.purple.withValues(alpha: 0.12) : AppColors.card,
             borderRadius: BorderRadius.circular(17),
             border: Border.all(
-              color: _hovered ? const Color(0xB3A855F7) : AppColors.borderViolet,
+              color: _hovered ? AppColors.purple : AppColors.borderViolet,
             ),
           ),
           child: Text(widget.label, style: AppTextStyles.secondaryButton),

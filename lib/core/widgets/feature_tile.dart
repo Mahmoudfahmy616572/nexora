@@ -34,7 +34,7 @@ class FeatureTile extends StatelessWidget {
           width: 42,
           height: 42,
           decoration: BoxDecoration(
-            color: const Color(0x1F6366F1),
+            color: iconColor.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: borderColor),
           ),

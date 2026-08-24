@@ -29,7 +29,7 @@ class OptionCard extends StatelessWidget {
     return Material(
       color: selected
           ? AppColors.violet.withValues(alpha: 0.12)
-          : const Color(0x8C030714),
+          : AppColors.card,
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         onTap: onTap,

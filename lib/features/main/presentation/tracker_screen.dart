@@ -174,6 +174,14 @@ class _TrackerScreenState extends State<TrackerScreen> {
       );
       return;
     }
+    if (result.practice) {
+      if (!mounted) return;
+      context.push(
+        Routes.interviewPractice,
+        extra: {'role': app.role, 'company': app.company, 'applicationId': app.id},
+      );
+      return;
+    }
     if (newStatus == null || newStatus == app.status) return;
     setState(() {
       _apps = [
@@ -640,13 +648,30 @@ bool _isInterviewStage(String status) =>
     status == 'Interview' || status == 'Assessment';
 
 class _AppEditResult {
-  const _AppEditResult.status(this.status) : delete = false, prepare = false;
-  const _AppEditResult.delete() : status = null, delete = true, prepare = false;
-  const _AppEditResult.prepare() : status = null, delete = false, prepare = true;
+  const _AppEditResult.status(this.status)
+      : delete = false,
+        prepare = false,
+        practice = false;
+  const _AppEditResult.delete()
+      : status = null,
+        delete = true,
+        prepare = false,
+        practice = false;
+  const _AppEditResult.prepare()
+      : status = null,
+        delete = false,
+        prepare = true,
+        practice = false;
+  const _AppEditResult.practice()
+      : status = null,
+        delete = false,
+        prepare = false,
+        practice = true;
 
   final String? status;
   final bool delete;
   final bool prepare;
+  final bool practice;
 }
 
 class _AppDetailSheet extends StatelessWidget {
@@ -659,7 +684,7 @@ class _AppDetailSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final color = _TrackerScreenState._colorOf(app.status);
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -731,6 +756,21 @@ class _AppDetailSheet extends StatelessWidget {
                 ),
                 icon: const Icon(Icons.psychology_alt_outlined, size: 18),
                 label: Text(l10n.acCtaPrepareInterview),
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: OutlinedButton.icon(
+                onPressed: () => Navigator.of(context).pop(const _AppEditResult.practice()),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.teal,
+                  side: const BorderSide(color: AppColors.teal),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                icon: const Icon(Icons.record_voice_over_rounded, size: 18),
+                label: Text(l10n.trackerPractice),
               ),
             ),
             const SizedBox(height: 10),

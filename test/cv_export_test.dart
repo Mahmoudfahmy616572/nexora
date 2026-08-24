@@ -31,7 +31,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(body: CvExportSheet(content: content)),
+      home: Scaffold(body: CvExportSheet(content: content, templateId: 'nexoraMinimal')),
     ));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('cvCopy')), findsOneWidget);

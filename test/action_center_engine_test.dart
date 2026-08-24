@@ -451,5 +451,60 @@ void main() {
       ));
       expect(d.actionType, ActionType.trackApplications);
     });
+
+    group('Phase 5: practiceInterview', () {
+      ActionCenterInput buildReady({bool hasInterviewPrep = false}) {
+        final dna = _dna();
+        final target = _target(id: 't1');
+        final analysis = _analysis(id: 'a1', targetId: 't1');
+        final doc = _document(id: 'doc1', analysisId: 'a1');
+        final version = _version(id: 'v1', documentId: 'doc1', evaluationId: 'e1');
+        final evaluation = _evaluation(id: 'e1', versionId: 'v1');
+        return ActionCenterInput(
+          dna: dna,
+          intelligence: _intelligence(dna),
+          targets: [target],
+          analyses: [analysis],
+          documents: [doc],
+          versionsByDoc: {'doc1': [version]},
+          evaluations: [evaluation],
+          suggestions: const [],
+          hasInterviewPrep: hasInterviewPrep,
+        );
+      }
+
+      test('17. ready + hasInterviewPrep -> practiceInterview (priority 30)',
+          () {
+        final d = _derive(buildReady(hasInterviewPrep: true));
+        expect(d.actionType, ActionType.practiceInterview);
+        expect(d.priority, 30);
+        expect(d.metadata!['targetRole'], 'Flutter Developer');
+      });
+
+      test('18. ready + hasInterviewPrep + interview app -> still practiceInterview',
+          () {
+        final input = buildReady(hasInterviewPrep: true).copyWith(applications: [
+          _application(
+            id: 'app1',
+            company: 'Google',
+            role: 'Flutter Engineer',
+            status: 'Interview',
+          ),
+        ]);
+        final d = _derive(input);
+        expect(d.actionType, ActionType.practiceInterview);
+        expect(d.metadata!['applicationId'], 'app1');
+      });
+
+      test('19. ready + interview app but no prep plan -> prepareInterview',
+          () {
+        final input = buildReady(hasInterviewPrep: false).copyWith(applications: [
+          _application(id: 'app1', status: 'Interview'),
+        ]);
+        final d = _derive(input);
+        expect(d.actionType, ActionType.prepareInterview);
+        expect(d.priority, 20);
+      });
+    });
   });
 }

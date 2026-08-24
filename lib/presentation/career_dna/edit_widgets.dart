@@ -31,10 +31,11 @@ Future<List<String>?> showStringListSheet(
           top: 18,
           bottom: MediaQuery.of(ctx).viewInsets.bottom + 18,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             Text(title, style: AppTextStyles.cardTitle),
             const SizedBox(height: 14),
             Row(
@@ -100,6 +101,7 @@ Future<List<String>?> showStringListSheet(
         ),
       ),
     ),
+    ),
   );
   return result;
 }
@@ -129,10 +131,11 @@ Future<List<Map<String, String>>?> showStructListSheet(
           top: 18,
           bottom: MediaQuery.of(ctx).viewInsets.bottom + 18,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             Text(title, style: AppTextStyles.cardTitle),
             const SizedBox(height: 12),
             for (var i = 0; i < current.length; i++) ...[
@@ -194,6 +197,7 @@ Future<List<Map<String, String>>?> showStructListSheet(
           ],
         ),
       ),
+    ),
     ),
   );
   return result;

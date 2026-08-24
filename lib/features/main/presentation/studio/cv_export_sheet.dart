@@ -1,6 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:printing/printing.dart';
 
+import '../../../../domain/cv/cv_pdf_renderer.dart';
 import '../../../../domain/entities/cv_content.dart';
 import '../../../../l10n/app_localizations.dart';
 
@@ -27,16 +32,23 @@ String cvToText(CvContent content) {
     buffer.writeln('EXPERIENCE');
     for (final e in content.experience) {
       buffer.writeln('- ${e.role} — ${e.company} ${e.yearsLabel}');
-      if (e.description.isNotEmpty) buffer.writeln('  ${e.description}');
+      for (final b in e.effectiveBullets) {
+        buffer.writeln('  • $b');
+      }
     }
   }
   if (content.projects.isNotEmpty) {
     buffer.writeln();
     buffer.writeln('PROJECTS');
     for (final p in content.projects) {
-      final tech = p.tech.isNotEmpty ? ' (${p.tech.join(", ")})' : '';
-      buffer.writeln('- ${p.name}$tech');
-      if (p.description.isNotEmpty) buffer.writeln('  ${p.description}');
+      final tech = p.tech.isNotEmpty ? ' | ${p.tech.join(", ")}' : '';
+      final role = p.role.isNotEmpty ? '${p.role} — ' : '';
+      final links = p.effectiveLinks;
+      final linksStr = links.isNotEmpty ? ' | ${links.join(' | ')}' : '';
+      buffer.writeln('- $role${p.name}$tech$linksStr');
+      for (final b in p.effectiveBullets) {
+        buffer.writeln('  • $b');
+      }
     }
   }
   if (content.education.isNotEmpty) {
@@ -77,11 +89,16 @@ String cvToText(CvContent content) {
   return buffer.toString().trim();
 }
 
-/// Lightweight export: copy the structured CV as plain text. PDF/print is
-/// intentionally omitted because no export dependency is available.
+/// Export sheet: copy as plain text, generate PDF, save/share PDF.
 class CvExportSheet extends StatelessWidget {
-  const CvExportSheet({required this.content, super.key});
+  const CvExportSheet({
+    required this.content,
+    required this.templateId,
+    super.key,
+  });
+
   final CvContent content;
+  final String templateId;
 
   @override
   Widget build(BuildContext context) {
@@ -118,6 +135,88 @@ class CvExportSheet extends StatelessWidget {
             },
             icon: const Icon(Icons.copy),
             label: Text(l10n.cvCopy),
+          ),
+          const SizedBox(height: 8),
+          ElevatedButton.icon(
+            key: const Key('cvPdfPreview'),
+            onPressed: () async {
+              try {
+                final bytes = await CvPdfRenderer.render(
+                  content: content,
+                  templateId: templateId,
+                );
+                if (context.mounted) {
+                  await Printing.layoutPdf(
+                    onLayout: (_) => bytes,
+                    name: '${content.header.name}_CV',
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('PDF preview failed: $e')),
+                  );
+                }
+              }
+            },
+            icon: const Icon(Icons.preview),
+            label: const Text('Preview PDF'),
+          ),
+          const SizedBox(height: 8),
+          ElevatedButton.icon(
+            key: const Key('cvPdfSave'),
+            onPressed: () async {
+              try {
+                final bytes = await CvPdfRenderer.render(
+                  content: content,
+                  templateId: templateId,
+                );
+                final dir = await getApplicationDocumentsDirectory();
+                final name = content.header.name.replaceAll(' ', '_');
+                final file = File('${dir.path}/${name}_CV.pdf');
+                await file.writeAsBytes(bytes);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Saved to ${file.path}')),
+                  );
+                  Navigator.pop(context);
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('PDF save failed: $e')),
+                  );
+                }
+              }
+            },
+            icon: const Icon(Icons.save),
+            label: const Text('Save PDF'),
+          ),
+          const SizedBox(height: 8),
+          ElevatedButton.icon(
+            key: const Key('cvPdfShare'),
+            onPressed: () async {
+              try {
+                final bytes = await CvPdfRenderer.render(
+                  content: content,
+                  templateId: templateId,
+                );
+                final dir = await getTemporaryDirectory();
+                final name = content.header.name.replaceAll(' ', '_');
+                final file = File('${dir.path}/${name}_CV.pdf');
+                await file.writeAsBytes(bytes);
+                await Printing.sharePdf(bytes: bytes, filename: '${name}_CV.pdf');
+                if (context.mounted) Navigator.pop(context);
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('PDF share failed: $e')),
+                  );
+                }
+              }
+            },
+            icon: const Icon(Icons.share),
+            label: const Text('Share PDF'),
           ),
         ],
       ),

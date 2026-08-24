@@ -16,15 +16,21 @@ CvContent _rich() => CvContent(
           role: 'Flutter Engineer',
           company: 'Acme',
           years: 4,
-          description: 'Led the migration to a clean architecture and shipped '
-              'the offline mode used by 200k users.',
+          bullets: [
+            'Led the migration to a clean architecture and shipped the offline mode used by 200k users.',
+            'Integrated Google Maps and Paymob payments across 3 mobile applications.',
+            'Refactored the state management layer from Provider to BLoC, reducing bug reports by 30%.',
+          ],
         ),
       ],
       projects: const [
         CvProject(
           name: 'Payments SDK',
           tech: ['Flutter', 'Dart'],
-          description: 'Built a reusable SDK that cut integration time in half.',
+          bullets: [
+            'Built a reusable payments SDK that cut integration time in half for 5 partner teams.',
+            'Implemented Stripe and Paymob payment flows with comprehensive error handling.',
+          ],
         ),
       ],
       education: const [CvEducation(degree: 'BSc Computer Science')],
@@ -36,6 +42,24 @@ CvContent _rich() => CvContent(
     );
 
 CvContent _empty() => const CvContent(header: CvHeader(name: 'X'));
+
+CvContent _shallow() => CvContent(
+      header: const CvHeader(name: 'Test', email: 't@t.com'),
+      summary: 'Developer.',
+      experience: const [
+        CvExperience(
+          role: 'Dev',
+          company: 'Co',
+          bullets: ['Built a app'],
+        ),
+      ],
+      projects: const [
+        CvProject(
+          name: 'App',
+          bullets: ['Worked on it'],
+        ),
+      ],
+    );
 
 void main() {
   group('CvEvaluator determinism', () {
@@ -82,6 +106,75 @@ void main() {
     });
   });
 
+  group('CvEvaluator content intelligence', () {
+    test('rich content with bullets scores higher than shallow', () {
+      final richResult = CvEvaluator.evaluate(
+        content: _rich(),
+        userId: 'u',
+        versionId: 'v',
+        targetId: 't',
+      );
+      final shallowResult = CvEvaluator.evaluate(
+        content: _shallow(),
+        userId: 'u',
+        versionId: 'v',
+        targetId: 't',
+      );
+      expect(richResult.evaluation.contentStrength,
+          greaterThan(shallowResult.evaluation.contentStrength));
+      expect(richResult.evaluation.evidenceStrength,
+          greaterThan(shallowResult.evaluation.evidenceStrength));
+    });
+
+    test('bulletDensity explanation is present', () {
+      final result = CvEvaluator.evaluate(
+        content: _rich(),
+        userId: 'u',
+        versionId: 'v',
+        targetId: 't',
+      );
+      expect(result.evaluation.explanations.containsKey('bulletDensity'), isTrue);
+      expect(result.evaluation.explanations.containsKey('bulletQuality'), isTrue);
+    });
+
+    test('rich content gets good bullet density explanation', () {
+      final result = CvEvaluator.evaluate(
+        content: _rich(),
+        userId: 'u',
+        versionId: 'v',
+        targetId: 't',
+      );
+      expect(
+        result.evaluation.explanations['bulletDensity'],
+        contains('Good bullet density'),
+      );
+    });
+
+    test('shallow content gets low bullet density explanation', () {
+      final result = CvEvaluator.evaluate(
+        content: _shallow(),
+        userId: 'u',
+        versionId: 'v',
+        targetId: 't',
+      );
+      expect(
+        result.evaluation.explanations['bulletDensity'],
+        contains('Low bullet density'),
+      );
+    });
+
+    test('shallow bullets get quality suggestion', () {
+      final result = CvEvaluator.evaluate(
+        content: _shallow(),
+        userId: 'u',
+        versionId: 'v',
+        targetId: 't',
+      );
+      // Should have suggestions about bullet quality.
+      expect(result.suggestions, isNotEmpty);
+    });
+  });
+
   group('CvEvaluator.applySuggestion factuality guard', () {
     test('rewords an existing section substring', () {
       final content = CvContent(summary: 'I am a developer');
@@ -119,6 +212,57 @@ void main() {
       );
       final updated = CvEvaluator.applySuggestion(content, s);
       expect(updated.summary, 'I am a developer');
+    });
+
+    test('replaces text in experience bullets', () {
+      final content = CvContent(
+        experience: const [
+          CvExperience(
+            role: 'Dev',
+            bullets: ['Built the app using Flutter'],
+          ),
+        ],
+      );
+      final s = CvSuggestion(
+        id: '1',
+        userId: 'u',
+        evaluationId: 'e',
+        versionId: 'v',
+        section: 'experience',
+        problem: 'p',
+        current: 'Built the app using Flutter',
+        suggested: 'Developed a Flutter-based application with real-time features',
+        why: 'w',
+        targetRequirement: '',
+        createdAt: DateTime.now(),
+      );
+      final updated = CvEvaluator.applySuggestion(content, s);
+      expect(updated.experience.first.bullets.first,
+          'Developed a Flutter-based application with real-time features');
+    });
+
+    test('replaces text in project bullets', () {
+      final content = CvContent(
+        projects: const [
+          CvProject(name: 'App', bullets: ['Worked on the project']),
+        ],
+      );
+      final s = CvSuggestion(
+        id: '1',
+        userId: 'u',
+        evaluationId: 'e',
+        versionId: 'v',
+        section: 'projects',
+        problem: 'p',
+        current: 'Worked on the project',
+        suggested: 'Developed a cross-platform mobile application',
+        why: 'w',
+        targetRequirement: '',
+        createdAt: DateTime.now(),
+      );
+      final updated = CvEvaluator.applySuggestion(content, s);
+      expect(updated.projects.first.bullets.first,
+          'Developed a cross-platform mobile application');
     });
   });
 

@@ -311,15 +311,11 @@ class _VerifiedSplash extends StatelessWidget {
           Container(
             width: 96,
             height: 96,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: AppColors.signatureGradient,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.all(Radius.circular(28)),
-            ),
-            child: const Icon(Icons.check_rounded, size: 46, color: Colors.white),
+          decoration: BoxDecoration(
+            color: AppColors.brand,
+            borderRadius: BorderRadius.all(Radius.circular(28)),
+          ),
+          child: const Icon(Icons.check_rounded, size: 46, color: AppColors.background),
           ),
           const SizedBox(height: 24),
           Text(l10n.emailVerified, style: AppTextStyles.display(30)),

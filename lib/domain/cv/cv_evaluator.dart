@@ -31,8 +31,18 @@ class CvEvaluator {
         c.header.phone,
         c.header.location,
         c.summary,
-        for (final e in c.experience) '${e.role} ${e.company} ${e.description}',
-        for (final p in c.projects) '${p.name} ${p.description} ${p.tech.join(' ')}',
+        for (final e in c.experience) ...[
+          '${e.role} ${e.company}',
+          e.description,
+          ...e.bullets,
+        ],
+        for (final p in c.projects) ...[
+          p.name,
+          p.description,
+          ...p.bullets,
+          p.role,
+          ...p.tech,
+        ],
         for (final e in c.education) '${e.degree} ${e.field} ${e.institution}',
         for (final g in c.skillGroups) '${g.title} ${g.skills.join(' ')}',
         for (final cert in c.certifications) cert.name,
@@ -74,9 +84,10 @@ class CvEvaluator {
     if (c.experience.isNotEmpty || c.projects.isNotEmpty) s += 25;
     if (c.education.isNotEmpty) s += 15;
     if (c.skillGroups.isNotEmpty) s += 20;
+    // Check that experience/projects have structured bullets.
     final described = [
-      ...c.experience.map((e) => e.description.trim().isNotEmpty),
-      ...c.projects.map((p) => p.description.trim().isNotEmpty),
+      ...c.experience.map((e) => e.effectiveBullets.isNotEmpty),
+      ...c.projects.map((p) => p.effectiveBullets.isNotEmpty),
     ];
     if (described.isNotEmpty) {
       final ratio = described.where((b) => b).length / described.length;
@@ -86,44 +97,106 @@ class CvEvaluator {
   }
 
   static int _contentStrength(CvContent c) {
-    final itemCount = c.experience.length +
-        c.projects.length +
-        c.education.length +
+    // Count structured bullets, not just items.
+    final bulletCount = c.experience.fold(0, (sum, e) => sum + e.effectiveBullets.length) +
+        c.projects.fold(0, (sum, p) => sum + p.effectiveBullets.length);
+    final itemCount = c.education.length +
         c.skillGroups.fold(0, (sum, g) => sum + g.skills.length) +
         c.certifications.length +
         c.achievements.length;
-    final describedCount = c.experience
-            .where((e) => e.description.trim().isNotEmpty)
-            .length +
-        c.projects.where((p) => p.description.trim().isNotEmpty).length;
-    return _clamp(itemCount * 4 + describedCount * 6);
+    // Bullets contribute more than bare items.
+    return _clamp(bulletCount * 3 + itemCount * 2 + (c.summary.trim().length >= 40 ? 10 : 0));
   }
 
   static int _evidenceStrength(CvContent c) {
-    final descriptions = <String>[
-      for (final e in c.experience) e.description,
-      for (final p in c.projects) p.description,
+    final bullets = <String>[
+      for (final e in c.experience) ...e.effectiveBullets,
+      for (final p in c.projects) ...p.effectiveBullets,
     ];
-    if (descriptions.isEmpty) return 0;
-    final described =
-        descriptions.where((d) => d.trim().isNotEmpty).length;
-    final withMetric = descriptions.where(_hasMetric).length;
-    final ratio = (described / descriptions.length * 70) +
-        (withMetric / descriptions.length * 30);
+    if (bullets.isEmpty) return 0;
+    final nonEmpty = bullets.where((d) => d.trim().isNotEmpty).length;
+    final withMetric = bullets.where(_hasMetric).length;
+    final withTech = bullets.where(_hasTechEvidence).length;
+    final ratio = (nonEmpty / bullets.length * 40) +
+        (withMetric / bullets.length * 30) +
+        (withTech / bullets.length * 30);
     return _clamp(ratio.round());
   }
 
   static bool _hasMetric(String s) {
-    // Any digit / percentage / measurement token counts as an evidence signal.
     return RegExp(r'\d').hasMatch(s) ||
         RegExp(r'%|\$|k\b|users?|downloads?|requests?/s|ms\b').hasMatch(s.toLowerCase());
+  }
+
+  static bool _hasTechEvidence(String s) {
+    // Detects technology-specific evidence patterns.
+    return RegExp(r'(built|developed|implemented|integrated|designed|architected|deployed|configured)',
+        caseSensitive: false).hasMatch(s) ||
+        RegExp(r'(using|with|via|through|using)\s+\w+', caseSensitive: false).hasMatch(s);
+  }
+
+  /// Measures how information-dense the bullets are.
+  ///
+  /// Returns 0-100 where:
+  /// - 0 = no bullets at all (shallow)
+  /// - 30 = bullets exist but are very short/vague
+  /// - 60 = moderate density
+  /// - 100 = high density (multiple substantive bullets per entry)
+  static int _bulletDensity(CvContent c) {
+    final entries = c.experience.length + c.projects.length;
+    if (entries == 0) return 0;
+
+    final totalBullets = c.experience.fold(0, (sum, e) => sum + e.effectiveBullets.length) +
+        c.projects.fold(0, (sum, p) => sum + p.effectiveBullets.length);
+    final avgBulletsPerEntry = totalBullets / entries;
+
+    // Average bullet length (substantive = >25 chars).
+    final allBullets = [
+      for (final e in c.experience) ...e.effectiveBullets,
+      for (final p in c.projects) ...p.effectiveBullets,
+    ];
+    if (allBullets.isEmpty) return 0;
+    final avgLength = allBullets.map((b) => b.length).fold(0, (a, b) => a + b) / allBullets.length;
+    final substantiveRatio = allBullets.where((b) => b.length > 25).length / allBullets.length;
+
+    // Score: avg bullets per entry (0-40) + avg length (0-30) + substantive ratio (0-30).
+    final densityScore = (avgBulletsPerEntry * 10).clamp(0, 40) +
+        (avgLength / 2).clamp(0, 30) +
+        (substantiveRatio * 30).clamp(0, 30);
+    return _clamp(densityScore.round());
+  }
+
+  /// Detects weak/generic bullets.
+  static int _bulletQuality(CvContent c) {
+    final allBullets = [
+      for (final e in c.experience) ...e.effectiveBullets,
+      for (final p in c.projects) ...p.effectiveBullets,
+    ];
+    if (allBullets.isEmpty) return 50; // neutral when no bullets
+
+    int weakCount = 0;
+    for (final b in allBullets) {
+      final lower = b.toLowerCase();
+      // Too short.
+      if (b.length < 20) { weakCount++; continue; }
+      // Generic/vague phrases.
+      if (RegExp(r'\b(built a|worked on|responsible for|helped with|assisted|participated)\b',
+          caseSensitive: false).hasMatch(lower)) { weakCount++; continue; }
+      // No action verb.
+      if (!RegExp(r'\b(built|developed|implemented|designed|architected|engineered|integrated|'
+          r'led|created|optimized|deployed|configured|managed|automated|scaled|reduced|improved|'
+          r'increased|delivered|shipped|migrated|refactored|debugged|tested|launched|established)\b',
+          caseSensitive: false).hasMatch(lower)) { weakCount++; }
+    }
+    final weakRatio = weakCount / allBullets.length;
+    return _clamp((100 - weakRatio * 100).round());
   }
 
   static int _readability(CvContent c) {
     final texts = [
       c.summary,
-      for (final e in c.experience) e.description,
-      for (final p in c.projects) p.description,
+      for (final e in c.experience) ...e.effectiveBullets,
+      for (final p in c.projects) ...p.effectiveBullets,
     ].where((t) => t.trim().isNotEmpty).toList();
     if (texts.isEmpty) return 0;
     int penalties = 0;
@@ -132,22 +205,22 @@ class CvEvaluator {
       for (final s in sentences) {
         final words = s.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
         if (words.length > 28) {
-          penalties += 6; // run-on sentence
+          penalties += 6;
         } else if (words.length >= 12) {
           penalties += 2;
         }
       }
     }
     final textsWithDesc = texts.where((t) => t.trim().length >= 20).length;
-    final base = (textsWithDesc / texts.length * 70).round();
+    final base = texts.isNotEmpty ? (textsWithDesc / texts.length * 70).round() : 0;
     return _clamp(base + 30 - penalties);
   }
 
   static int _clarity(CvContent c) {
     final texts = [
       c.summary,
-      for (final e in c.experience) e.description,
-      for (final p in c.projects) p.description,
+      for (final e in c.experience) ...e.effectiveBullets,
+      for (final p in c.projects) ...p.effectiveBullets,
     ].join(' ');
     if (texts.trim().isEmpty) return 0;
     final vague = RegExp(r'\b(etc|various|some|things|stuff|several|many|'
@@ -169,12 +242,12 @@ class CvEvaluator {
     if (c.education.isNotEmpty) s += 15;
     if (c.skillGroups.isNotEmpty) s += 15;
     final text = _allText(c);
-    if (!RegExp(r'[\u0000-\u001F]').hasMatch(text)) s += 10; // no control chars
+    if (!RegExp(r'[\u0000-\u001F]').hasMatch(text)) s += 10;
     return s;
   }
 
   static int _keywordAlignment(CvContent c, List<String> keywords) {
-    if (keywords.isEmpty) return 100; // neutral when no target keywords
+    if (keywords.isEmpty) return 100;
     final text = _norm(_allText(c));
     final matched =
         keywords.where((k) => k.isNotEmpty && text.contains(_norm(k))).length;
@@ -197,7 +270,7 @@ class CvEvaluator {
     OpportunityAnalysis? opportunity,
   ) {
     if (opportunity == null && keywords.isEmpty && targetSkills.isEmpty) {
-      return 100; // neutral: general evaluation
+      return 100;
     }
     final kw = _keywordAlignment(content, keywords);
     final sk = _skillAlignment(content, targetSkills);
@@ -299,6 +372,11 @@ class CvEvaluator {
         targetAlignment * wTarget)
         .round());
 
+    // Content intelligence diagnostics (not scored into overall, used for
+    // suggestions and explanations).
+    final bulletDensity = _bulletDensity(content);
+    final bulletQualityScore = _bulletQuality(content);
+
     final explanations = <String, String>{
       'overall': overall >= 75
           ? 'Strong, well-rounded CV.'
@@ -309,14 +387,14 @@ class CvEvaluator {
           ? 'All key sections are present.'
           : 'Some key sections are missing or incomplete.',
       'structure': structure >= 70
-          ? 'Clear, well-organised sections.'
-          : 'Structure could be more consistent across sections.',
+          ? 'Clear, well-organised sections with structured bullets.'
+          : 'Structure could be more consistent — use bullet lists for experience and projects.',
       'contentStrength': contentStrength >= 60
           ? 'Good amount of concrete content.'
-          : 'Content is thin — add more concrete detail.',
+          : 'Content is thin — add more concrete detail and evidence bullets.',
       'evidenceStrength': evidenceStrength >= 60
-          ? 'Experience is backed by concrete detail.'
-          : 'Add measurable outcomes and specifics to strengthen evidence.',
+          ? 'Experience is backed by concrete detail and technical evidence.'
+          : 'Add measurable outcomes and technical specifics to strengthen evidence.',
       'readability': readability >= 70
           ? 'Easy to read with concise phrasing.'
           : 'Some sentences are long or hard to scan.',
@@ -341,6 +419,14 @@ class CvEvaluator {
           : (opportunity == null && keywords.isEmpty && skills.isEmpty)
               ? 'General evaluation — add a target for role-specific scoring.'
               : 'Close the gaps between your CV and the target role.',
+      'bulletDensity': bulletDensity >= 70
+          ? 'Good bullet density — entries have multiple substantive bullets.'
+          : bulletDensity >= 40
+              ? 'Moderate bullet density — add more detail to each entry.'
+              : 'Low bullet density — experience and projects need more structured bullets.',
+      'bulletQuality': bulletQualityScore >= 70
+          ? 'Bullets are specific and action-oriented.'
+          : 'Some bullets are vague or generic — use ACTION + WHAT + HOW + RESULT structure.',
     };
 
     return CvEvaluationResult(
@@ -364,7 +450,7 @@ class CvEvaluator {
         deterministicOnly: false,
         createdAt: DateTime.now(),
       ),
-      _deterministicSuggestions(content, userId, versionId, opportunity),
+      _deterministicSuggestions(content, userId, versionId, opportunity, bulletDensity, bulletQualityScore),
     );
   }
 
@@ -378,6 +464,8 @@ class CvEvaluator {
     String userId,
     String versionId,
     OpportunityAnalysis? opportunity,
+    int bulletDensity,
+    int bulletQuality,
   ) {
     final out = <CvSuggestion>[];
     void add(String section, String current, String suggested, String problem,
@@ -408,30 +496,91 @@ class CvEvaluator {
         '',
       );
     }
+
+    // Experience bullets: detect entries with no bullets or very short bullets.
     for (final e in content.experience) {
-      if (e.description.trim().isNotEmpty && e.description.trim().length < 25) {
+      if (e.effectiveBullets.isEmpty && e.description.trim().isEmpty) {
         add(
           'experience',
-          e.description.trim(),
-          '${e.description.trim()} Describe a concrete responsibility or outcome.',
-          'An experience bullet is too short to show impact.',
+          '${e.role} — ${e.company}',
+          '${e.role} at ${e.company}: describe your key responsibilities and contributions.',
+          'This experience entry has no bullets or description.',
+          'Structured bullets help recruiters assess your contribution quickly.',
+          '',
+        );
+      } else if (e.effectiveBullets.length == 1 &&
+          e.effectiveBullets.first.length < 25) {
+        add(
+          'experience',
+          e.effectiveBullets.first,
+          '${e.effectiveBullets.first} Expand with specific technologies, features, or outcomes.',
+          'This experience bullet is too short to demonstrate impact.',
           'Longer, specific bullets demonstrate real contribution.',
           '',
         );
       }
     }
+
+    // Project bullets: detect entries with no bullets or very short bullets.
     for (final p in content.projects) {
-      if (p.description.trim().isNotEmpty && p.description.trim().length < 25) {
+      if (p.effectiveBullets.isEmpty && p.description.trim().isEmpty) {
         add(
           'projects',
-          p.description.trim(),
-          '${p.description.trim()} Note the problem solved and your specific role.',
-          'A project description is too short to show impact.',
+          p.name,
+          '${p.name}: describe what you built, the technologies used, and key features.',
+          'This project entry has no bullets or description.',
+          'Project bullets are one of the strongest parts of a CV.',
+          '',
+        );
+      } else if (p.effectiveBullets.length == 1 &&
+          p.effectiveBullets.first.length < 25) {
+        add(
+          'projects',
+          p.effectiveBullets.first,
+          '${p.effectiveBullets.first} Note the problem solved, your specific role, and the tech stack.',
+          'This project bullet is too short to show impact.',
           'Specific project context helps reviewers assess fit.',
           '',
         );
       }
     }
+
+    // General density suggestion.
+    if (bulletDensity < 30 &&
+        (content.experience.isNotEmpty || content.projects.isNotEmpty)) {
+      add(
+        'experience',
+        '',
+        '',
+        'Your CV has low information density — entries lack structured bullets.',
+        'Use 2–6 bullets per experience/project entry. Each bullet: ACTION + WHAT + HOW + RESULT.',
+        '',
+      );
+    }
+
+    // Quality suggestion.
+    if (bulletQuality < 50) {
+      final firstWeak = [
+        for (final e in content.experience) ...e.effectiveBullets,
+        for (final p in content.projects) ...p.effectiveBullets,
+      ].firstWhere(
+        (b) => b.length < 20 ||
+            RegExp(r'\b(built a|worked on|responsible for|helped with)\b',
+                caseSensitive: false).hasMatch(b.toLowerCase()),
+        orElse: () => '',
+      );
+      if (firstWeak.isNotEmpty) {
+        add(
+          'experience',
+          firstWeak,
+          firstWeak,
+          'Some bullets use vague or generic phrasing.',
+          'Replace "Built a..." with "Developed a [tech] [application type] with [specific features]".',
+          '',
+        );
+      }
+    }
+
     return out;
   }
 
@@ -454,6 +603,15 @@ class CvEvaluator {
         }
       case 'experience':
         final items = content.experience.map((e) {
+          // Try replacing in bullets first.
+          final updatedBullets = [
+            for (final b in e.bullets)
+              b.contains(current) ? b.replaceFirst(current, replacement) : b,
+          ];
+          if (updatedBullets.join() != e.bullets.join()) {
+            return e.copyWith(bullets: updatedBullets);
+          }
+          // Fallback to description.
           if (e.description.contains(current)) {
             return e.copyWith(description: e.description.replaceFirst(current, replacement));
           }
@@ -462,6 +620,15 @@ class CvEvaluator {
         return content.copyWith(experience: items);
       case 'projects':
         final items = content.projects.map((p) {
+          // Try replacing in bullets first.
+          final updatedBullets = [
+            for (final b in p.bullets)
+              b.contains(current) ? b.replaceFirst(current, replacement) : b,
+          ];
+          if (updatedBullets.join() != p.bullets.join()) {
+            return p.copyWith(bullets: updatedBullets);
+          }
+          // Fallback to description.
           if (p.description.contains(current)) {
             return p.copyWith(description: p.description.replaceFirst(current, replacement));
           }

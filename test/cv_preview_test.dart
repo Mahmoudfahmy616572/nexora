@@ -8,14 +8,18 @@ import 'package:nexora/features/main/presentation/studio/cv_preview.dart';
 
 CareerDna dna() => CareerDna(
       targetRole: 'Flutter Dev',
-      skills: const ['Dart', 'Flutter'],
+      skills: const ['Dart', 'Flutter', 'Firebase', 'Git'],
       profile: ProfileData(
         summary: 'Built apps.',
         experience: const [
           ProfileExperience(role: 'Intern', company: 'ACME', years: 1)
         ],
         projects: const [
-          ProfileProject(name: 'Delivery', description: 'Food app', tech: ['Flutter'])
+          ProfileProject(
+            name: 'Delivery',
+            description: 'Food delivery app with real-time tracking and payments.',
+            tech: ['Flutter'],
+          )
         ],
       ),
     );
@@ -47,7 +51,10 @@ void main() {
       await tester.pumpWidget(previewFor(t));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('cvPreview')), findsOneWidget);
-      expect(find.textContaining('Delivery'), findsOneWidget);
+      // Project name is in a RichText — use finder for text containing 'Delivery'.
+      expect(find.byWidgetPredicate((w) =>
+          w is RichText && w.toDiagnosticsNode().toStringDeep().contains('Delivery')),
+          findsWidgets);
       expect(tester.takeException(), isNull);
     });
   }
@@ -58,9 +65,61 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('preview shows factual skills', (tester) async {
+  testWidgets('preview shows factual skills grouped', (tester) async {
     await tester.pumpWidget(previewFor('nexoraMinimal'));
     await tester.pumpAndSettle();
-    expect(find.text('Dart'), findsOneWidget);
+    expect(find.textContaining('Dart'), findsOneWidget);
+    expect(find.textContaining('Programming'), findsOneWidget);
+  });
+
+  testWidgets('preview renders experience bullets', (tester) async {
+    await tester.pumpWidget(previewFor('nexoraMinimal'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Intern'), findsOneWidget);
+    expect(find.textContaining('ACME'), findsOneWidget);
+  });
+
+  testWidgets('preview renders section titles', (tester) async {
+    await tester.pumpWidget(previewFor('nexoraMinimal'));
+    await tester.pumpAndSettle();
+    expect(find.text('PROFILE'), findsOneWidget);
+    expect(find.text('EXPERIENCE'), findsOneWidget);
+    expect(find.text('PROJECTS'), findsOneWidget);
+    expect(find.text('SKILLS'), findsOneWidget);
+  });
+
+  testWidgets('preview renders education', (tester) async {
+    final content = CvFactualBuilder.build(CareerDna(
+      profile: ProfileData(
+        education: const [
+          ProfileEducation(degree: 'BSc', field: 'Computer Science'),
+        ],
+      ),
+    ));
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: CvPreview(content: content, templateId: 'nexoraMinimal'),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('BSc'), findsOneWidget);
+    expect(find.text('EDUCATION'), findsOneWidget);
+  });
+
+  testWidgets('preview renders certifications and languages', (tester) async {
+    final content = CvFactualBuilder.build(CareerDna(
+      profile: ProfileData(
+        certifications: const ['AWS Certified'],
+        languages: const ['English', 'Arabic'],
+      ),
+    ));
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: CvPreview(content: content, templateId: 'nexoraMinimal'),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('AWS'), findsOneWidget);
+    expect(find.textContaining('Arabic'), findsWidgets);
   });
 }

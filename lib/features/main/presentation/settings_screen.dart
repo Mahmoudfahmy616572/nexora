@@ -84,17 +84,8 @@ class SettingsScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF020510), Color(0xFF060919), Color(0xFF0A051E)],
-            stops: [0, 0.4, 1],
-          ),
-        ),
-        child: SafeArea(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -118,7 +109,6 @@ class SettingsScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
     );
   }
 }
@@ -172,12 +162,8 @@ class _AccountCard extends StatelessWidget {
           Container(
             width: 52,
             height: 52,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: AppColors.signatureGradient,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+            decoration: BoxDecoration(
+              color: AppColors.brand,
               borderRadius: BorderRadius.all(Radius.circular(14)),
             ),
             alignment: Alignment.center,

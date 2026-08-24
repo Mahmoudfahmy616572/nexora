@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -8,6 +9,7 @@ import '../../../../data/data_sources/career_local_data_source.dart';
 import '../../../../data/data_sources/career_remote_data_source.dart';
 import '../../../../data/repositories/career_dna_repository_impl.dart';
 import '../../../../data/repositories/career_repository_impl.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../domain/entities/interview_prep.dart';
 import '../../../../domain/repositories/career_dna_repository.dart';
 import '../../../../domain/repositories/career_target_repository.dart';
@@ -108,7 +110,8 @@ class _InterviewPrepViewState extends State<_InterviewPrepView> {
         elevation: 0,
         title: Text(l10n.prepTitle, style: AppTextStyles.cardTitle),
       ),
-      body: BlocBuilder<InterviewPrepCubit, InterviewPrepState>(
+      body: SafeArea(
+        child: BlocBuilder<InterviewPrepCubit, InterviewPrepState>(
         builder: (context, state) {
           if (state.status == InterviewPrepStatus.loading ||
               state.status == InterviewPrepStatus.initial ||
@@ -119,10 +122,10 @@ class _InterviewPrepViewState extends State<_InterviewPrepView> {
                 children: [
                   const CircularProgressIndicator(color: AppColors.teal),
                   const SizedBox(height: 14),
-                  Text(l10n.prepDesc, style: AppTextStyles.bodyMuted),
-                ],
-              ),
-            );
+Text(l10n.prepDesc, style: AppTextStyles.bodyMuted),
+                 ],
+       ),
+     );
           }
           final plan = state.plan!;
           final subtitle = [
@@ -197,9 +200,34 @@ class _InterviewPrepViewState extends State<_InterviewPrepView> {
                   label: Text(l10n.prepRegenerate),
                 ),
               ),
+              const SizedBox(height: 12),
+              if (plan.focusAreas.isNotEmpty)
+                SizedBox(
+                  height: 50,
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () => GoRouter.of(context).push(
+                      Routes.interviewPractice,
+                      extra: {
+                        'role': widget.role,
+                        'company': widget.company,
+                      },
+                    ),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.teal,
+                      foregroundColor: AppColors.background,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: const Icon(Icons.record_voice_over_rounded, size: 18),
+                    label: Text(l10n.prepPractice),
+                  ),
+                ),
             ],
           );
         },
+      ),
       ),
     );
   }

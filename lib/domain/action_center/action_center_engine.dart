@@ -106,9 +106,25 @@ class ActionCenterEngine {
     }
 
     // 7. Everything is ready → track applications.
-    // 7b. …unless an application has reached an interview stage, in which case
-    //     preparing for it is the most urgent next step.
+    // 7b. …unless an application has reached an interview stage, or the user
+    //     already has a readiness plan they can practice against.
     final interviewApp = _firstInterviewStageApplication(input.applications);
+    final practiceRole = interviewApp?.role ?? target.role;
+    final practiceCompany = interviewApp?.company ?? target.company ?? '';
+    final practiceAppId = interviewApp?.id;
+
+    if (input.hasInterviewPrep) {
+      return _decision(
+        ActionType.practiceInterview,
+        priority: 30,
+        metadata: {
+          'targetRole': practiceRole,
+          'company': practiceCompany,
+          'applicationId': practiceAppId,
+        },
+      );
+    }
+
     if (interviewApp != null) {
       return _decision(
         ActionType.prepareInterview,

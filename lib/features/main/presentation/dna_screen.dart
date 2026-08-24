@@ -6,6 +6,8 @@ import '../../../core/localization/locale_cubit.dart';
 import '../../../domain/entities/app_language.dart';
 import '../../../domain/entities/career_dna.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_motion.dart';
+import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../data/data_sources/career_local_data_source.dart';
@@ -410,7 +412,11 @@ class _DnaScreenState extends State<DnaScreen> {
             subtitle: 'Spoken languages you can prove.',
             fields: [_FieldSpec(label: 'Language', hint: 'e.g. Arabic (Native)')],
           ),
-        _SectionKind.skills => throw UnimplementedError(),
+        _SectionKind.skills => const _SectionEditor(
+            title: 'Skills',
+            subtitle: 'Skills you can prove — these drive your match scores.',
+            fields: [_FieldSpec(label: 'Skill', hint: 'e.g. Flutter, State Management, REST APIs')],
+          ),
       };
 
   /// Current values for a section, as editable row-fields.
@@ -431,7 +437,7 @@ class _DnaScreenState extends State<DnaScreen> {
         _SectionKind.certifications => [for (final c in p.certifications) [c]],
         _SectionKind.achievements => [for (final a in p.achievements) [a]],
         _SectionKind.languages => [for (final l in p.languages) [l]],
-        _SectionKind.skills => throw UnimplementedError(),
+        _SectionKind.skills => const [],
       };
 
   static String _at(List<String> row, int i) => i < row.length ? row[i].trim() : '';
@@ -742,12 +748,21 @@ class _BuildNexoraBanner extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: AppColors.signatureGradient),
-            borderRadius: BorderRadius.circular(14),
+            color: AppColors.tealBg,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: Border.all(color: AppColors.tealBdr),
           ),
           child: Row(
             children: [
-              const Icon(Icons.auto_awesome_rounded, size: 20, color: AppColors.background),
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: AppColors.brand,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+                child: const Icon(Icons.auto_awesome_rounded, size: 18, color: AppColors.background),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -758,19 +773,19 @@ class _BuildNexoraBanner extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
-                        color: AppColors.background,
+                        color: AppColors.text,
                         fontFamily: AppTextStyles.displayFont,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: TextStyle(fontSize: 12, color: AppColors.background, height: 1.4),
+                      style: TextStyle(fontSize: 12, color: AppColors.textSub, height: 1.4),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_rounded, size: 18, color: AppColors.background),
+              const Icon(Icons.arrow_forward_rounded, size: 18, color: AppColors.brand),
             ],
           ),
         ),
@@ -794,10 +809,10 @@ class _DnaEmptyState extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: AppColors.signatureGradient),
-          borderRadius: BorderRadius.circular(18),
+          color: AppColors.brand,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
-      child: Column(
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
@@ -827,7 +842,7 @@ class _DnaEmptyState extends StatelessWidget {
             onPressed: onBuild,
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.background,
-              foregroundColor: AppColors.teal,
+              foregroundColor: AppColors.text,
               padding: const EdgeInsets.symmetric(vertical: 13),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
@@ -880,7 +895,11 @@ class _CompletenessCard extends StatelessWidget {
                   children: [
                     const Text('DNA COMPLETENESS', style: AppTextStyles.sectionLabel),
                     const SizedBox(height: 6),
-                    Text('${overall.round()}%', style: AppTextStyles.metric.copyWith(fontSize: 32, height: 1)),
+                    NxMetric(
+                      value: overall,
+                      builder: (v) => '${v.round()}%',
+                      style: AppTextStyles.metric.copyWith(fontSize: 32, height: 1),
+                    ),
                   ],
                 ),
               ),
@@ -914,13 +933,7 @@ class _CompletenessCard extends StatelessWidget {
                   FractionallySizedBox(
                     widthFactor: overall.clamp(0, 1),
                     child: const DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: AppColors.signatureGradient,
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ),
-                      ),
+                      decoration: BoxDecoration(color: AppColors.brand),
                     ),
                   ),
                 ],
@@ -1894,7 +1907,7 @@ class _EditorProgress extends StatelessWidget {
                     FractionallySizedBox(
                       widthFactor: overall.clamp(0, 1) / 100,
                       child: const DecoratedBox(
-                        decoration: BoxDecoration(gradient: LinearGradient(colors: AppColors.signatureGradient)),
+                        decoration: BoxDecoration(color: AppColors.brand),
                       ),
                     ),
                   ],

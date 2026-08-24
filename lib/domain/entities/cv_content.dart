@@ -194,6 +194,8 @@ class CvExperience extends Equatable {
     this.startDate = '',
     this.endDate = '',
     this.description = '',
+    this.bullets = const [],
+    this.location = '',
     this.source = CvSource.ai,
   });
 
@@ -203,7 +205,17 @@ class CvExperience extends Equatable {
   final String startDate;
   final String endDate;
   final String description;
+  final List<String> bullets;
+  final String location;
   final CvSource source;
+
+  /// Effective bullets: explicit bullets list, or [description] wrapped as a
+  /// single-element list when non-empty. Used by templates and export.
+  List<String> get effectiveBullets {
+    if (bullets.isNotEmpty) return bullets;
+    if (description.trim().isNotEmpty) return [description.trim()];
+    return const [];
+  }
 
   Map<String, Object?> toJson() => {
         'role': role,
@@ -212,24 +224,40 @@ class CvExperience extends Equatable {
         'startDate': startDate,
         'endDate': endDate,
         'description': description,
+        'bullets': bullets,
+        'location': location,
         'source': source.name,
       };
 
-  factory CvExperience.fromJson(Map<String, dynamic> json) => CvExperience(
-        role: json['role'] as String? ?? '',
-        company: json['company'] as String? ?? '',
-        years: json['years'] as int?,
-        startDate: json['startDate'] as String? ?? '',
-        endDate: json['endDate'] as String? ?? '',
-        description: json['description'] as String? ?? '',
-        source: CvSource.values.firstWhere(
-          (s) => s.name == (json['source'] as String?),
-          orElse: () => CvSource.ai,
-        ),
-      );
+  factory CvExperience.fromJson(Map<String, dynamic> json) {
+    // Backward-compatible: old versions have only `description`, no `bullets`.
+    final bulletsRaw = json['bullets'];
+    final List<String> parsedBullets;
+    if (bulletsRaw is List && bulletsRaw.isNotEmpty) {
+      parsedBullets = [for (final b in bulletsRaw) b.toString()];
+    } else {
+      // Fall back: if description exists, treat it as a single bullet.
+      final desc = json['description'] as String? ?? '';
+      parsedBullets = desc.trim().isNotEmpty ? [desc.trim()] : const [];
+    }
+    return CvExperience(
+      role: json['role'] as String? ?? '',
+      company: json['company'] as String? ?? '',
+      years: json['years'] as int?,
+      startDate: json['startDate'] as String? ?? '',
+      endDate: json['endDate'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      bullets: parsedBullets,
+      location: json['location'] as String? ?? '',
+      source: CvSource.values.firstWhere(
+        (s) => s.name == (json['source'] as String?),
+        orElse: () => CvSource.ai,
+      ),
+    );
+  }
 
   @override
-  List<Object?> get props => [role, company, years, startDate, endDate, description, source];
+  List<Object?> get props => [role, company, years, startDate, endDate, description, bullets, location, source];
 
   CvExperience copyWith({
     String? role,
@@ -238,6 +266,8 @@ class CvExperience extends Equatable {
     String? startDate,
     String? endDate,
     String? description,
+    List<String>? bullets,
+    String? location,
     CvSource? source,
   }) =>
       CvExperience(
@@ -247,6 +277,8 @@ class CvExperience extends Equatable {
         startDate: startDate ?? this.startDate,
         endDate: endDate ?? this.endDate,
         description: description ?? this.description,
+        bullets: bullets ?? this.bullets,
+        location: location ?? this.location,
         source: source ?? this.source,
       );
 
@@ -259,6 +291,10 @@ class CvProject extends Equatable {
     this.description = '',
     this.tech = const [],
     this.link = '',
+    this.links = const [],
+    this.bullets = const [],
+    this.role = '',
+    this.date = '',
     this.source = CvSource.ai,
   });
 
@@ -266,35 +302,77 @@ class CvProject extends Equatable {
   final String description;
   final List<String> tech;
   final String link;
+  final List<String> links;
+  final List<String> bullets;
+  final String role;
+  final String date;
   final CvSource source;
+
+  /// Effective bullets: explicit bullets list, or [description] wrapped as a
+  /// single-element list when non-empty.
+  List<String> get effectiveBullets {
+    if (bullets.isNotEmpty) return bullets;
+    if (description.trim().isNotEmpty) return [description.trim()];
+    return const [];
+  }
+
+  /// Effective links: explicit links list, or [link] wrapped as a list.
+  List<String> get effectiveLinks {
+    if (links.isNotEmpty) return links;
+    if (link.trim().isNotEmpty) return [link.trim()];
+    return const [];
+  }
 
   Map<String, Object?> toJson() => {
         'name': name,
         'description': description,
         'tech': tech,
         'link': link,
+        'links': links,
+        'bullets': bullets,
+        'role': role,
+        'date': date,
         'source': source.name,
       };
 
-  factory CvProject.fromJson(Map<String, dynamic> json) => CvProject(
-        name: json['name'] as String? ?? '',
-        description: json['description'] as String? ?? '',
-        tech: [for (final t in json['tech'] as List? ?? const []) t as String],
-        link: json['link'] as String? ?? '',
-        source: CvSource.values.firstWhere(
-          (s) => s.name == (json['source'] as String?),
-          orElse: () => CvSource.ai,
-        ),
-      );
+  factory CvProject.fromJson(Map<String, dynamic> json) {
+    // Backward-compatible: old versions have only `description`, no `bullets`.
+    final bulletsRaw = json['bullets'];
+    final List<String> parsedBullets;
+    if (bulletsRaw is List && bulletsRaw.isNotEmpty) {
+      parsedBullets = [for (final b in bulletsRaw) b.toString()];
+    } else {
+      final desc = json['description'] as String? ?? '';
+      parsedBullets = desc.trim().isNotEmpty ? [desc.trim()] : const [];
+    }
+    return CvProject(
+      name: json['name'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      tech: [for (final t in json['tech'] as List? ?? const []) t as String],
+      link: json['link'] as String? ?? '',
+      links: [for (final l in json['links'] as List? ?? const []) l as String],
+      bullets: parsedBullets,
+      role: json['role'] as String? ?? '',
+      date: json['date'] as String? ?? '',
+      source: CvSource.values.firstWhere(
+        (s) => s.name == (json['source'] as String?),
+        orElse: () => CvSource.ai,
+      ),
+    );
+  }
 
   @override
-  List<Object?> get props => [name, description, tech, link, source];
+  List<Object?> get props => [name, description, tech, link, links, bullets, role, date, source];
 
   CvProject copyWith({
     String? name,
     String? description,
     List<String>? tech,
     String? link,
+    List<String>? links,
+    List<String>? bullets,
+    String? role,
+    String? date,
     CvSource? source,
   }) =>
       CvProject(
@@ -302,6 +380,10 @@ class CvProject extends Equatable {
         description: description ?? this.description,
         tech: tech ?? this.tech,
         link: link ?? this.link,
+        links: links ?? this.links,
+        bullets: bullets ?? this.bullets,
+        role: role ?? this.role,
+        date: date ?? this.date,
         source: source ?? this.source,
       );
 }

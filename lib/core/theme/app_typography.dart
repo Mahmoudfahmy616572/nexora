@@ -119,7 +119,7 @@ abstract final class AppTextStyles {
   static const TextStyle trustTitle = TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.w700,
-    color: Color(0xFFF5F7FB),
+    color: AppColors.text,
   );
 
   static const TextStyle trustSubtitle = TextStyle(
@@ -146,7 +146,6 @@ abstract final class AppTextStyles {
   static const TextStyle primaryButton = TextStyle(
     fontSize: 17,
     fontWeight: FontWeight.w700,
-    color: AppColors.white,
   );
 
   static const TextStyle secondaryButton = TextStyle(
@@ -170,7 +169,7 @@ abstract final class AppTextStyles {
 
   static const TextStyle dnaNode = TextStyle(
     fontSize: 12,
-    color: Color(0xFFDCE1EB),
+    color: AppColors.textSub,
   );
 
   // ---------------------------------------------------------------------------
@@ -207,6 +206,55 @@ abstract final class AppTextStyles {
   /// Small mono timestamp / meta.
   static const TextStyle mono = TextStyle(
     fontSize: 11,
+    color: AppColors.textMuted,
+    fontFamily: monoFont,
+  );
+
+  // ---------------------------------------------------------------------------
+  // Editorial additions (Visual Rebuild)
+  // ---------------------------------------------------------------------------
+  /// Oversized display for hero moments (e.g. "NEXORA KNOWS YOU").
+  static TextStyle displayXl(double size, {double letterSpacing = -4}) =>
+      TextStyle(
+        fontSize: size,
+        fontWeight: FontWeight.w800,
+        letterSpacing: letterSpacing,
+        height: 0.95,
+        color: AppColors.text,
+        fontFamily: displayFont,
+      );
+
+  /// Mono eyebrow label above editorial sections.
+  static const TextStyle sectionEyebrow = TextStyle(
+    fontSize: 11,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 2,
+    color: AppColors.brand,
+    fontFamily: monoFont,
+    height: 1.2,
+  );
+
+  /// Big mono metric (scores, counts) — travels on change via [NxMetric].
+  static TextStyle metricDisplay(double size) => TextStyle(
+        fontSize: size,
+        fontWeight: FontWeight.w800,
+        color: AppColors.text,
+        fontFamily: monoFont,
+        height: 1,
+      );
+
+  /// Editorial lead paragraph.
+  static const TextStyle editorialLead = TextStyle(
+    fontSize: 17,
+    height: 1.55,
+    color: AppColors.textSub,
+    fontWeight: FontWeight.w500,
+  );
+
+  /// Caption mono for meta/labels.
+  static const TextStyle captionMono = TextStyle(
+    fontSize: 10,
+    letterSpacing: 1.5,
     color: AppColors.textMuted,
     fontFamily: monoFont,
   );

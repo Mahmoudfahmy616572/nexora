@@ -384,6 +384,7 @@
     }
   },
   "trackerDeleteApplication": "حذف الطلب",
+  "trackerPractice": "تدرب لهذا الدور",
   "authWelcomeBack": "مرحباً بعودتك",
   "authCreateAccount": "أنشئ حسابك",
   "authSignInSub": "سجّل الدخول للمتابعة في بناء حمضك المهني.",
@@ -805,6 +806,9 @@
   "acTitlePrepareInterview": "استعد لمقابلتك",
   "acDescPrepareInterview": "لديك طلب في مرحلة المقابلة. تدرّب على الفجوات المهمة لهذا الدور.",
   "acCtaPrepareInterview": "استعد للمقابلة",
+  "acTitlePracticeInterview": "تدرب على المقابلة",
+  "acDescPracticeInterview": "أجرِ مقابلة تجريبية لهذه الوظيفة واحصل على تقييم وتوجيه مبني على إجاباتك.",
+  "acCtaPracticeInterview": "تدرب على المقابلة",
   "acLoading": "نحدد خطوتك التالية…",
   "acTarget": "الهدف",
   "acScore": "النتيجة",
@@ -834,12 +838,49 @@
   "prepLikelyQuestions": "أسئلة متوقعة",
   "prepTips": "نصائح",
   "prepRegenerate": "إعادة التوليد",
+  "prepPractice": "تدرب",
   "prepAiUnavailable": "الذكاء الاصطناعي غير متاح — نعرض فجواتك الأساسية للتحضير. لا شيء مُختلق.",
   "prepNoAnalysis": "لا يوجد تحليل للفرصة لهذا الدور. التحضير من مهاراتك؛ حلّل الدور لتحضير أدق.",
   "prepEmptyNoInterview": "لا شيء للتحضير بعد. حلّل دورًا وتتبّع طلباتك لتفعيل التدريب المركّز.",
+  "practiceTitle": "تدريب المقابلة",
+  "practiceDesc": "نجهّز مقابلتك التجريبية من خطة الاستعداد…",
+  "practiceError": "حدث خطأ أثناء تجهيز جلسة التدريب.",
+  "practiceEmpty": "لا توجد أسئلة متاحة لهذا الدور بعد.",
+  "practiceProgress": "سؤال {index} من {total}",
+  "practiceAnswerHint": "اكتب إجابتك هنا. استخدم مثالًا حقيقيًا إن أمكن.",
+  "practiceSubmit": "إرسال الإجابة",
+  "practiceFinish": "عرض النتائج",
+  "practiceNext": "السؤال التالي",
+  "practiceRelevance": "الصلة",
+  "practiceSpecificity": "التحديد",
+  "practiceStructure": "الهيكل",
+  "practiceConsistency": "اتساق الملف",
+  "practiceStrengths": "ما الذي أجادته",
+  "practiceImprove": "طرق للتحسين",
+  "practiceCoaching": "توجيه",
+  "practiceUnverified": "ادعاءات غير مؤكدة",
+  "practiceStrong": "إجابة قوية",
+  "practiceGood": "إجابة جيدة",
+  "practiceNeedsImprovement": "تحتاج تحسينًا",
+  "practiceSummaryTitle": "ملخص التدريب",
+  "practiceSummaryScore": "تم التقييم على {count} إجابات",
+  "practiceRecommended": "التركيز المقترح في المرة القادمة",
+  "practiceAgain": "تدرب مجددًا",
+  "practiceDone": "تم",
   "@prepForRole": {
     "placeholders": {
       "role": { "type": "String" }
+    }
+  },
+  "@practiceProgress": {
+    "placeholders": {
+      "index": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "@practiceSummaryScore": {
+    "placeholders": {
+      "count": { "type": "int" }
     }
   }
 }

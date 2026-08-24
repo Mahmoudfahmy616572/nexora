@@ -4,6 +4,7 @@ import '../../../../domain/action_center/action_center.dart';
 import '../../../../domain/action_center/action_center_engine.dart';
 import '../../../../domain/analysis/career_intelligence_engine.dart';
 import '../../../../domain/entities/career_target.dart';
+import '../../../../domain/entities/career_intelligence.dart';
 import '../../../../domain/entities/cv_document.dart';
 import '../../../../domain/entities/cv_evaluation.dart';
 import '../../../../domain/entities/job_analysis.dart';
@@ -95,6 +96,14 @@ class ActionCenterCubit extends Cubit<ActionCenterCubitState> {
     final applications =
         await _safe(() => applicationRepo.load(), null) ?? const <JobApplication>[];
 
+    final hasInterviewPrep = dna != null &&
+        intelligence != null &&
+        !intelligence.missingInformation.any(
+          (g) => g != ProfileGap.targetRole && g != ProfileGap.experience,
+        ) &&
+        targets.isNotEmpty &&
+        (analyses.isNotEmpty || dna.skills.isNotEmpty);
+
     final decision = ActionCenterEngine.derive(ActionCenterInput(
       dna: dna,
       intelligence: intelligence,
@@ -105,6 +114,7 @@ class ActionCenterCubit extends Cubit<ActionCenterCubitState> {
       evaluations: evaluations,
       suggestions: suggestions,
       applications: applications,
+      hasInterviewPrep: hasInterviewPrep,
     ));
 
     emit(ActionCenterCubitState(

@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/localization/locale_cubit.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_motion.dart';
+import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../domain/entities/app_language.dart';
 import '../../../l10n/app_localizations.dart';
@@ -90,10 +92,12 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _HomeHeader(
-            name: _displayName,
-            greeting: _greeting(l10n),
-            onOpenProfile: () => GoRouter.of(context).push(Routes.settings),
+          NxReveal(
+            child: _HomeHeader(
+              name: _displayName,
+              greeting: _greeting(l10n),
+              onOpenProfile: () => GoRouter.of(context).push(Routes.settings),
+            ),
           ),
           const SizedBox(height: 4),
           FutureBuilder<SharedPreferences>(
@@ -113,9 +117,18 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           const SizedBox(height: 14),
-          _QuickActions(onOpenTab: widget.onOpenTab),
-          const _RecentActivity(),
-          const _Upcoming(),
+          NxReveal(
+            delay: const Duration(milliseconds: 80),
+            child: _QuickActions(onOpenTab: widget.onOpenTab),
+          ),
+          NxReveal(
+            delay: const Duration(milliseconds: 160),
+            child: const _RecentActivity(),
+          ),
+          NxReveal(
+            delay: const Duration(milliseconds: 240),
+            child: const _Upcoming(),
+          ),
         ],
       ),
     );
@@ -183,13 +196,9 @@ class _HomeHeader extends StatelessWidget {
                 child: Container(
                   width: 42,
                   height: 42,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: AppColors.signatureGradient,
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                  decoration: BoxDecoration(
+                    color: AppColors.brand,
+                    borderRadius: AppRadius.asymmetric,
                   ),
                   alignment: Alignment.center,
                   child: Text(
@@ -198,7 +207,7 @@ class _HomeHeader extends StatelessWidget {
                       fontFamily: AppTextStyles.displayFont,
                       fontWeight: FontWeight.w800,
                       fontSize: 18,
-                      color: Colors.white,
+                      color: AppColors.background,
                     ),
                   ),
                 ),
@@ -275,13 +284,13 @@ class _QuickActions extends StatelessWidget {
             ),
             children: [
               for (final item in _items(l10n))
-                GestureDetector(
+                NxPress(
                   onTap: () => _onTap(context, item),
                   child: Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: AppColors.card,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(AppRadius.module),
                       border: Border.all(color: AppColors.border),
                     ),
                     child: Column(

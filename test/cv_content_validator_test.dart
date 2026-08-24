@@ -83,4 +83,85 @@ void main() {
     final r = CvContentValidator.validate(content, dna);
     expect(r.valid, isFalse);
   });
+
+  group('bullet validation', () {
+    test('rejects metric claims in experience bullets', () {
+      final dna = CareerDna(
+        profile: const ProfileData(
+            experience: [ProfileExperience(role: 'Dev', company: 'Co')]),
+      );
+      final content = CvContent(
+        experience: const [
+          CvExperience(
+            role: 'Dev',
+            company: 'Co',
+            bullets: ['Led a team of 10 engineers'],
+          ),
+        ],
+      );
+      final r = CvContentValidator.validate(content, dna);
+      expect(r.valid, isFalse);
+      expect(r.issues.any((i) => i.code == 'unsupported_metric'), isTrue);
+    });
+
+    test('rejects metric claims in project bullets', () {
+      final dna = CareerDna(
+        profile: const ProfileData(
+            projects: [ProfileProject(name: 'App', tech: ['Flutter'])]),
+      );
+      final content = CvContent(
+        projects: const [
+          CvProject(
+            name: 'App',
+            tech: ['Flutter'],
+            bullets: ['Increased users by 50%'],
+          ),
+        ],
+      );
+      final r = CvContentValidator.validate(content, dna);
+      expect(r.valid, isFalse);
+      expect(r.issues.any((i) => i.code == 'unsupported_metric'), isTrue);
+    });
+
+    test('accepts valid factual bullets', () {
+      final dna = CareerDna(
+        profile: const ProfileData(
+            projects: [ProfileProject(name: 'App', tech: ['Flutter'])]),
+      );
+      final content = CvContent(
+        projects: const [
+          CvProject(
+            name: 'App',
+            tech: ['Flutter'],
+            bullets: [
+              'Built a cross-platform mobile application using Flutter.',
+              'Integrated Google Maps for real-time tracking.',
+            ],
+          ),
+        ],
+      );
+      final r = CvContentValidator.validate(content, dna);
+      expect(r.valid, isTrue);
+    });
+
+    test('validates bullets alongside description', () {
+      final dna = CareerDna(
+        profile: const ProfileData(
+            experience: [ProfileExperience(role: 'Dev', company: 'Co')]),
+      );
+      final content = CvContent(
+        experience: const [
+          CvExperience(
+            role: 'Dev',
+            company: 'Co',
+            description: 'Managed a team of 5',
+            bullets: ['Built the app'],
+          ),
+        ],
+      );
+      final r = CvContentValidator.validate(content, dna);
+      expect(r.valid, isFalse);
+      expect(r.issues.any((i) => i.code == 'unsupported_metric'), isTrue);
+    });
+  });
 }

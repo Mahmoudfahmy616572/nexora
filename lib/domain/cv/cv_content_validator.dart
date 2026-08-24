@@ -74,6 +74,7 @@ class CvContentValidator {
     final knownCerts = {for (final c in profile.certifications) _norm(c)};
     final knownLanguages = {for (final l in profile.languages) _norm(l)};
 
+    // --- Experience validation ---
     for (final exp in content.experience) {
       final key = _norm('${exp.role} ${exp.company}');
       final exists = knownExperience.any((k) => k.isNotEmpty && (k == key || k.contains(key) || key.contains(k)));
@@ -84,9 +85,15 @@ class CvContentValidator {
           section: 'experience',
         ));
       }
+      // Validate description (backward compat).
       _checkMetric(exp.description, 'experience', issues);
+      // Validate each bullet for fabricated metrics.
+      for (final bullet in exp.bullets) {
+        _checkMetric(bullet, 'experience', issues);
+      }
     }
 
+    // --- Project validation ---
     for (final proj in content.projects) {
       final name = _norm(proj.name);
       final exists = knownProjects.any((n) => n.isNotEmpty && (n == name || n.contains(name)));
@@ -107,9 +114,14 @@ class CvContentValidator {
           ));
         }
       }
+      // Validate description (backward compat).
       _checkMetric(proj.description, 'projects', issues);
+      for (final bullet in proj.bullets) {
+        _checkMetric(bullet, 'projects', issues);
+      }
     }
 
+    // --- Education validation ---
     for (final edu in content.education) {
       final d = _norm(edu.degree);
       if (d.isNotEmpty && !knownDegrees.contains(d)) {
@@ -121,6 +133,7 @@ class CvContentValidator {
       }
     }
 
+    // --- Certification validation ---
     for (final cert in content.certifications) {
       final c = _norm(cert.name);
       if (c.isNotEmpty && !knownCerts.contains(c)) {
@@ -132,6 +145,7 @@ class CvContentValidator {
       }
     }
 
+    // --- Language validation ---
     for (final lang in content.languages) {
       final l = _norm(lang.name);
       if (l.isNotEmpty && !knownLanguages.contains(l)) {
@@ -143,6 +157,7 @@ class CvContentValidator {
       }
     }
 
+    // --- Summary + achievements metric check ---
     _checkMetric(content.summary, 'summary', issues);
     for (final ach in content.achievements) {
       _checkMetric(ach.text, 'achievements', issues);

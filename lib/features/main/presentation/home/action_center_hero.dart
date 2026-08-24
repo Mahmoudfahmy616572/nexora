@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/app_router.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../domain/action_center/action_center.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../main_tab.dart';
@@ -43,44 +46,49 @@ class ActionCenterCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF6C5CE7), Color(0xFF4B3FB0)],
-        ),
-        borderRadius: BorderRadius.circular(22),
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              Icon(copy.icon, color: Colors.white70, size: 16),
-              const SizedBox(width: 8),
-              Text(
-                l10n.acLabel,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                  letterSpacing: 0.4,
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: AppColors.tealBg,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+                child: Icon(copy.icon, color: AppColors.brand, size: 16),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  l10n.acLabel,
+                  style: AppTextStyles.sectionEyebrow,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Text(
             copy.title,
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.text,
               fontSize: 22,
               fontWeight: FontWeight.w800,
               height: 1.2,
+              fontFamily: AppTextStyles.displayFont,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             copy.description,
-            style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.4),
+            style: AppTextStyles.bodySub.copyWith(height: 1.4),
           ),
           if (chips.isNotEmpty) ...[
             const SizedBox(height: 12),
@@ -93,8 +101,8 @@ class ActionCenterCard extends StatelessWidget {
             icon: Icon(copy.icon),
             label: Text(copy.cta),
             style: FilledButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF4B3FB0),
+              backgroundColor: AppColors.brand,
+              foregroundColor: AppColors.background,
             ),
           ),
         ],
@@ -105,12 +113,12 @@ class ActionCenterCard extends StatelessWidget {
   Widget _chip(BuildContext context, String label) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.16),
+          color: AppColors.tealBg,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
           label,
-          style: const TextStyle(color: Colors.white, fontSize: 12),
+          style: const TextStyle(color: AppColors.text, fontSize: 12),
         ),
       );
 }
@@ -149,6 +157,18 @@ class ActionCenterHero extends StatelessWidget {
             'applicationId': applicationId,
           },
         );
+      case ActionType.practiceInterview:
+        final role = d.metadata?['targetRole'] as String? ?? '';
+        final company = d.metadata?['company'] as String? ?? '';
+        final applicationId = d.metadata?['applicationId'] as String?;
+        GoRouter.of(context).push(
+          Routes.interviewPractice,
+          extra: {
+            'role': role,
+            'company': company,
+            'applicationId': applicationId,
+          },
+        );
       case ActionType.none:
         break;
     }
@@ -165,20 +185,23 @@ class ActionCenterHero extends StatelessWidget {
             margin: const EdgeInsets.symmetric(horizontal: 16),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xFF6C5CE7).withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(22),
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              border: Border.all(color: AppColors.border),
             ),
             child: Row(
               children: [
                 const SizedBox(
                   width: 18,
                   height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.brand,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(l10n.acLoading,
-                      style: const TextStyle(color: Color(0xFF4B3FB0))),
+                  child: Text(l10n.acLoading, style: AppTextStyles.bodySub),
                 ),
               ],
             ),
@@ -243,6 +266,13 @@ _Copy _resolve(AppLocalizations l10n, ActionCenterState d) {
         l10n.acTitlePrepareInterview,
         l10n.acDescPrepareInterview,
         l10n.acCtaPrepareInterview,
+        Icons.record_voice_over,
+      );
+    case ActionType.practiceInterview:
+      return _Copy(
+        l10n.acTitlePracticeInterview,
+        l10n.acDescPracticeInterview,
+        l10n.acCtaPracticeInterview,
         Icons.record_voice_over,
       );
     case ActionType.none:

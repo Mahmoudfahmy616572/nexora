@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_elevation.dart';
+import '../../../core/theme/app_motion.dart';
+import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../l10n/app_localizations.dart';
 import 'analyze_screen.dart';
@@ -11,7 +14,7 @@ import 'studio_screen.dart';
 import 'tracker_screen.dart';
 
 /// The authenticated app shell — mirrors the design's phone frame:
-/// a 5-item bottom navigation with a raised center "Analyze" button.
+/// a 5-item bottom navigation with a raised center "Analyze" module.
 class MainShell extends StatefulWidget {
   const MainShell({super.key, this.initialTab = MainTab.home});
 
@@ -58,67 +61,21 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF020510), Color(0xFF060919), Color(0xFF0A051E)],
-            stops: [0, 0.4, 1],
-          ),
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: AnimatedSwitcher(
+        duration: MotionTokens.fast,
+        switchInCurve: MotionTokens.standard,
+        switchOutCurve: Curves.easeIn,
+        child: KeyedSubtree(
+          key: ValueKey(_tab),
+          child: _currentScreen(),
         ),
-        child: Stack(
-          children: [
-            const Positioned(
-              top: 90,
-              left: -80,
-              child: _Glow(size: 300, color: Color(0x0F00D4AA)),
-            ),
-            const Positioned(
-              bottom: 60,
-              right: -60,
-              child: _Glow(size: 380, color: Color(0x0F8B7EFF)),
-            ),
-            SafeArea(
-              bottom: false,
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 180),
-                switchInCurve: Curves.easeOut,
-                switchOutCurve: Curves.easeIn,
-                child: KeyedSubtree(
-                  key: ValueKey(_tab),
-                  child: _currentScreen(),
-                ),
-              ),
-            ),
-          ],
-        ),
+      ),
       ),
       bottomNavigationBar: SafeArea(
         top: false,
         child: _BottomNav(current: _tab, onSelected: (t) => setState(() => _tab = t)),
-      ),
-    );
-  }
-}
-
-class _Glow extends StatelessWidget {
-  const _Glow({required this.size, required this.color});
-
-  final double size;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [color, color.withValues(alpha: 0)],
-        ),
       ),
     );
   }
@@ -135,10 +92,10 @@ class _BottomNav extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF08091E),
-        border: Border(top: BorderSide(color: Color(0x0FFFFFFF))),
+        color: AppColors.card,
+        border: Border(top: BorderSide(color: AppColors.border, width: 1)),
       ),
-      padding: const EdgeInsets.fromLTRB(6, 8, 6, 8),
+      padding: const EdgeInsets.fromLTRB(6, 10, 6, 10),
       child: Row(
         children: [
           _NavItem(key: const ValueKey('nav_home'), icon: Icons.home_rounded, label: l10n.navHome, tab: MainTab.home, current: current, onTap: onSelected),
@@ -173,42 +130,40 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final active = current == tab;
+    if (center) {
+      return Expanded(
+        child: NxPress(
+          onTap: () => onTap(tab),
+          child: _CenterModule(active: active, icon: icon),
+        ),
+      );
+    }
     return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: NxPress(
         onTap: () => onTap(tab),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (!center) ...[
-              const SizedBox(height: 4),
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                width: 22,
-                height: 3,
-                decoration: BoxDecoration(
-                  color: active ? AppColors.teal : Colors.transparent,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+            AnimatedContainer(
+              duration: MotionTokens.fast,
+              width: 20,
+              height: 3,
+              decoration: BoxDecoration(
+                color: active ? AppColors.brand : Colors.transparent,
+                borderRadius: BorderRadius.circular(2),
               ),
-            ],
-            SizedBox(
-              height: center ? 60 : 26,
-              child: center
-                  ? Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: _CenterButton(active: active, icon: icon),
-                    )
-                  : Icon(icon, size: 22, color: active ? AppColors.teal : const Color(0x47E8EEFF)),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 6),
+            Icon(icon, size: 22, color: active ? AppColors.brand : AppColors.textMuted),
+            const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
-                fontSize: 11,
-                fontFamily: AppTextStyles.fontFamily,
-                fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-                color: active ? AppColors.teal : const Color(0x47E8EEFF),
+                fontSize: 10.5,
+                fontFamily: AppTextStyles.monoFont,
+                letterSpacing: 0.5,
+                fontWeight: active ? FontWeight.w700 : FontWeight.w400,
+                color: active ? AppColors.text : AppColors.textMuted,
               ),
             ),
           ],
@@ -218,8 +173,8 @@ class _NavItem extends StatelessWidget {
   }
 }
 
-class _CenterButton extends StatelessWidget {
-  const _CenterButton({required this.active, required this.icon});
+class _CenterModule extends StatelessWidget {
+  const _CenterModule({required this.active, required this.icon});
 
   final bool active;
   final IconData icon;
@@ -227,18 +182,20 @@ class _CenterButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
+      duration: MotionTokens.base,
+      curve: MotionTokens.standard,
       width: 50,
       height: 50,
       decoration: BoxDecoration(
-        color: active ? AppColors.teal : const Color(0x2400D4AA),
-        borderRadius: BorderRadius.circular(17),
-        border: Border.all(color: active ? AppColors.teal : AppColors.tealBdr),
-        boxShadow: active
-            ? [BoxShadow(color: AppColors.fabShadow, blurRadius: 20, offset: const Offset(0, 4))]
-            : null,
+        color: active ? AppColors.brand : AppColors.surfaceHi,
+        borderRadius: AppRadius.asymmetric,
+        border: Border.all(
+          color: active ? AppColors.brand : AppColors.tealBdr,
+          width: 1.5,
+        ),
+        boxShadow: active ? AppElevation.low : AppElevation.flat,
       ),
-      child: Icon(icon, size: 22, color: active ? AppColors.background : AppColors.teal),
+      child: Icon(icon, size: 22, color: active ? AppColors.background : AppColors.brand),
     );
   }
 }

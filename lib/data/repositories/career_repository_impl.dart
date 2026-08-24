@@ -7,6 +7,7 @@ import '../../domain/entities/cv_content.dart';
 import '../../domain/entities/cv_document.dart';
 import '../../domain/entities/cv_profile.dart';
 import '../../domain/entities/job_analysis.dart';
+import '../../domain/entities/interview_practice_session.dart';
 import '../../domain/entities/job_application.dart';
 import '../../domain/entities/profile_data.dart';
 import '../../domain/entities/profile_section.dart';
@@ -18,6 +19,7 @@ import '../../domain/repositories/cv_document_repository.dart';
 import '../../domain/repositories/cv_generation_repository.dart';
 import '../../domain/repositories/cv_repository.dart';
 import '../../domain/repositories/job_analysis_repository.dart';
+import '../../domain/repositories/interview_practice_repository.dart';
 import '../../domain/repositories/job_application_repository.dart';
 import '../../domain/repositories/profile_repository.dart';
 import '../../domain/repositories/profile_section_repository.dart';
@@ -47,7 +49,7 @@ abstract class _FallbackRepository<T> {
 
   T fromJson(Map<String, dynamic> json);
 
-  Map<String, Object> toJson(T item);
+  Map<String, Object?> toJson(T item);
 
   Future<List<T>?> load() async {
     try {
@@ -455,5 +457,59 @@ class CvGenerationRepositoryImpl implements CvGenerationRepository {
       Map<String, dynamic>.from(data['content'] as Map),
     );
     return content;
+  }
+}
+
+/// Interview Practice Coach sessions — a small per-user list, so the list-based
+/// load/save-all contract of the base class fits exactly. Supabase is the source
+/// of truth (scoped by the signed-in user via RLS); local storage is the offline
+/// fallback.
+class InterviewPracticeRepositoryImpl
+    extends _FallbackRepository<InterviewPracticeSession>
+    implements InterviewPracticeRepository {
+  InterviewPracticeRepositoryImpl(super.remote, super.local)
+      : super(
+          table: 'interview_practice_sessions',
+          key: 'practice.sessions.v1',
+        );
+
+  @override
+  InterviewPracticeSession fromJson(Map<String, dynamic> json) =>
+      InterviewPracticeSession.fromJson(json);
+
+  @override
+  Map<String, Object?> toJson(InterviewPracticeSession item) => item.toJson();
+
+  @override
+  Future<void> save(InterviewPracticeSession session) async {
+    final all = await load() ?? const <InterviewPracticeSession>[];
+    final replaced = [
+      for (final s in all)
+        if (s.id != session.id) s,
+      session,
+    ];
+    await saveAll(replaced);
+  }
+
+  @override
+  Future<List<InterviewPracticeSession>> loadRecent(int limit) async {
+    final all = await load() ?? const <InterviewPracticeSession>[];
+    all.sort((a, b) => b.startedAt.compareTo(a.startedAt));
+    return all.take(limit).toList();
+  }
+
+  @override
+  Future<InterviewPracticeSession?> loadById(String id) async {
+    final all = await load() ?? const <InterviewPracticeSession>[];
+    for (final s in all) {
+      if (s.id == id) return s;
+    }
+    return null;
+  }
+
+  @override
+  Future<void> delete(String id) async {
+    final all = await load() ?? const <InterviewPracticeSession>[];
+    await saveAll([for (final s in all) if (s.id != id) s]);
   }
 }

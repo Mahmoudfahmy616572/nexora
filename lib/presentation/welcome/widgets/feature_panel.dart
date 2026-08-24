@@ -18,7 +18,7 @@ class WelcomeFeaturePanel extends StatelessWidget {
       FeatureTile(
         icon: Icons.auto_awesome_rounded,
         iconColor: AppColors.iconPurple,
-        borderColor: const Color(0x4DA855F7),
+        borderColor: AppColors.iconPurple.withValues(alpha: 0.35),
         title: l10n.featureMatchingTitle,
         subtitle: l10n.featureMatchingSubtitle,
         center: center,
@@ -26,7 +26,7 @@ class WelcomeFeaturePanel extends StatelessWidget {
       FeatureTile(
         icon: Icons.diamond_outlined,
         iconColor: AppColors.iconBlue,
-        borderColor: const Color(0x4D3B82F6),
+        borderColor: AppColors.iconBlue.withValues(alpha: 0.35),
         title: l10n.featureAtsTitle,
         subtitle: l10n.featureAtsSubtitle,
         center: center,
@@ -34,7 +34,7 @@ class WelcomeFeaturePanel extends StatelessWidget {
       FeatureTile(
         icon: Icons.developer_board_rounded,
         iconColor: AppColors.iconPurple,
-        borderColor: const Color(0x4DA855F7),
+        borderColor: AppColors.iconPurple.withValues(alpha: 0.35),
         title: l10n.featureInterviewTitle,
         subtitle: l10n.featureInterviewSubtitle,
         center: center,
@@ -42,7 +42,7 @@ class WelcomeFeaturePanel extends StatelessWidget {
       FeatureTile(
         icon: Icons.trending_up_rounded,
         iconColor: AppColors.iconCyan,
-        borderColor: const Color(0x4D22D3EE),
+        borderColor: AppColors.iconCyan.withValues(alpha: 0.35),
         title: l10n.featureGrowthTitle,
         subtitle: l10n.featureGrowthSubtitle,
         center: center,
@@ -52,7 +52,7 @@ class WelcomeFeaturePanel extends StatelessWidget {
     Widget separator() => const SizedBox(
           width: 1,
           height: 52,
-          child: ColoredBox(color: Color(0x2494A0B8)),
+          child: ColoredBox(color: AppColors.borderMed),
         );
 
     final child = Breakpoints.isDesktop(context)
@@ -95,15 +95,11 @@ class WelcomeFeaturePanel extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 24),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment(-0.4, -1),
-              end: Alignment(1, 1),
-              colors: [Color(0xD10E142B), Color(0xC2090F23)],
-            ),
+            color: AppColors.card,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: AppColors.border),
             boxShadow: [
-              BoxShadow(color: AppColors.panelShadow, blurRadius: 70, offset: const Offset(0, 20)),
+              BoxShadow(color: AppColors.panelShadow, blurRadius: 20, offset: const Offset(0, 8)),
             ],
           ),
           child: child,

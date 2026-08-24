@@ -19,6 +19,14 @@
 //   { "done": true, "plan": { "focusAreas": [{requirement, why, question,
 //      coaching}], "likelyQuestions": [...], "tips": "..." } }
 //
+// Mock practice feedback mode (Phase 5): send "mode": "mock_feedback" plus
+//   "question": "...", "answer": "...", "focusArea": "...",
+//   "targetRole": "...", "company": "..."
+// and it returns qualitative coaching ONLY (never numeric scores):
+//   { "done": true, "feedback": { "strengths": [...], "improvements": [...],
+//     "coaching": "...", "sketch": "..." } }
+//   Note: numeric scores are computed client-side by InterviewPracticeEngine.
+//
 // The LLM key lives in GROQ_API_KEY — never in the client.
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
@@ -59,11 +67,15 @@ serve(async (req) => {
     const finish = Boolean(body.finish);
     const mode = String(body.mode ?? 'profile_build');
     const isPlan = mode === 'interview_plan';
+    const isFeedback = mode === 'mock_feedback';
     const focusAreas = Array.isArray(body.focusAreas)
       ? body.focusAreas.map((f: unknown) => String(f)).filter(Boolean)
       : [];
     const targetRole = String(body.targetRole ?? '');
     const company = String(body.company ?? '');
+    const question = String(body.question ?? '');
+    const answer = String(body.answer ?? '');
+    const focusArea = String(body.focusArea ?? '');
 
     const contextText = [
       `Target role: ${String(context.target ?? '').trim()}`,
@@ -109,7 +121,29 @@ serve(async (req) => {
         ? 'You have enough signal. Produce the final structured profile now (set done=true).'
         : 'Ask the single most useful NEXT question to draw out missing, concrete detail. Do not repeat prior questions.');
 
-    const prompt = isPlan ? [
+    const prompt = isFeedback ? [
+      'You are a concise, honest interview coach giving ONE candidate feedback on a single answered mock-interview question.',
+      `Respond in ${language === 'ar' ? 'Arabic' : 'English'}.`,
+      'Ground rules:',
+      '- NEVER invent facts about the candidate (companies, dates, degrees, metrics, achievements, or skills they did not state).',
+      '- Base feedback ONLY on the question, the candidate\'s answer, the focus area, and the candidate context below.',
+      '- Be specific and practical. Do NOT assign any numeric score or grade — scoring is computed elsewhere.',
+      '- Use supportive, coaching language. Point out what is strong and what to improve, grounded in the actual answer.',
+      '',
+      'Return ONLY a JSON object exactly:',
+      '{ "feedback": { "strengths": [string], "improvements": [string], "coaching": string, "sketch": string } }',
+      '- strengths: 1-3 bullet points of what the answer did well (be specific, reference the answer).',
+      '- improvements: 1-3 bullet points of concrete, actionable ways to strengthen the answer (STAR, metrics, relevance to the focus area).',
+      '- coaching: 1-2 sentences of overall coaching guidance for this focus area.',
+      '- sketch: a short, neutral example-response skeleton (1-2 sentences) the candidate could adapt — never present it as something the candidate actually did.',
+      '',
+      `Focus area: ${focusArea}`,
+      `Question: ${question}`,
+      `Candidate answer: ${answer}`,
+      '',
+      'Candidate context (for grounding only):',
+      contextText,
+    ].join('\n') : isPlan ? [
       'You are a concise, honest interview coach preparing ONE candidate for a specific role.',
       `Respond in ${language === 'ar' ? 'Arabic' : 'English'}.`,
       'Ground rules:',
@@ -184,6 +218,23 @@ serve(async (req) => {
 
     const cleanArray = (value: unknown) =>
       Array.isArray(value) ? value.map((v) => String(v)).filter(Boolean) : [];
+
+    if (isFeedback) {
+      const fb = parsed.feedback;
+      if (!fb || typeof fb !== 'object') {
+        return json({ error: 'AI returned malformed feedback' }, 502);
+      }
+      const feedback = fb as Record<string, unknown>;
+      return json({
+        done: true,
+        feedback: {
+          strengths: cleanArray(feedback.strengths),
+          improvements: cleanArray(feedback.improvements),
+          coaching: String(feedback.coaching ?? ''),
+          sketch: String(feedback.sketch ?? ''),
+        },
+      });
+    }
 
     if (isPlan) {
       const p = parsed.plan;

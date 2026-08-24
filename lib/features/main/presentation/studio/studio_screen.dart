@@ -97,15 +97,16 @@ class _StudioView extends StatelessWidget {
         builder: (_) => BlocProvider.value(
           value: context.read<CvCubit>(),
           child: const CvCreateSheet(),
-        ),
-      );
+      ),
+    );
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.studioTitle)),
-      body: BlocBuilder<CvCubit, CvState>(
+      body: SafeArea(
+        child: BlocBuilder<CvCubit, CvState>(
         builder: (context, state) {
           if (state.status == CvStatus.generating) {
             return Center(
@@ -128,6 +129,7 @@ class _StudioView extends StatelessWidget {
           }
           return _MyCvs(state: state, onCreate: () => _showCreate(context));
         },
+      ),
       ),
       floatingActionButton: Builder(
         builder: (context) {
@@ -347,7 +349,7 @@ class _Editor extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     key: const Key('cvExport'),
-                    onPressed: () => _showExport(context, content),
+                    onPressed: () => _showExport(context, content, state.templateId),
                     icon: const Icon(Icons.share),
                     label: Text(l10n.cvExport),
                   ),
@@ -410,8 +412,10 @@ class _Editor extends StatelessWidget {
             ],
           );
         }
-        return Column(
-          children: [controls, const Divider(), preview],
+        return SingleChildScrollView(
+          child: Column(
+            children: [controls, const Divider(), preview],
+          ),
         );
       },
     );
@@ -431,11 +435,11 @@ void _showEdit(BuildContext context, CvContent content) =>
       ),
     );
 
-void _showExport(BuildContext context, CvContent content) =>
+void _showExport(BuildContext context, CvContent content, String templateId) =>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (_) => CvExportSheet(content: content),
+      builder: (_) => CvExportSheet(content: content, templateId: templateId),
     );
 
 Future<void> _confirmDelete(BuildContext context, CvDocument doc) async {

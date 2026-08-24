@@ -89,7 +89,8 @@ class _EvaluationView extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.cvEvaluateTitle)),
-      body: BlocBuilder<CvEvaluationCubit, CvEvaluationState>(
+      body: SafeArea(
+        child: BlocBuilder<CvEvaluationCubit, CvEvaluationState>(
         builder: (context, state) {
           if (state.status == CvEvaluationStatus.loading) {
             return const Center(child: CircularProgressIndicator());
@@ -195,6 +196,7 @@ class _EvaluationView extends StatelessWidget {
             ],
           );
         },
+      ),
       ),
     );
   }

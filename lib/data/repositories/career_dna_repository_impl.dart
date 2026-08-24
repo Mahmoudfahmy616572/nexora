@@ -167,6 +167,38 @@ class CareerDnaRepositoryImpl implements CareerDnaRepository {
       throw Exception('AI interview plan failed: $e');
     }
   }
+
+  @override
+  Future<Map<String, dynamic>> generateMockFeedback({
+    required Map<String, dynamic> context,
+    required String question,
+    required String answer,
+    required String focusArea,
+    String? targetRole,
+    String? company,
+    required String language,
+  }) async {
+    try {
+      final data = await _remote.runAiMockFeedback({
+        'context': context,
+        'language': language,
+        'mode': 'mock_feedback',
+        'question': question,
+        'answer': answer,
+        'focusArea': focusArea,
+        'targetRole': targetRole,
+        'company': company,
+      });
+      final feedback = data['feedback'];
+      if (feedback is Map) {
+        return Map<String, dynamic>.from(feedback);
+      }
+      throw Exception('AI returned no feedback');
+    } on Object catch (e) {
+      debugPrint('mock feedback AI failed: $e');
+      throw Exception('AI mock feedback failed: $e');
+    }
+  }
 }
 
 CareerDna _fromVersionRow(Map<String, dynamic> row) {

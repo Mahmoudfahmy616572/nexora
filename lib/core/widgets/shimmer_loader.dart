@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
+import '../theme/app_colors.dart';
+
 /// Loading placeholders built from the `shimmer` package.
 ///
 /// Nexora convention: every loading state uses shimmer instead of a spinner.
@@ -14,8 +16,8 @@ class NexoraShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
-      baseColor: baseColor ?? const Color(0xFF141A2E),
-      highlightColor: highlightColor ?? const Color(0xFF242E4A),
+      baseColor: baseColor ?? AppColors.card,
+      highlightColor: highlightColor ?? AppColors.cardHi,
       period: const Duration(milliseconds: 1400),
       child: child,
     );

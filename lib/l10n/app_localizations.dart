@@ -2108,6 +2108,12 @@ abstract class AppLocalizations {
   /// **'Delete application'**
   String get trackerDeleteApplication;
 
+  /// No description provided for @trackerPractice.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice for this role'**
+  String get trackerPractice;
+
   /// No description provided for @authWelcomeBack.
   ///
   /// In en, this message translates to:
@@ -4436,6 +4442,24 @@ abstract class AppLocalizations {
   /// **'Prepare Interview'**
   String get acCtaPrepareInterview;
 
+  /// No description provided for @acTitlePracticeInterview.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice your interview'**
+  String get acTitlePracticeInterview;
+
+  /// No description provided for @acDescPracticeInterview.
+  ///
+  /// In en, this message translates to:
+  /// **'Run a mock interview for this role and get scored, grounded coaching on your answers.'**
+  String get acDescPracticeInterview;
+
+  /// No description provided for @acCtaPracticeInterview.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice Interview'**
+  String get acCtaPracticeInterview;
+
   /// No description provided for @acLoading.
   ///
   /// In en, this message translates to:
@@ -4520,6 +4544,12 @@ abstract class AppLocalizations {
   /// **'Regenerate'**
   String get prepRegenerate;
 
+  /// No description provided for @prepPractice.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice'**
+  String get prepPractice;
+
   /// No description provided for @prepAiUnavailable.
   ///
   /// In en, this message translates to:
@@ -4537,6 +4567,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nothing to prepare yet. Analyze a role and track your applications to unlock focused practice.'**
   String get prepEmptyNoInterview;
+
+  /// No description provided for @practiceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview Practice'**
+  String get practiceTitle;
+
+  /// No description provided for @practiceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Building your mock interview from your readiness plan…'**
+  String get practiceDesc;
+
+  /// No description provided for @practiceError.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong while preparing the practice session.'**
+  String get practiceError;
+
+  /// No description provided for @practiceEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No questions available for this role yet.'**
+  String get practiceEmpty;
+
+  /// No description provided for @practiceProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Question {index} of {total}'**
+  String practiceProgress(int index, int total);
+
+  /// No description provided for @practiceAnswerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type your answer here. Use a real example if you can.'**
+  String get practiceAnswerHint;
+
+  /// No description provided for @practiceSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit answer'**
+  String get practiceSubmit;
+
+  /// No description provided for @practiceFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'See results'**
+  String get practiceFinish;
+
+  /// No description provided for @practiceNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next question'**
+  String get practiceNext;
+
+  /// No description provided for @practiceRelevance.
+  ///
+  /// In en, this message translates to:
+  /// **'Relevance'**
+  String get practiceRelevance;
+
+  /// No description provided for @practiceSpecificity.
+  ///
+  /// In en, this message translates to:
+  /// **'Specificity'**
+  String get practiceSpecificity;
+
+  /// No description provided for @practiceStructure.
+  ///
+  /// In en, this message translates to:
+  /// **'Structure'**
+  String get practiceStructure;
+
+  /// No description provided for @practiceConsistency.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile consistency'**
+  String get practiceConsistency;
+
+  /// No description provided for @practiceStrengths.
+  ///
+  /// In en, this message translates to:
+  /// **'What went well'**
+  String get practiceStrengths;
+
+  /// No description provided for @practiceImprove.
+  ///
+  /// In en, this message translates to:
+  /// **'Ways to improve'**
+  String get practiceImprove;
+
+  /// No description provided for @practiceCoaching.
+  ///
+  /// In en, this message translates to:
+  /// **'Coaching'**
+  String get practiceCoaching;
+
+  /// No description provided for @practiceUnverified.
+  ///
+  /// In en, this message translates to:
+  /// **'Unverified claims'**
+  String get practiceUnverified;
+
+  /// No description provided for @practiceStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong answer'**
+  String get practiceStrong;
+
+  /// No description provided for @practiceGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Good answer'**
+  String get practiceGood;
+
+  /// No description provided for @practiceNeedsImprovement.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs improvement'**
+  String get practiceNeedsImprovement;
+
+  /// No description provided for @practiceSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice summary'**
+  String get practiceSummaryTitle;
+
+  /// No description provided for @practiceSummaryScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Scored on {count} answers'**
+  String practiceSummaryScore(int count);
+
+  /// No description provided for @practiceRecommended.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended focus next time'**
+  String get practiceRecommended;
+
+  /// No description provided for @practiceAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice again'**
+  String get practiceAgain;
+
+  /// No description provided for @practiceDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get practiceDone;
 }
 
 class _AppLocalizationsDelegate

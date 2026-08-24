@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -74,57 +72,7 @@ class _WelcomeBackgroundPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
-    canvas.drawRect(
-      rect,
-      Paint()
-        ..shader = const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          stops: [0, 0.5, 1],
-          colors: [
-            AppColors.background,
-            AppColors.backgroundGradientMid,
-            AppColors.background,
-          ],
-        ).createShader(rect),
-    );
-
-    void radial(Offset center, double radius, List<Color> colors, List<double> stops) {
-      canvas.drawCircle(
-        center,
-        radius,
-        Paint()
-          ..shader = RadialGradient(
-            colors: colors,
-            stops: stops,
-          ).createShader(Rect.fromCircle(center: center, radius: radius)),
-      );
-    }
-
-    radial(
-      Offset(size.width * 0.72, size.height * 0.32),
-      size.width * 0.28,
-      const [Color(0x215D2BAA), Colors.transparent],
-      const [0, 1],
-    );
-    radial(
-      Offset(size.width * 0.90, size.height * 0.50),
-      size.width * 0.30,
-      const [Color(0x1A2563EB), Colors.transparent],
-      const [0, 1],
-    );
-    radial(
-      Offset(size.width * 0.85, size.height * 0.10),
-      math.min(size.width, size.height) * 0.30,
-      const [Color(0x407C3AED), Color(0x147C3AED), Colors.transparent],
-      const [0, 0.5, 1],
-    );
-    radial(
-      Offset(size.width * 0.95, size.height * 0.80),
-      math.min(size.width, size.height) * 0.24,
-      const [Color(0x402563EB), Color(0x142563EB), Colors.transparent],
-      const [0, 0.5, 1],
-    );
+    canvas.drawRect(rect, Paint()..color = AppColors.background);
   }
 
   @override
@@ -212,14 +160,7 @@ class _HeroContent extends StatelessWidget {
               TextSpan(text: l10n.welcomeUnderstood),
               TextSpan(
                 text: l10n.welcomeElevated,
-                style: TextStyle(
-                  foreground: Paint()
-                    ..shader = LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: AppColors.headlineGradient,
-                    ).createShader(const Rect.fromLTWH(0, 0, 500, 300)),
-                ),
+                style: const TextStyle(color: AppColors.brand),
               ),
             ],
           ),
@@ -285,7 +226,7 @@ class _TrustRow extends StatelessWidget {
 
     Widget divider() => const Padding(
           padding: EdgeInsets.symmetric(horizontal: 22),
-          child: SizedBox(width: 1, height: 38, child: ColoredBox(color: Color(0x2694A0B8))),
+          child: SizedBox(width: 1, height: 38, child: ColoredBox(color: AppColors.borderMed)),
         );
 
     return LayoutBuilder(
@@ -329,7 +270,7 @@ class _FeaturePanel extends StatelessWidget {
       FeatureTile(
         icon: Icons.auto_awesome_rounded,
         iconColor: AppColors.iconPurple,
-        borderColor: const Color(0x4DA855F7),
+        borderColor: AppColors.iconPurple.withValues(alpha: 0.35),
         title: l10n.welcomeMatchingTitle,
         subtitle: l10n.welcomeMatchingSub,
         center: center,
@@ -337,7 +278,7 @@ class _FeaturePanel extends StatelessWidget {
       FeatureTile(
         icon: Icons.diamond_outlined,
         iconColor: AppColors.iconBlue,
-        borderColor: const Color(0x4D3B82F6),
+        borderColor: AppColors.iconBlue.withValues(alpha: 0.35),
         title: l10n.welcomeAtsTitle,
         subtitle: l10n.welcomeAtsSub,
         center: center,
@@ -345,7 +286,7 @@ class _FeaturePanel extends StatelessWidget {
       FeatureTile(
         icon: Icons.developer_board_rounded,
         iconColor: AppColors.iconPurple,
-        borderColor: const Color(0x4DA855F7),
+        borderColor: AppColors.iconPurple.withValues(alpha: 0.35),
         title: l10n.welcomeInterviewTitle,
         subtitle: l10n.welcomeInterviewSub,
         center: center,
@@ -353,7 +294,7 @@ class _FeaturePanel extends StatelessWidget {
       FeatureTile(
         icon: Icons.trending_up_rounded,
         iconColor: AppColors.iconCyan,
-        borderColor: const Color(0x4D22D3EE),
+        borderColor: AppColors.iconCyan.withValues(alpha: 0.35),
         title: l10n.welcomeGrowthTitle,
         subtitle: l10n.welcomeGrowthSub,
         center: center,
@@ -367,7 +308,7 @@ class _FeaturePanel extends StatelessWidget {
     Widget separator() => const SizedBox(
           width: 1,
           height: 52,
-          child: ColoredBox(color: Color(0x2494A0B8)),
+          child: ColoredBox(color: AppColors.borderMed),
         );
 
     final child = Breakpoints.isDesktop(context)
@@ -410,15 +351,11 @@ class _FeaturePanel extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 24),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment(-0.4, -1),
-              end: Alignment(1, 1),
-              colors: [Color(0xD10E142B), Color(0xC2090F23)],
-            ),
+            color: AppColors.card,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: AppColors.border),
             boxShadow: [
-              BoxShadow(color: AppColors.panelShadow, blurRadius: 70, offset: const Offset(0, 20)),
+              BoxShadow(color: AppColors.panelShadow, blurRadius: 20, offset: const Offset(0, 8)),
             ],
           ),
           child: child,

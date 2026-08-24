@@ -1050,6 +1050,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trackerDeleteApplication => 'حذف الطلب';
 
   @override
+  String get trackerPractice => 'تدرب لهذا الدور';
+
+  @override
   String get authWelcomeBack => 'مرحباً بعودتك';
 
   @override
@@ -2249,6 +2252,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acCtaPrepareInterview => 'استعد للمقابلة';
 
   @override
+  String get acTitlePracticeInterview => 'تدرب على المقابلة';
+
+  @override
+  String get acDescPracticeInterview =>
+      'أجرِ مقابلة تجريبية لهذه الوظيفة واحصل على تقييم وتوجيه مبني على إجاباتك.';
+
+  @override
+  String get acCtaPracticeInterview => 'تدرب على المقابلة';
+
+  @override
   String get acLoading => 'نحدد خطوتك التالية…';
 
   @override
@@ -2295,6 +2308,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get prepRegenerate => 'إعادة التوليد';
 
   @override
+  String get prepPractice => 'تدرب';
+
+  @override
   String get prepAiUnavailable =>
       'الذكاء الاصطناعي غير متاح — نعرض فجواتك الأساسية للتحضير. لا شيء مُختلق.';
 
@@ -2305,4 +2321,84 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get prepEmptyNoInterview =>
       'لا شيء للتحضير بعد. حلّل دورًا وتتبّع طلباتك لتفعيل التدريب المركّز.';
+
+  @override
+  String get practiceTitle => 'تدريب المقابلة';
+
+  @override
+  String get practiceDesc => 'نجهّز مقابلتك التجريبية من خطة الاستعداد…';
+
+  @override
+  String get practiceError => 'حدث خطأ أثناء تجهيز جلسة التدريب.';
+
+  @override
+  String get practiceEmpty => 'لا توجد أسئلة متاحة لهذا الدور بعد.';
+
+  @override
+  String practiceProgress(int index, int total) {
+    return 'سؤال $index من $total';
+  }
+
+  @override
+  String get practiceAnswerHint =>
+      'اكتب إجابتك هنا. استخدم مثالًا حقيقيًا إن أمكن.';
+
+  @override
+  String get practiceSubmit => 'إرسال الإجابة';
+
+  @override
+  String get practiceFinish => 'عرض النتائج';
+
+  @override
+  String get practiceNext => 'السؤال التالي';
+
+  @override
+  String get practiceRelevance => 'الصلة';
+
+  @override
+  String get practiceSpecificity => 'التحديد';
+
+  @override
+  String get practiceStructure => 'الهيكل';
+
+  @override
+  String get practiceConsistency => 'اتساق الملف';
+
+  @override
+  String get practiceStrengths => 'ما الذي أجادته';
+
+  @override
+  String get practiceImprove => 'طرق للتحسين';
+
+  @override
+  String get practiceCoaching => 'توجيه';
+
+  @override
+  String get practiceUnverified => 'ادعاءات غير مؤكدة';
+
+  @override
+  String get practiceStrong => 'إجابة قوية';
+
+  @override
+  String get practiceGood => 'إجابة جيدة';
+
+  @override
+  String get practiceNeedsImprovement => 'تحتاج تحسينًا';
+
+  @override
+  String get practiceSummaryTitle => 'ملخص التدريب';
+
+  @override
+  String practiceSummaryScore(int count) {
+    return 'تم التقييم على $count إجابات';
+  }
+
+  @override
+  String get practiceRecommended => 'التركيز المقترح في المرة القادمة';
+
+  @override
+  String get practiceAgain => 'تدرب مجددًا';
+
+  @override
+  String get practiceDone => 'تم';
 }
