@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../domain/cv/cv_section_ordering.dart';
 import '../../../../domain/cv/cv_template_registry.dart';
+import '../../../../domain/entities/career_dna.dart';
+import '../../../../domain/entities/career_target.dart';
 import '../../../../domain/entities/cv_content.dart';
 
 /// Renders structured [CvContent] into a printable CV using the selected
@@ -13,16 +15,26 @@ class CvPreview extends StatelessWidget {
   const CvPreview({
     required this.content,
     required this.templateId,
+    this.stage,
+    this.targetType,
     super.key,
   });
 
   final CvContent content;
   final String templateId;
 
+  /// Drives the same target-aware section ordering as PDF export.
+  final CareerStage? stage;
+  final TargetType? targetType;
+
   @override
   Widget build(BuildContext context) {
     final template = CvTemplateRegistry.get(templateId);
-    final sections = CvSectionOrdering.orderedSections(content: content);
+    final sections = CvSectionOrdering.orderedSectionsForStages(
+      content: content,
+      stage: stage,
+      targetType: targetType,
+    );
 
     return LayoutBuilder(
       builder: (context, constraints) {

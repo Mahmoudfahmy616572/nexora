@@ -36,7 +36,7 @@ void main() {
   setUpAll(() async {
     SharedPreferences.setMockInitialValues({});
     for (final (family, asset) in [
-      ('Inter', 'assets/fonts/Inter-Variable.ttf'),
+      ('Inter', 'assets/fonts/Inter-Regular.ttf'),
       ('Bricolage Grotesque', 'assets/fonts/BricolageGrotesque-Variable.ttf'),
       ('DM Mono', 'assets/fonts/DMMono-Regular.ttf'),
     ]) {

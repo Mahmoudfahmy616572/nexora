@@ -45,6 +45,20 @@ class CvSectionOrdering {
     return ordering.where((s) => _hasContent(s, content)).toList();
   }
 
+  /// Stage/target-driven ordering without requiring full DNA/target entities.
+  ///
+  /// Used by the PDF renderer, which receives the resolved career context as
+  /// lightweight enums rather than whole entities.
+  static List<CvSection> orderedSectionsForStages({
+    required CvContent content,
+    CareerStage? stage,
+    TargetType? targetType,
+  }) {
+    return _orderingForStageAndTarget(stage, targetType)
+        .where((s) => _hasContent(s, content))
+        .toList();
+  }
+
   /// Returns the project ordering: projects with target-relevant tech first,
   /// then remaining projects by original order.
   static List<CvProject> prioritizeProjects({

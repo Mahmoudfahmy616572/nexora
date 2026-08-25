@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -399,7 +399,7 @@ CvContent _freshGraduate() => CvContent(
         location: 'Cairo, Egypt',
         links: ['linkedin.com/in/saraahmed', 'github.com/saraahmed'],
       ),
-      summary: 'Motivated Flutter developer with strong mobile development skills and a passion for building intuitive user interfaces.',
+      summary: 'Motivated Flutter developer eager to build intuitive user interfaces.',
       experience: const [
         CvExperience(
           role: 'Mobile Development Intern',
@@ -409,27 +409,16 @@ CvContent _freshGraduate() => CvContent(
           bullets: [
             'Built 3 Flutter screens with responsive layouts',
             'Integrated REST API using Dio',
-            'Wrote 15 unit tests covering core logic',
           ],
         ),
       ],
       projects: const [
-        CvProject(
-          name: 'WeatherFlow',
-          description: 'Real-time weather app with 5-day forecast',
-          tech: ['Flutter', 'OpenWeather API'],
-          bullets: [
-            'Implemented geolocation-based weather fetching',
-            'Designed animated weather icons using CustomPainter',
-          ],
-        ),
         CvProject(
           name: 'TaskBuddy',
           description: 'Todo app with categories and reminders',
           tech: ['Flutter', 'SQLite'],
           bullets: [
             'Added local persistence with SQLite',
-            'Implemented notification scheduling',
           ],
         ),
       ],
@@ -439,14 +428,13 @@ CvContent _freshGraduate() => CvContent(
       skillGroups: const [
         CvSkillGroup(title: 'Mobile', skills: ['Flutter', 'Dart', 'Firebase']),
         CvSkillGroup(title: 'Languages', skills: ['Python', 'JavaScript', 'SQL']),
-        CvSkillGroup(title: 'Tools', skills: ['Git', 'VS Code', 'Android Studio']),
+
       ],
       certifications: const [
         CvCertification(name: 'Flutter Certified Developer', issuer: 'Google', year: '2024'),
       ],
       achievements: const [
         CvAchievement(text: "Dean's List, Fall 2022 and Spring 2023"),
-        CvAchievement(text: '1st Place, Cairo University Hackathon 2023'),
       ],
       languages: const [
         CvLanguage(name: 'Arabic', level: 'Native'),
@@ -474,8 +462,6 @@ CvContent _experiencedCandidate() => CvContent(
             'Architected microservices platform serving 2M daily requests',
             'Led migration from monolith to services, cutting deploy time by 70%',
             'Mentored team of 5 engineers on clean architecture',
-            'Introduced CI/CD pipelines reducing release cycle from 2 weeks to 2 days',
-            'Designed real-time analytics dashboard used by 500+ clients',
           ],
         ),
         CvExperience(
@@ -496,14 +482,6 @@ CvContent _experiencedCandidate() => CvContent(
           endDate: 'Feb 2019',
           location: 'Giza, Egypt',
           description: 'Designed RESTful APIs and optimized database queries for high-traffic application.',
-        ),
-        CvExperience(
-          role: 'Junior Developer',
-          company: 'StartupHub',
-          startDate: 'Jan 2016',
-          endDate: 'Jun 2017',
-          location: 'Cairo, Egypt',
-          description: 'Developed customer-facing web app features using Angular and Node.js.',
         ),
       ],
       projects: const [

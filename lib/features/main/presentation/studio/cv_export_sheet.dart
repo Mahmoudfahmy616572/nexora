@@ -6,6 +6,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
 
 import '../../../../domain/cv/cv_pdf_renderer.dart';
+import '../../../../domain/entities/career_dna.dart' show CareerStage;
+import '../../../../domain/entities/career_target.dart' show TargetType;
 import '../../../../domain/entities/cv_content.dart';
 import '../../../../l10n/app_localizations.dart';
 
@@ -94,11 +96,24 @@ class CvExportSheet extends StatelessWidget {
   const CvExportSheet({
     required this.content,
     required this.templateId,
+    this.stage,
+    this.targetType,
     super.key,
   });
 
   final CvContent content;
   final String templateId;
+
+  /// Drives the same target-aware section ordering as the on-screen preview.
+  final CareerStage? stage;
+  final TargetType? targetType;
+
+  Future<Uint8List> _renderPdf() => CvPdfRenderer.render(
+        content: content,
+        templateId: templateId,
+        stage: stage,
+        targetType: targetType,
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -141,10 +156,7 @@ class CvExportSheet extends StatelessWidget {
             key: const Key('cvPdfPreview'),
             onPressed: () async {
               try {
-                final bytes = await CvPdfRenderer.render(
-                  content: content,
-                  templateId: templateId,
-                );
+                final bytes = await _renderPdf();
                 if (context.mounted) {
                   await Printing.layoutPdf(
                     onLayout: (_) => bytes,
@@ -167,10 +179,7 @@ class CvExportSheet extends StatelessWidget {
             key: const Key('cvPdfSave'),
             onPressed: () async {
               try {
-                final bytes = await CvPdfRenderer.render(
-                  content: content,
-                  templateId: templateId,
-                );
+                final bytes = await _renderPdf();
                 final dir = await getApplicationDocumentsDirectory();
                 final name = content.header.name.replaceAll(' ', '_');
                 final file = File('${dir.path}/${name}_CV.pdf');
@@ -197,10 +206,7 @@ class CvExportSheet extends StatelessWidget {
             key: const Key('cvPdfShare'),
             onPressed: () async {
               try {
-                final bytes = await CvPdfRenderer.render(
-                  content: content,
-                  templateId: templateId,
-                );
+                final bytes = await _renderPdf();
                 final dir = await getTemporaryDirectory();
                 final name = content.header.name.replaceAll(' ', '_');
                 final file = File('${dir.path}/${name}_CV.pdf');

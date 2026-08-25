@@ -1,25 +1,37 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import '../entities/career_dna.dart' show CareerStage;
+import '../entities/career_target.dart' show TargetType;
 import '../entities/cv_content.dart';
 import 'cv_section_ordering.dart';
 import 'cv_template_registry.dart';
 
 /// Generates a real A4 PDF from [CvContent] using the selected [CvTemplate].
 ///
-/// Renders the same structured content as the screen preview but produces a
-/// printable, ATS-friendly PDF document. Supports multi-page, grouped skills,
-/// structured bullets, and RTL layout.
+/// The renderer applies an editorial composition system on top of the
+/// structured content:
+///   * a strict PDF-local type scale per template personality where
+///     name > professional title > section titles > body > metadata;
+///   * a print-safe ink palette with strategic accent use (professional
+///     title, section rules, links, bullet markers) and no decorative
+///     cards, pills or gradients;
+///   * true hanging-indent bullets;
+///   * atomic experience/project/education/certification items that never
+///     split across page breaks ([pw.Wrap] spanning);
+///   * a discreet footer with page numbers on multi-page documents;
+///   * full RTL layout driven by content detection.
 class CvPdfRenderer {
   const CvPdfRenderer._();
 
   static const double a4Width = 595.28;
   static const double a4Height = 841.89;
-  static pw.Font? _arabicFont;
-  static bool _isRtl = false;
+
+  static Future<_Fonts>? _fontsFuture;
 
   static const _arabicSectionTitles = <String, String>{
     'PROFILE': 'الملف الشخصي',
@@ -32,50 +44,71 @@ class CvPdfRenderer {
     'LANGUAGES': 'اللغات',
   };
 
-  static bool _detectRtl(CvContent content) {
+  /// The PDF-local type scale used when rendering a given engine template.
+  @visibleForTesting
+  static CvTypeScale typeScaleFor(String templateId) =>
+      _CvStyle.forTemplate(CvTemplateRegistry.get(templateId)).scale;
+
+  static bool detectRtl(CvContent content) {
     final text = content.header.name + content.summary;
     final arabicCount = RegExp(r'[\u0600-\u06FF]').allMatches(text).length;
     return arabicCount > text.length * 0.3;
   }
 
-  static String _sectionTitle(String title) {
-    if (_isRtl) return _arabicSectionTitles[title] ?? title;
-    return title;
-  }
-
   /// Generates a PDF byte array from the given CV content and template.
+  ///
+  /// [stage] and [targetType] drive target-aware section ordering (fresh
+  /// graduates lead with projects, career changers with skills, academic
+  /// targets with education). When omitted the default job-target ordering
+  /// is used.
   static Future<Uint8List> render({
     required CvContent content,
     required String templateId,
+    CareerStage? stage,
+    TargetType? targetType,
   }) async {
     final template = CvTemplateRegistry.get(templateId);
-    final font = await _loadFont('assets/fonts/Inter-Variable.ttf');
-    final arabicFont = await _loadFont('assets/fonts/NotoSansArabic-Variable.ttf');
-    final pdf = pw.Document(
-      theme: pw.ThemeData.withFont(base: font, bold: font),
+    final fonts = await _loadFonts();
+    final style = _CvStyle.forTemplate(template);
+    final rt = _Rt(
+      fonts: fonts,
+      s: style,
+      rtl: detectRtl(content),
     );
-    _arabicFont = arabicFont;
-    _isRtl = _detectRtl(content);
-    final sections = CvSectionOrdering.orderedSections(content: content);
-    final marginH = template.marginHorizontal * 0.75;
-    final marginV = template.marginVertical * 0.75;
 
-    final allWidgets = <pw.Widget>[
-      _buildPdfHeader(content, template),
-      pw.SizedBox(height: template.sectionSpacing * 0.5),
-      _buildPdfDivider(template),
+    final sections = CvSectionOrdering.orderedSectionsForStages(
+      content: content,
+      stage: stage,
+      targetType: targetType,
+    );
+
+    final widgets = <pw.Widget>[
+      _header(rt, content),
+      pw.SizedBox(height: style.headerGap),
     ];
+    var firstSection = true;
     for (final section in sections) {
-      allWidgets.add(_buildPdfSection(section, content, template));
+      if (!firstSection) {
+        widgets.add(pw.SizedBox(height: style.sectionGap));
+      }
+      widgets.addAll(_section(rt, section, content));
+      firstSection = false;
     }
 
+    final pdf = pw.Document(
+      theme: pw.ThemeData.withFont(base: fonts.regular, bold: fonts.bold),
+    );
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        margin: pw.EdgeInsets.symmetric(horizontal: marginH, vertical: marginV),
-        textDirection: _isRtl ? pw.TextDirection.rtl : pw.TextDirection.ltr,
+        margin: pw.EdgeInsets.symmetric(
+          horizontal: style.marginH,
+          vertical: style.marginV,
+        ),
+        textDirection: rt.textDirection,
         crossAxisAlignment: pw.CrossAxisAlignment.start,
-        build: (context) => allWidgets,
+        build: (context) => widgets,
+        footer: (context) => _footer(rt, context, content),
       ),
     );
 
@@ -86,188 +119,263 @@ class CvPdfRenderer {
     required CvContent content,
     required String templateId,
     required String outputPath,
+    CareerStage? stage,
+    TargetType? targetType,
   }) async {
-    final bytes = await render(content: content, templateId: templateId);
+    final bytes = await render(
+      content: content,
+      templateId: templateId,
+      stage: stage,
+      targetType: targetType,
+    );
     final file = File(outputPath);
     await file.writeAsBytes(bytes);
     return outputPath;
   }
 
-  static Future<pw.Font> _loadFont(String assetPath) async {
-    final data = await rootBundle.load(assetPath);
-    return pw.Font.ttf(data.buffer.asByteData());
+  static Future<_Fonts> _loadFonts() {
+    return _fontsFuture ??= () async {
+      Future<pw.Font> load(String path) async {
+        final data = await rootBundle.load(path);
+        return pw.Font.ttf(data.buffer.asByteData());
+      }
+
+      return _Fonts(
+        regular: await load('assets/fonts/Inter-Regular.ttf'),
+        medium: await load('assets/fonts/Inter-Medium.ttf'),
+        semibold: await load('assets/fonts/Inter-SemiBold.ttf'),
+        bold: await load('assets/fonts/Inter-Bold.ttf'),
+        arabic: await load('assets/fonts/NotoSansArabic-Variable.ttf'),
+      );
+    }();
   }
 
   // ───────────────────────────────────────────────────────────────────────────
   // Header
   // ───────────────────────────────────────────────────────────────────────────
 
-  static pw.Widget _buildPdfHeader(CvContent content, CvTemplate t) {
-    final h = content.header;
-    final td = _isRtl ? pw.TextDirection.rtl : null;
+  static pw.Widget _header(_Rt rt, CvContent c) {
+    final h = c.header;
+    final s = rt.s;
+    final sc = s.scale;
+
+    final contactParts = [
+      if (h.email.isNotEmpty) h.email,
+      if (h.phone.isNotEmpty) h.phone,
+      if (h.location.isNotEmpty) h.location,
+    ];
+
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         if (h.name.isNotEmpty)
           pw.Text(
             h.name,
-            textDirection: td,
-            style: _textStyle(
-              fontSize: t.headerNameSize,
-              fontWeight: pw.FontWeight.bold,
-              color: t.bodyColor,
+            textDirection: rt.textDirection,
+            style: _style(
+              rt,
+              size: sc.nameSize,
+              weight: 700,
+              color: s.ink,
+              tracking: sc.nameTracking,
             ),
           ),
         if (h.title.isNotEmpty) ...[
-          pw.SizedBox(height: 2),
+          pw.SizedBox(height: sc.nameSize * 0.12),
           pw.Text(
             h.title,
-            textDirection: td,
-            style: _textStyle(
-              fontSize: t.baseTextSize + 1.5,
-              fontWeight: pw.FontWeight.bold,
-              color: t.accent,
+            textDirection: rt.textDirection,
+            style: _style(
+              rt,
+              size: sc.titleSize,
+              weight: 600,
+              color: s.accent,
+              tracking: 0.3,
             ),
           ),
         ],
         if (h.subtitle.isNotEmpty && h.subtitle != h.title) ...[
-          pw.SizedBox(height: 1),
+          pw.SizedBox(height: 1.5),
           pw.Text(
             h.subtitle,
-            textDirection: td,
-            style: _textStyle(
-              fontSize: t.metaTextSize,
-              color: t.mutedColor,
-            ),
+            textDirection: rt.textDirection,
+            style: _style(rt, size: sc.metaSize + 0.7, color: s.secondary),
           ),
         ],
-        if (h.email.isNotEmpty || h.phone.isNotEmpty || h.location.isNotEmpty) ...[
-          pw.SizedBox(height: 4),
+        if (contactParts.isNotEmpty) ...[
+          pw.SizedBox(height: sc.nameSize * 0.24),
           pw.Text(
-            [h.email, h.phone, h.location].where((s) => s.isNotEmpty).join('  •  '),
-            textDirection: td,
-            style: _textStyle(
-              fontSize: t.metaTextSize,
-              color: t.mutedColor,
-            ),
+            contactParts.join('   ·   '),
+            textDirection: rt.textDirection,
+            style: _style(rt, size: sc.metaSize, color: s.muted),
           ),
         ],
         if (h.links.isNotEmpty) ...[
-          pw.SizedBox(height: 2),
+          pw.SizedBox(height: 2.5),
           pw.Text(
-            h.links.join('  •  '),
-            textDirection: td,
-            style: _textStyle(
-              fontSize: t.metaTextSize,
-              color: t.mutedColor,
-            ),
+            h.links.join('  ·  '),
+            textDirection: rt.textDirection,
+            style: _style(rt, size: sc.metaSize, color: s.accent),
           ),
         ],
-      ],
-    );
-  }
-
-  static pw.Widget _buildPdfDivider(CvTemplate t) {
-    if (!t.showSectionDivider) return pw.SizedBox.shrink();
-    return pw.Container(
-      height: 0.5,
-      color: _pdfColor(t.dividerColor),
-    );
-  }
-
-  // ───────────────────────────────────────────────────────────────────────────
-  // Section title
-  // ───────────────────────────────────────────────────────────────────────────
-
-  static pw.Widget _buildPdfSectionTitle(String title, CvTemplate t) {
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.Text(
-          _sectionTitle(title),
-          textDirection: _isRtl ? pw.TextDirection.rtl : null,
-          style: _textStyle(
-            fontSize: t.sectionTitleSize,
-            fontWeight: pw.FontWeight.bold,
-            letterSpacing: 0.8,
-            color: t.accent,
-          ),
+        pw.SizedBox(height: s.headerGap * 0.55),
+        pw.Container(
+          height: s.headerRuleHeight,
+          color: s.headerRuleColor,
         ),
-        if (t.showSectionDivider) ...[
-          pw.SizedBox(height: 2),
-          pw.Container(height: 0.3, color: _pdfColor(t.dividerColor)),
-        ],
       ],
     );
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // Sections
+  // Section scaffolding
   // ───────────────────────────────────────────────────────────────────────────
 
-  static pw.Widget _buildPdfSection(
+  static List<pw.Widget> _section(
+    _Rt rt,
     CvSection section,
     CvContent content,
-    CvTemplate t,
   ) {
+    final head = _sectionHead(rt, section);
     switch (section) {
       case CvSection.summary:
-        return _pdfSummary(content, t);
+        return _summaryBody(rt, content, head);
       case CvSection.experience:
-        return _pdfExperience(content, t);
+        return _experienceBody(rt, content, head);
       case CvSection.projects:
-        return _pdfProjects(content, t);
+        return _projectsBody(rt, content, head);
       case CvSection.education:
-        return _pdfEducation(content, t);
+        return _educationBody(rt, content, head);
       case CvSection.skills:
-        return _pdfSkills(content, t);
+        return _skillsBody(rt, content, head);
       case CvSection.certifications:
-        return _pdfCertifications(content, t);
+        return _certificationsBody(rt, content, head);
       case CvSection.achievements:
-        return _pdfAchievements(content, t);
+        return _achievementsBody(rt, content, head);
       case CvSection.languages:
-        return _pdfLanguages(content, t);
+        return _languagesBody(rt, content, head);
     }
   }
 
-  static pw.Widget _pdfSummary(CvContent c, CvTemplate t) {
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
+  /// Keeps a section heading glued to its first content unit: the heading and
+  /// the first unit are laid out as one atomic block inside a spanning
+  /// [pw.Wrap], so MultiPage either fits both on the current page or moves
+  /// them together to the next one. No manual pagination involved.
+  static pw.Widget _keepWithHead(pw.Widget head, List<pw.Widget> firstUnit) {
+    return pw.Wrap(
       children: [
-        _buildPdfSectionTitle('PROFILE', t),
-        pw.SizedBox(height: t.spacing * 0.3),
-        pw.Text(
-          c.summary,
-          textDirection: _isRtl ? pw.TextDirection.rtl : null,
-          style: _textStyle(
-            fontSize: t.baseTextSize,
-            color: t.bodyColor,
-            lineSpacing: t.baseTextSize * 0.45,
-          ),
+        pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            head,
+            ...firstUnit,
+          ],
         ),
       ],
     );
   }
 
-  static pw.Widget _pdfExperience(CvContent c, CvTemplate t) {
+  static pw.Widget _sectionHead(_Rt rt, CvSection section) {
+    final englishTitle = switch (section) {
+      CvSection.summary => 'PROFILE',
+      CvSection.experience => 'EXPERIENCE',
+      CvSection.projects => 'PROJECTS',
+      CvSection.education => 'EDUCATION',
+      CvSection.skills => 'SKILLS',
+      CvSection.certifications => 'CERTIFICATIONS',
+      CvSection.achievements => 'ACHIEVEMENTS',
+      CvSection.languages => 'LANGUAGES',
+    };
+    final label =
+        rt.rtl ? (_arabicSectionTitles[englishTitle] ?? englishTitle) : englishTitle;
+    final s = rt.s;
+
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        _buildPdfSectionTitle('EXPERIENCE', t),
-        pw.SizedBox(height: t.spacing * 0.3),
-        for (int i = 0; i < c.experience.length; i++) ...[
-          _pdfExperienceItem(c.experience[i], t),
-          if (i < c.experience.length - 1) pw.SizedBox(height: t.itemSpacing),
-        ],
+        pw.Text(
+          label,
+          textDirection: rt.textDirection,
+          style: _style(
+            rt,
+            size: s.scale.sectionTitleSize,
+            weight: 700,
+            color: s.sectionTitleColor,
+            tracking: s.scale.sectionTracking,
+          ),
+        ),
+        pw.SizedBox(height: 3),
+        if (s.barSectionRule)
+          pw.Container(
+            width: s.barLength,
+            height: s.headerRuleHeight,
+            color: s.accent,
+          )
+        else
+          pw.Container(
+            height: s.ruleHeight,
+            color: s.ruleColor,
+          ),
       ],
     );
   }
 
-  static pw.Widget _pdfExperienceItem(CvExperience e, CvTemplate t) {
-    final bullets = e.effectiveBullets;
-    final dateStr = [e.startDate, e.endDate].where((s) => s.isNotEmpty).join(' – ');
-    final finalDate = dateStr.isEmpty ? e.yearsLabel : dateStr;
-    final td = _isRtl ? pw.TextDirection.rtl : null;
+  // ───────────────────────────────────────────────────────────────────────────
+  // Section bodies
+  // ───────────────────────────────────────────────────────────────────────────
+
+  static List<pw.Widget> _summaryBody(
+    _Rt rt,
+    CvContent c,
+    pw.Widget head,
+  ) {
+    if (c.summary.trim().isEmpty) return const [];
+    return [
+      _keepWithHead(head, [
+        pw.SizedBox(height: rt.s.afterTitleGap),
+        pw.Text(
+          c.summary.trim(),
+          textDirection: rt.textDirection,
+          style: _style(
+            rt,
+            size: rt.s.scale.bodySize,
+            color: rt.s.secondary,
+            lineSpacing: rt.s.scale.bodyLead,
+          ),
+        ),
+      ]),
+    ];
+  }
+
+  static List<pw.Widget> _experienceBody(
+    _Rt rt,
+    CvContent c,
+    pw.Widget head,
+  ) {
+    final out = <pw.Widget>[
+      _keepWithHead(head, [
+        pw.SizedBox(height: rt.s.afterTitleGap),
+        _experienceItem(rt, c.experience[0]),
+      ]),
+    ];
+    for (var i = 1; i < c.experience.length; i++) {
+      out.add(pw.SizedBox(height: rt.s.itemGap));
+      out.add(pw.Wrap(children: [_experienceItem(rt, c.experience[i])]));
+    }
+    return out;
+  }
+
+  static pw.Widget _experienceItem(_Rt rt, CvExperience e) {
+    final sc = rt.s.scale;
+    final headline = e.company.isNotEmpty ? e.company : e.role;
+    final roleLine =
+        e.company.isNotEmpty && e.role.isNotEmpty ? e.role : '';
+    final dates = [e.startDate, e.endDate].where((s) => s.isNotEmpty).join(' – ');
+    final dateLabel = dates.isNotEmpty ? dates : e.yearsLabel;
+    final rightMeta = [
+      if (dateLabel.isNotEmpty) dateLabel,
+      if (e.location.isNotEmpty) e.location,
+    ].join('   ·   ');
 
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -277,107 +385,63 @@ class CvPdfRenderer {
           children: [
             pw.Expanded(
               child: pw.Text(
-                e.company.isNotEmpty ? '${e.role} — ${e.company}' : e.role,
-                textDirection: td,
-                style: _textStyle(
-                  fontSize: t.baseTextSize,
-                  fontWeight: pw.FontWeight.bold,
-                  color: t.bodyColor,
+                headline,
+                textDirection: rt.textDirection,
+                style: _style(
+                  rt,
+                  size: sc.bodySize + 0.7,
+                  weight: 700,
+                  color: rt.s.ink,
                 ),
               ),
             ),
-            if (finalDate.isNotEmpty)
+            if (rightMeta.isNotEmpty)
               pw.Text(
-                finalDate,
-                textDirection: td,
-                style: _textStyle(
-                  fontSize: t.metaTextSize,
-                  color: t.mutedColor,
-                ),
+                rightMeta,
+                textDirection: rt.textDirection,
+                style: _style(rt, size: sc.metaSize, color: rt.s.muted),
               ),
           ],
         ),
-        if (e.location.isNotEmpty) ...[
+        if (roleLine.isNotEmpty) ...[
           pw.SizedBox(height: 1),
           pw.Text(
-            e.location,
-            textDirection: td,
-            style: _textStyle(
-              fontSize: t.metaTextSize,
-              color: t.mutedColor,
-              fontStyle: pw.FontStyle.italic,
+            roleLine,
+            textDirection: rt.textDirection,
+            style: _style(
+              rt,
+              size: sc.metaSize + 0.6,
+              weight: 500,
+              color: rt.s.secondary,
             ),
           ),
         ],
-        if (bullets.isNotEmpty) ...[
-          pw.SizedBox(height: t.bulletSpacing + 1),
-          for (final b in bullets)
-            pw.Padding(
-              padding: pw.EdgeInsets.only(bottom: t.bulletSpacing),
-              child: pw.Row(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    _isRtl ? '  •' : '•  ',
-                    textDirection: td,
-                    style: _textStyle(
-                      fontSize: t.baseTextSize,
-                      color: t.mutedColor,
-                    ),
-                  ),
-                  pw.Expanded(
-                    child: pw.Text(
-                      b,
-                      textDirection: td,
-                      style: _textStyle(
-                        fontSize: t.baseTextSize,
-                        color: t.bodyColor,
-                        lineSpacing: t.baseTextSize * 0.45,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ] else if (e.description.isNotEmpty) ...[
-          pw.SizedBox(height: t.bulletSpacing + 1),
-          pw.Text(
-            e.description,
-            textDirection: td,
-            style: _textStyle(
-              fontSize: t.baseTextSize,
-              color: t.bodyColor,
-              lineSpacing: t.baseTextSize * 0.45,
-            ),
-          ),
-        ],
+        ..._itemDetail(rt, e.effectiveBullets),
       ],
     );
   }
 
-  static pw.Widget _pdfProjects(CvContent c, CvTemplate t) {
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        _buildPdfSectionTitle('PROJECTS', t),
-        pw.SizedBox(height: t.spacing * 0.3),
-        for (int i = 0; i < c.projects.length; i++) ...[
-          _pdfProjectItem(c.projects[i], t),
-          if (i < c.projects.length - 1) pw.SizedBox(height: t.itemSpacing),
-        ],
-      ],
-    );
+  static List<pw.Widget> _projectsBody(
+    _Rt rt,
+    CvContent c,
+    pw.Widget head,
+  ) {
+    final out = <pw.Widget>[
+      _keepWithHead(head, [
+        pw.SizedBox(height: rt.s.afterTitleGap),
+        _projectItem(rt, c.projects[0]),
+      ]),
+    ];
+    for (var i = 1; i < c.projects.length; i++) {
+      out.add(pw.SizedBox(height: rt.s.itemGap));
+      out.add(pw.Wrap(children: [_projectItem(rt, c.projects[i])]));
+    }
+    return out;
   }
 
-  static pw.Widget _pdfProjectItem(CvProject p, CvTemplate t) {
-    final bullets = p.effectiveBullets;
+  static pw.Widget _projectItem(_Rt rt, CvProject p) {
+    final sc = rt.s.scale;
     final links = p.effectiveLinks;
-    final titleLine = [
-      if (p.role.isNotEmpty) '${p.role} — ${p.name}',
-      if (p.role.isEmpty) p.name,
-    ].join();
-    final techLine = p.tech.isNotEmpty ? '  |  ${p.tech.join(', ')}' : '';
-    final td = _isRtl ? pw.TextDirection.rtl : null;
 
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -386,223 +450,620 @@ class CvPdfRenderer {
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Expanded(
-              child: pw.Text(
-                '$titleLine$techLine',
-                textDirection: td,
-                style: _textStyle(
-                  fontSize: t.baseTextSize,
-                  color: t.bodyColor,
-                ),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    p.name,
+                    textDirection: rt.textDirection,
+                    style: _style(
+                      rt,
+                      size: sc.bodySize + 0.7,
+                      weight: 700,
+                      color: rt.s.ink,
+                    ),
+                  ),
+                  if (p.date.isNotEmpty) ...[
+                    pw.SizedBox(height: 1),
+                    pw.Text(
+                      p.date,
+                      textDirection: rt.textDirection,
+                      style: _style(rt, size: sc.metaSize, color: rt.s.muted),
+                    ),
+                  ],
+                ],
               ),
             ),
             if (links.isNotEmpty)
               pw.Text(
-                links.join(' | '),
-                textDirection: td,
-                style: _textStyle(
-                  fontSize: t.metaTextSize,
-                  color: t.accent,
-                ),
+                links.join('  ·  '),
+                textDirection: rt.textDirection,
+                style: _style(rt, size: sc.metaSize, color: rt.s.accent),
               ),
           ],
         ),
-        if (bullets.isNotEmpty) ...[
-          pw.SizedBox(height: t.bulletSpacing + 1),
-          for (final b in bullets)
-            pw.Padding(
-              padding: pw.EdgeInsets.only(bottom: t.bulletSpacing),
-              child: pw.Row(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    _isRtl ? '  •' : '•  ',
-                    textDirection: td,
-                    style: _textStyle(
-                      fontSize: t.baseTextSize,
-                      color: t.mutedColor,
-                    ),
-                  ),
-                  pw.Expanded(
-                    child: pw.Text(
-                      b,
-                      textDirection: td,
-                      style: _textStyle(
-                        fontSize: t.baseTextSize,
-                        color: t.bodyColor,
-                        lineSpacing: t.baseTextSize * 0.45,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ] else if (p.description.isNotEmpty) ...[
-          pw.SizedBox(height: t.bulletSpacing + 1),
+        if (p.role.isNotEmpty) ...[
+          pw.SizedBox(height: 1),
           pw.Text(
-            p.description,
-            textDirection: td,
-            style: _textStyle(
-              fontSize: t.baseTextSize,
-              color: t.bodyColor,
-              lineSpacing: t.baseTextSize * 0.45,
+            p.role,
+            textDirection: rt.textDirection,
+            style: _style(
+              rt,
+              size: sc.metaSize + 0.6,
+              weight: 500,
+              color: rt.s.secondary,
             ),
           ),
         ],
-      ],
-    );
-  }
-
-  static pw.Widget _pdfEducation(CvContent c, CvTemplate t) {
-    final td = _isRtl ? pw.TextDirection.rtl : null;
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        _buildPdfSectionTitle('EDUCATION', t),
-        pw.SizedBox(height: t.spacing * 0.3),
-        for (final e in c.education)
-          pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Text(
-                [e.degree, e.field].where((s) => s.isNotEmpty).join(' in '),
-                textDirection: td,
-                style: _textStyle(
-                  fontSize: t.baseTextSize,
-                  fontWeight: pw.FontWeight.bold,
-                  color: t.bodyColor,
-                ),
-              ),
-              pw.Text(
-                [e.institution, e.year].where((s) => s.isNotEmpty).join('  •  '),
-                textDirection: td,
-                style: _textStyle(
-                  fontSize: t.metaTextSize,
-                  color: t.accent,
-                ),
-              ),
-              pw.SizedBox(height: t.itemSpacing),
-            ],
-          ),
-      ],
-    );
-  }
-
-  static pw.Widget _pdfSkills(CvContent c, CvTemplate t) {
-    final td = _isRtl ? pw.TextDirection.rtl : null;
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        _buildPdfSectionTitle('SKILLS', t),
-        pw.SizedBox(height: t.spacing * 0.3),
-        for (int i = 0; i < c.skillGroups.length; i++) ...[
+        if (p.tech.isNotEmpty) ...[
+          pw.SizedBox(height: 1.5),
           pw.Text(
-            '${c.skillGroups[i].title}:  ${c.skillGroups[i].skills.join(' / ')}',
-            textDirection: td,
-            style: _textStyle(
-              fontSize: t.baseTextSize,
-              color: t.bodyColor,
-            ),
+            p.tech.join('  ·  '),
+            textDirection: rt.textDirection,
+            style: _style(rt, size: sc.metaSize + 0.3, color: rt.s.secondary),
           ),
-          if (i < c.skillGroups.length - 1)
-            pw.SizedBox(height: t.bulletSpacing + 1),
         ],
+        ..._itemDetail(rt, p.effectiveBullets),
       ],
     );
   }
 
-  static pw.Widget _pdfCertifications(CvContent c, CvTemplate t) {
-    final td = _isRtl ? pw.TextDirection.rtl : null;
+  static List<pw.Widget> _itemDetail(_Rt rt, List<String> bullets) {
+    if (bullets.isEmpty) return const [];
+    return [
+      pw.SizedBox(height: rt.s.bulletGap + 1.5),
+      for (final b in bullets) _bullet(rt, b),
+    ];
+  }
+
+  static pw.Widget _bullet(_Rt rt, String text) {
+    final sc = rt.s.scale;
+    return pw.Padding(
+      padding: pw.EdgeInsets.only(bottom: rt.s.bulletGap),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Container(
+            width: rt.s.markerWidth,
+            padding: pw.EdgeInsets.only(top: sc.bodySize * 0.09),
+            child: pw.Text(
+              '•',
+              textAlign: pw.TextAlign.center,
+              style: _style(
+                rt,
+                size: sc.bodySize - 0.5,
+                weight: 700,
+                color: rt.s.accent,
+              ),
+            ),
+          ),
+          pw.Expanded(
+            child: pw.Text(
+              text,
+              textDirection: rt.textDirection,
+              style: _style(
+                rt,
+                size: sc.bodySize,
+                color: rt.s.secondary,
+                lineSpacing: sc.bodyLead,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static List<pw.Widget> _educationBody(
+    _Rt rt,
+    CvContent c,
+    pw.Widget head,
+  ) {
+    final out = <pw.Widget>[
+      _keepWithHead(head, [
+        pw.SizedBox(height: rt.s.afterTitleGap),
+        _educationItem(rt, c.education[0]),
+      ]),
+    ];
+    for (var i = 1; i < c.education.length; i++) {
+      out.add(pw.SizedBox(height: rt.s.itemGap - 2));
+      out.add(pw.Wrap(children: [_educationItem(rt, c.education[i])]));
+    }
+    return out;
+  }
+
+  static pw.Widget _educationItem(_Rt rt, CvEducation e) {
+    final sc = rt.s.scale;
+    final degreeLine = [e.degree, e.field].where((s) => s.isNotEmpty).join(' · ');
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        _buildPdfSectionTitle('CERTIFICATIONS', t),
-        pw.SizedBox(height: t.spacing * 0.3),
-        for (final cert in c.certifications)
+        pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Expanded(
+              child: pw.Text(
+                degreeLine,
+                textDirection: rt.textDirection,
+                style: _style(
+                  rt,
+                  size: sc.bodySize + 0.5,
+                  weight: 600,
+                  color: rt.s.ink,
+                ),
+              ),
+            ),
+            if (e.year.isNotEmpty)
+              pw.Text(
+                e.year,
+                textDirection: rt.textDirection,
+                style: _style(rt, size: sc.metaSize, color: rt.s.muted),
+              ),
+          ],
+        ),
+        if (e.institution.isNotEmpty)
           pw.Text(
-            cert.display,
-            textDirection: td,
-            style: _textStyle(
-              fontSize: t.baseTextSize,
-              color: t.bodyColor,
+            e.institution,
+            textDirection: rt.textDirection,
+            style: _style(
+              rt,
+              size: sc.metaSize + 0.6,
+              color: rt.s.secondary,
             ),
           ),
       ],
     );
   }
 
-  static pw.Widget _pdfAchievements(CvContent c, CvTemplate t) {
-    final td = _isRtl ? pw.TextDirection.rtl : null;
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        _buildPdfSectionTitle('ACHIEVEMENTS', t),
-        pw.SizedBox(height: t.spacing * 0.3),
-        for (final a in c.achievements)
-          pw.Row(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Text(
-                _isRtl ? '  •' : '•  ',
-                textDirection: td,
-                style: _textStyle(
-                  fontSize: t.baseTextSize,
-                  color: t.mutedColor,
-                ),
-              ),
-              pw.Expanded(
-                child: pw.Text(
-                  a.text,
-                  textDirection: td,
-                  style: _textStyle(
-                    fontSize: t.baseTextSize,
-                    color: t.bodyColor,
-                    lineSpacing: t.baseTextSize * 0.45,
-                  ),
-                ),
-              ),
-            ],
-          ),
-      ],
-    );
+  static List<pw.Widget> _skillsBody(
+    _Rt rt,
+    CvContent c,
+    pw.Widget head,
+  ) {
+    final sc = rt.s.scale;
+    final groups =
+        c.skillGroups.where((g) => g.skills.isNotEmpty).toList(growable: false);
+    final out = <pw.Widget>[
+      _keepWithHead(head, [
+        pw.SizedBox(height: rt.s.afterTitleGap),
+        _skillGroupRow(rt, sc, groups[0]),
+      ]),
+    ];
+    for (var i = 1; i < groups.length; i++) {
+      out.add(pw.SizedBox(height: rt.s.bulletGap + 1));
+      out.add(_skillGroupRow(rt, sc, groups[i]));
+    }
+    return out;
   }
 
-  static pw.Widget _pdfLanguages(CvContent c, CvTemplate t) {
-    final td = _isRtl ? pw.TextDirection.rtl : null;
-    return pw.Column(
+  static pw.Widget _skillGroupRow(_Rt rt, CvTypeScale sc, CvSkillGroup g) {
+    return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        _buildPdfSectionTitle('LANGUAGES', t),
-        pw.SizedBox(height: t.spacing * 0.3),
-        pw.Text(
-          c.languages.map((l) => l.display).join('  •  '),
-          textDirection: td,
-          style: _textStyle(
-            fontSize: t.baseTextSize,
-            color: t.bodyColor,
+        pw.SizedBox(
+          width: rt.s.skillCategoryWidth,
+          child: pw.Text(
+            g.title.toUpperCase(),
+            textDirection: rt.textDirection,
+            style: _style(
+              rt,
+              size: sc.metaSize + 0.6,
+              weight: 600,
+              color: rt.s.ink,
+            ),
+          ),
+        ),
+        pw.SizedBox(width: 10),
+        pw.Expanded(
+          child: pw.Text(
+            g.skills.join('  ·  '),
+            textDirection: rt.textDirection,
+            style: _style(
+              rt,
+              size: sc.bodySize - 0.2,
+              color: rt.s.secondary,
+              lineSpacing: sc.metaLead,
+            ),
           ),
         ),
       ],
     );
   }
 
-  static PdfColor _pdfColor(Color c) => PdfColor(c.r / 255, c.g / 255, c.b / 255);
+  static List<pw.Widget> _certificationsBody(
+    _Rt rt,
+    CvContent c,
+    pw.Widget head,
+  ) {
+    final sc = rt.s.scale;
+    final out = <pw.Widget>[
+      _keepWithHead(head, [
+        pw.SizedBox(height: rt.s.afterTitleGap),
+        _certificationRow(rt, sc, c.certifications[0]),
+      ]),
+    ];
+    for (var i = 1; i < c.certifications.length; i++) {
+      out.add(pw.SizedBox(height: rt.s.bulletGap + 1));
+      out.add(pw.Wrap(children: [_certificationRow(rt, sc, c.certifications[i])]));
+    }
+    return out;
+  }
 
-  static pw.TextStyle _textStyle({
-    required double fontSize,
-    required Color color,
-    pw.FontWeight? fontWeight,
-    double? lineSpacing,
-    pw.FontStyle? fontStyle,
-    double? letterSpacing,
-  }) {
-    return pw.TextStyle(
-      fontSize: fontSize,
-      color: _pdfColor(color),
-      fontWeight: fontWeight,
-      lineSpacing: lineSpacing,
-      fontStyle: fontStyle,
-      letterSpacing: letterSpacing,
-      fontFallback: _arabicFont != null ? <pw.Font>[_arabicFont!] : const <pw.Font>[],
+  static pw.Widget _certificationRow(_Rt rt, CvTypeScale sc, CvCertification cert) {
+    final rest = [
+      if (cert.issuer.isNotEmpty) cert.issuer,
+      if (cert.year.isNotEmpty) cert.year,
+    ].join('  ·  ');
+    return pw.Row(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Expanded(
+          child: pw.Text(
+            cert.name,
+            textDirection: rt.textDirection,
+            style: _style(
+              rt,
+              size: sc.bodySize - 0.2,
+              weight: 600,
+              color: rt.s.ink,
+            ),
+          ),
+        ),
+        if (rest.isNotEmpty)
+          pw.Text(
+            rest,
+            textDirection: rt.textDirection,
+            style: _style(rt, size: sc.metaSize, color: rt.s.muted),
+          ),
+      ],
     );
+  }
+
+  static List<pw.Widget> _achievementsBody(
+    _Rt rt,
+    CvContent c,
+    pw.Widget head,
+  ) {
+    if (c.achievements.isEmpty) return const [];
+    return [
+      _keepWithHead(head, [
+        pw.SizedBox(height: rt.s.afterTitleGap),
+        _bullet(rt, c.achievements[0].text),
+      ]),
+      for (var i = 1; i < c.achievements.length; i++)
+        _bullet(rt, c.achievements[i].text),
+    ];
+  }
+
+  static List<pw.Widget> _languagesBody(
+    _Rt rt,
+    CvContent c,
+    pw.Widget head,
+  ) {
+    if (c.languages.isEmpty) return const [];
+    return [
+      _keepWithHead(head, [
+        pw.SizedBox(height: rt.s.afterTitleGap),
+        pw.Text(
+          c.languages.map((l) => l.display).join('   ·   '),
+          textDirection: rt.textDirection,
+          style: _style(
+            rt,
+            size: rt.s.scale.bodySize,
+            color: rt.s.secondary,
+          ),
+        ),
+      ]),
+    ];
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Footer
+  // ───────────────────────────────────────────────────────────────────────────
+
+  static pw.Widget _footer(
+    _Rt rt,
+    pw.Context context,
+    CvContent content,
+  ) {
+    if (context.pagesCount <= 1) return pw.SizedBox.shrink();
+    final name = content.header.name;
+    return pw.Container(
+      padding: pw.EdgeInsets.only(top: 5),
+      decoration: pw.BoxDecoration(
+        border: pw.Border(
+          top: pw.BorderSide(color: rt.s.ruleColor, width: 0.5),
+        ),
+      ),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          if (name.isNotEmpty)
+            pw.Text(
+              rt.rtl ? name : name.toUpperCase(),
+              textDirection: rt.textDirection,
+              style: _style(
+                rt,
+                size: rt.s.scale.metaSize - 1.3,
+                color: rt.s.muted,
+                tracking: 0.8,
+              ),
+            ),
+          pw.Text(
+            '${context.pageNumber} / ${context.pagesCount}',
+            style: _style(
+              rt,
+              size: rt.s.scale.metaSize - 1.3,
+              color: rt.s.muted,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Style primitives
+  // ───────────────────────────────────────────────────────────────────────────
+
+  static pw.TextStyle _style(
+    _Rt rt, {
+    required double size,
+    required PdfColor color,
+    int weight = 400,
+    double? tracking,
+    double? lineSpacing,
+  }) {
+    final font = switch (weight) {
+      500 => rt.fonts.medium,
+      600 => rt.fonts.semibold,
+      700 => rt.fonts.bold,
+      _ => rt.fonts.regular,
+    };
+    return pw.TextStyle(
+      fontSize: size,
+      color: color,
+      letterSpacing: tracking,
+      lineSpacing: lineSpacing,
+      fontWeight: weight >= 600 ? pw.FontWeight.bold : pw.FontWeight.normal,
+      fontNormal: font,
+      fontBold: font,
+      fontFallback: [rt.fonts.arabic],
+    );
+  }
+}
+
+/// The resolved typography + spacing values for one CV document.
+@visibleForTesting
+class CvTypeScale {
+  const CvTypeScale({
+    required this.nameSize,
+    required this.nameTracking,
+    required this.titleSize,
+    required this.sectionTitleSize,
+    required this.sectionTracking,
+    required this.bodySize,
+    required this.bodyLead,
+    required this.metaSize,
+    required this.metaLead,
+    required this.marginH,
+    required this.marginV,
+    required this.headerGap,
+    required this.sectionGap,
+    required this.afterTitleGap,
+    required this.itemGap,
+    required this.bulletGap,
+    required this.markerWidth,
+    required this.skillCategoryWidth,
+  });
+
+  final double nameSize;
+  final double nameTracking;
+  final double titleSize;
+  final double sectionTitleSize;
+  final double sectionTracking;
+  final double bodySize;
+  final double bodyLead;
+  final double metaSize;
+  final double metaLead;
+  final double marginH;
+  final double marginV;
+  final double headerGap;
+  final double sectionGap;
+  final double afterTitleGap;
+  final double itemGap;
+  final double bulletGap;
+  final double markerWidth;
+  final double skillCategoryWidth;
+}
+
+class _Fonts {
+  const _Fonts({
+    required this.regular,
+    required this.medium,
+    required this.semibold,
+    required this.bold,
+    required this.arabic,
+  });
+
+  final pw.Font regular;
+  final pw.Font medium;
+  final pw.Font semibold;
+  final pw.Font bold;
+  final pw.Font arabic;
+}
+
+class _Rt {
+  const _Rt({
+    required this.fonts,
+    required this.s,
+    required this.rtl,
+  });
+
+  final _Fonts fonts;
+  final _CvStyle s;
+  final bool rtl;
+
+  pw.TextDirection? get textDirection =>
+      rtl ? pw.TextDirection.rtl : null;
+}
+
+enum _SectionRuleStyle { fullHairline, accentBar }
+
+class _CvStyle {
+  const _CvStyle({
+    required this.scale,
+    required this.ink,
+    required this.secondary,
+    required this.muted,
+    required this.accent,
+    required this.sectionTitleColor,
+    required this.ruleColor,
+    required this.headerRuleColor,
+    required this.headerRuleHeight,
+    required this.ruleHeight,
+    required this.barLength,
+    required _SectionRuleStyle sectionRuleStyle,
+  })  : barSectionRule = sectionRuleStyle == _SectionRuleStyle.accentBar;
+
+  factory _CvStyle.forTemplate(CvTemplate t) {
+    switch (t.id) {
+      case 'nexoraMinimal':
+        return _CvStyle(
+          scale: const CvTypeScale(
+            nameSize: 25,
+            nameTracking: 1.2,
+            titleSize: 12,
+            sectionTitleSize: 11,
+            sectionTracking: 2.0,
+            bodySize: 10.5,
+            bodyLead: 3.8,
+            metaSize: 9,
+            metaLead: 2.6,
+            marginH: 44,
+            marginV: 40,
+            headerGap: 18,
+            sectionGap: 16,
+            afterTitleGap: 7,
+            itemGap: 11,
+            bulletGap: 3.2,
+            markerWidth: 10,
+            skillCategoryWidth: 108,
+          ),
+          ink: _hex(0xFF17181D),
+          secondary: _hex(0xFF3B4048),
+          muted: _hex(0xFF6E7480),
+          accent: _pdf(t.accent),
+          sectionTitleColor: _hex(0xFF17181D),
+          ruleColor: _pdf(t.dividerColor),
+          headerRuleColor: _hex(0xFF17181D),
+          headerRuleHeight: 1.4,
+          ruleHeight: 0.8,
+          barLength: 26,
+          sectionRuleStyle: _SectionRuleStyle.fullHairline,
+        );
+      case 'nexoraModern':
+        return _CvStyle(
+          scale: const CvTypeScale(
+            nameSize: 23,
+            nameTracking: 0.8,
+            titleSize: 12,
+            sectionTitleSize: 10.5,
+            sectionTracking: 1.6,
+            bodySize: 10.5,
+            bodyLead: 3.5,
+            metaSize: 9,
+            metaLead: 2.4,
+            marginH: 42,
+            marginV: 38,
+            headerGap: 16,
+            sectionGap: 15,
+            afterTitleGap: 6,
+            itemGap: 10,
+            bulletGap: 3,
+            markerWidth: 10,
+            skillCategoryWidth: 104,
+          ),
+          ink: _hex(0xFF1D2330),
+          secondary: _hex(0xFF3A4252),
+          muted: _hex(0xFF67707E),
+          accent: _pdf(t.accent),
+          sectionTitleColor: _pdf(t.accent),
+          ruleColor: _pdf(t.dividerColor),
+          headerRuleColor: _pdf(t.accent),
+          headerRuleHeight: 2,
+          ruleHeight: 2.2,
+          barLength: 26,
+          sectionRuleStyle: _SectionRuleStyle.accentBar,
+        );
+      default:
+        return _CvStyle(
+          scale: const CvTypeScale(
+            nameSize: 19.5,
+            nameTracking: 0.6,
+            titleSize: 11,
+            sectionTitleSize: 9.5,
+            sectionTracking: 1.4,
+            bodySize: 10,
+            bodyLead: 3,
+            metaSize: 8.5,
+            metaLead: 2.2,
+            marginH: 40,
+            marginV: 34,
+            headerGap: 14,
+            sectionGap: 12,
+            afterTitleGap: 5,
+            itemGap: 8,
+            bulletGap: 2.4,
+            markerWidth: 9,
+            skillCategoryWidth: 92,
+          ),
+          ink: _hex(0xFF19222B),
+          secondary: _hex(0xFF3A4450),
+          muted: _hex(0xFF66707A),
+          accent: _pdf(t.accent),
+          sectionTitleColor: _hex(0xFF19222B),
+          ruleColor: _pdf(t.dividerColor),
+          headerRuleColor: _hex(0xFF33414D),
+          headerRuleHeight: 1.2,
+          ruleHeight: 0.6,
+          barLength: 26,
+          sectionRuleStyle: _SectionRuleStyle.fullHairline,
+        );
+    }
+  }
+
+  final CvTypeScale scale;
+  final PdfColor ink;
+  final PdfColor secondary;
+  final PdfColor muted;
+  final PdfColor accent;
+  final PdfColor sectionTitleColor;
+  final PdfColor ruleColor;
+  final PdfColor headerRuleColor;
+  final double headerRuleHeight;
+  final double ruleHeight;
+  final bool barSectionRule;
+  final double barLength;
+
+  double get marginH => scale.marginH;
+  double get marginV => scale.marginV;
+  double get headerGap => scale.headerGap;
+  double get sectionGap => scale.sectionGap;
+  double get afterTitleGap => scale.afterTitleGap;
+  double get itemGap => scale.itemGap;
+  double get bulletGap => scale.bulletGap;
+  double get markerWidth => scale.markerWidth;
+  double get skillCategoryWidth => scale.skillCategoryWidth;
+
+  static PdfColor _hex(int v) => PdfColor(
+        ((v >> 16) & 255) / 255,
+        ((v >> 8) & 255) / 255,
+        (v & 255) / 255,
+      );
+
+  static PdfColor _pdf(Color c) {
+    double ch(double v) => v <= 1.0 ? v : v / 255;
+    return PdfColor(ch(c.r), ch(c.g), ch(c.b));
   }
 }

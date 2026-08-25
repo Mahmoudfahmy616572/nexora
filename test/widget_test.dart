@@ -23,7 +23,7 @@ void main() {
     // Load the real fonts so text metrics match production devices
     // (the default test font renders every glyph as a full em square).
     for (final (family, asset) in [
-      ('Inter', 'assets/fonts/Inter-Variable.ttf'),
+      ('Inter', 'assets/fonts/Inter-Regular.ttf'),
       ('Bricolage Grotesque', 'assets/fonts/BricolageGrotesque-Variable.ttf'),
       ('DM Mono', 'assets/fonts/DMMono-Regular.ttf'),
     ]) {

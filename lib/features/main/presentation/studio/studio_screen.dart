@@ -8,6 +8,8 @@ import '../../../../data/data_sources/career_remote_data_source.dart';
 import '../../../../data/repositories/career_dna_repository_impl.dart';
 import '../../../../data/repositories/career_repository_impl.dart';
 import '../../../../domain/cv/cv_template_registry.dart';
+import '../../../../domain/entities/career_dna.dart' show CareerStage;
+import '../../../../domain/entities/career_target.dart';
 import '../../../../domain/entities/cv_content.dart';
 import '../../../../domain/entities/cv_document.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -258,6 +260,11 @@ class _Editor extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final cubit = context.read<CvCubit>();
     final content = state.content!;
+    final resolvedTarget =
+        _targetById(state, state.targetId) ??
+        _targetById(state, state.selectedDocument?.targetId);
+    final stage = state.dna?.stage;
+    final targetType = resolvedTarget?.type;
 
     final controls = SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -349,7 +356,8 @@ class _Editor extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     key: const Key('cvExport'),
-                    onPressed: () => _showExport(context, content, state.templateId),
+                    onPressed: () =>
+                        _showExport(context, content, state.templateId, stage, targetType),
                     icon: const Icon(Icons.share),
                     label: Text(l10n.cvExport),
                   ),
@@ -398,6 +406,8 @@ class _Editor extends StatelessWidget {
         key: const Key('cvPreview'),
         content: content,
         templateId: state.templateId,
+        stage: stage,
+        targetType: targetType,
       ),
     );
 
@@ -435,12 +445,31 @@ void _showEdit(BuildContext context, CvContent content) =>
       ),
     );
 
-void _showExport(BuildContext context, CvContent content, String templateId) =>
+void _showExport(
+  BuildContext context,
+  CvContent content,
+  String templateId,
+  CareerStage? stage,
+  TargetType? targetType,
+) =>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (_) => CvExportSheet(content: content, templateId: templateId),
+      builder: (_) => CvExportSheet(
+        content: content,
+        templateId: templateId,
+        stage: stage,
+        targetType: targetType,
+      ),
     );
+
+CareerTarget? _targetById(CvState state, String? id) {
+  if (id == null) return null;
+  for (final t in state.targets) {
+    if (t.id == id) return t;
+  }
+  return null;
+}
 
 Future<void> _confirmDelete(BuildContext context, CvDocument doc) async {
   final l10n = AppLocalizations.of(context)!;
