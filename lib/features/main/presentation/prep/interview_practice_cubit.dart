@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../data/data_sources/career_local_data_source.dart';
 import '../../../../domain/analysis/interview_prep_engine.dart';
 import '../../../../domain/entities/career_target.dart';
 import '../../../../domain/entities/interview_practice_session.dart';
@@ -80,6 +81,7 @@ class InterviewPracticeCubit extends Cubit<InterviewPracticeState> {
     required this.company,
     this.applicationId,
     required this.language,
+    this.localDataSource,
   }) : super(const InterviewPracticeState());
 
   final CareerDnaRepository dnaRepository;
@@ -91,6 +93,7 @@ class InterviewPracticeCubit extends Cubit<InterviewPracticeState> {
   final String company;
   final String? applicationId;
   final String language;
+  final CareerLocalDataSource? localDataSource;
 
   // Captured at [start] and reused for scoring/AI calls.
   Set<String> _knownTerms = const {};
@@ -294,6 +297,22 @@ class InterviewPracticeCubit extends Cubit<InterviewPracticeState> {
     if (session == null) return;
     final completed = InterviewPracticeEngine.summarize(session);
     await _safe(() => practiceRepository.save(completed), null);
+
+    // Log activity for the home screen recent activity feed.
+    final companyPart = (completed.company ?? '').isNotEmpty
+        ? ' · ${completed.company}'
+        : '';
+    final rolePart = (completed.role ?? '').isNotEmpty
+        ? completed.role
+        : role;
+    final text = 'Interview practice · $rolePart$companyPart'
+        ' · Score ${completed.overallScore}%';
+    await localDataSource?.logActivity({
+      'type': 'interview',
+      'text': text,
+      'timestamp': DateTime.now().toIso8601String(),
+    });
+
     emit(state.copyWith(
       status: InterviewPracticeStatus.completed,
       session: completed,

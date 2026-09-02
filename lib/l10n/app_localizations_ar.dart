@@ -2361,6 +2361,16 @@ class AppLocalizationsAr extends AppLocalizations {
       'اكتب إجابتك هنا. استخدم مثالًا حقيقيًا إن أمكن.';
 
   @override
+  String get practiceAnswerHintVoice =>
+      'اضغط على المايك للتحدث، أو اكتب إجابتك هنا.';
+
+  @override
+  String get practiceTapToSpeak => 'اضغط للتحدث';
+
+  @override
+  String get practiceListening => 'جاري الاستماع...';
+
+  @override
   String get practiceSubmit => 'إرسال الإجابة';
 
   @override

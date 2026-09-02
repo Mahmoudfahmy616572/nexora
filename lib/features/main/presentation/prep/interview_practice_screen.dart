@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -87,6 +89,7 @@ class InterviewPracticeScreen extends StatelessWidget {
             applicationId: applicationId,
             language:
                 WidgetsBinding.instance.platformDispatcher.locale.languageCode,
+            localDataSource: local,
           ),
           child: _InterviewPracticeView(role: role, company: company),
         );
@@ -107,17 +110,101 @@ class _InterviewPracticeView extends StatefulWidget {
 
 class _InterviewPracticeViewState extends State<_InterviewPracticeView> {
   final TextEditingController _answerController = TextEditingController();
+  final FlutterTts _tts = FlutterTts();
+  final stt.SpeechToText _speech = stt.SpeechToText();
+  bool _isListening = false;
+  bool _speechReady = false;
+  String _lastQuestion = '';
 
   @override
   void initState() {
     super.initState();
+    _initTts();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) context.read<InterviewPracticeCubit>().start();
     });
   }
 
+  Future<void> _initTts() async {
+    await _tts.setLanguage('en-US');
+    await _tts.setSpeechRate(0.45);
+    await _tts.setVolume(1.0);
+    await _tts.setPitch(1.0);
+  }
+
+  Future<void> _initSpeech() async {
+    if (_speech.isAvailable) {
+      _speechReady = true;
+      return;
+    }
+    _speechReady = await _speech.initialize(
+      onStatus: (status) {
+        debugPrint('[SPEECH] status: $status');
+        if ((status == 'done' || status == 'notListening') && mounted && _isListening) {
+          // Don't reset _isListening — let the user tap stop manually.
+        }
+      },
+      onError: (error) {
+        debugPrint('[SPEECH] error: ${error.errorMsg} permanent=${error.permanent}');
+        if (error.permanent && mounted && _isListening) {
+          setState(() => _isListening = false);
+        }
+      },
+    );
+    debugPrint('[SPEECH] ready: $_speechReady');
+  }
+
+  Future<void> _speakQuestion(String text) async {
+    if (text == _lastQuestion) return;
+    _lastQuestion = text;
+    await _tts.speak(text);
+  }
+
+  Future<void> _toggleListening() async {
+    if (_isListening) {
+      await _speech.stop();
+      if (mounted) setState(() => _isListening = false);
+      return;
+    }
+
+    if (!_speechReady) {
+      await _initSpeech();
+    }
+    if (!_speechReady) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Microphone permission denied. Enable it in Settings → Apps → Nexora → Permissions.'),
+          ),
+        );
+      }
+      return;
+    }
+
+    if (mounted) setState(() => _isListening = true);
+
+    debugPrint('[SPEECH] calling listen()...');
+    await _speech.listen(
+      onResult: (result) {
+        debugPrint('[SPEECH] result: "${result.recognizedWords}" final=${result.finalResult}');
+        if (mounted) {
+          _answerController.text = result.recognizedWords;
+          _answerController.selection = TextSelection.fromPosition(
+            TextPosition(offset: _answerController.text.length),
+          );
+        }
+      },
+      listenFor: const Duration(seconds: 120),
+      pauseFor: const Duration(seconds: 60),
+      partialResults: true,
+    );
+    debugPrint('[SPEECH] listen() started');
+  }
+
   @override
   void dispose() {
+    _tts.stop();
+    _speech.stop();
     _answerController.dispose();
     super.dispose();
   }
@@ -175,6 +262,8 @@ class _InterviewPracticeViewState extends State<_InterviewPracticeView> {
               child: Text(l10n.practiceEmpty, style: AppTextStyles.bodySub),
             );
           }
+          // Auto-speak the question when it first appears.
+          _speakQuestion(question.questionText);
           return _AnswerView(
             controller: _answerController,
             question: question.questionText,
@@ -182,8 +271,15 @@ class _InterviewPracticeViewState extends State<_InterviewPracticeView> {
             index: state.index,
             total: state.queue.length,
             submitting: state.status == InterviewPracticeStatus.submitting,
+            isListening: _isListening,
+            onToggleListening: _toggleListening,
+            onReplayQuestion: () {
+              _lastQuestion = '';
+              _speakQuestion(question.questionText);
+            },
             onSubmitted: (text) {
               _answerController.clear();
+              _lastQuestion = '';
               context.read<InterviewPracticeCubit>().submitAnswer(text);
             },
           );
@@ -202,6 +298,9 @@ class _AnswerView extends StatelessWidget {
     required this.index,
     required this.total,
     required this.submitting,
+    required this.isListening,
+    required this.onToggleListening,
+    required this.onReplayQuestion,
     required this.onSubmitted,
   });
 
@@ -211,6 +310,9 @@ class _AnswerView extends StatelessWidget {
   final int index;
   final int total;
   final bool submitting;
+  final bool isListening;
+  final VoidCallback onToggleListening;
+  final VoidCallback onReplayQuestion;
   final ValueChanged<String> onSubmitted;
 
   @override
@@ -237,15 +339,35 @@ class _AnswerView extends StatelessWidget {
             ),
           ),
         const SizedBox(height: 14),
-        Text(question, style: AppTextStyles.cardTitle),
+        // Question with replay button.
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: Text(question, style: AppTextStyles.cardTitle)),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: onReplayQuestion,
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.tealBg,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.volume_up_rounded, size: 18, color: AppColors.teal),
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 16),
+        // Text input with mic button.
         TextField(
           controller: controller,
           minLines: 6,
           maxLines: 12,
           style: AppTextStyles.body,
           decoration: InputDecoration(
-            hintText: l10n.practiceAnswerHint,
+            hintText: l10n.practiceAnswerHintVoice,
             hintStyle: AppTextStyles.bodyMuted,
             filled: true,
             fillColor: AppColors.card,
@@ -253,6 +375,43 @@ class _AnswerView extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide(color: AppColors.border),
             ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Mic button — always visible.
+        Center(
+          child: GestureDetector(
+            onTap: onToggleListening,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: isListening ? AppColors.red : AppColors.teal,
+                shape: BoxShape.circle,
+                boxShadow: isListening
+                    ? [
+                        BoxShadow(
+                          color: AppColors.red.withValues(alpha: 0.4),
+                          blurRadius: 16,
+                          spreadRadius: 2,
+                        ),
+                      ]
+                    : [],
+              ),
+              child: Icon(
+                isListening ? Icons.mic : Icons.mic_none_rounded,
+                size: 28,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Center(
+          child: Text(
+            isListening ? l10n.practiceListening : l10n.practiceTapToSpeak,
+            style: AppTextStyles.bodyMuted.copyWith(fontSize: 12),
           ),
         ),
         const SizedBox(height: 16),

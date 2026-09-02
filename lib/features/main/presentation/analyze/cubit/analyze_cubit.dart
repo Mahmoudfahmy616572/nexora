@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../../data/data_sources/career_local_data_source.dart';
 import '../../../../../domain/entities/career_dna.dart';
 import '../../../../../domain/repositories/career_dna_repository.dart';
 import '../../../../../domain/repositories/career_target_repository.dart';
@@ -12,12 +13,14 @@ class AnalyzeCubit extends Cubit<AnalyzeState> {
   AnalyzeCubit(
     this._jobRepo,
     this._targetRepo,
-    this._dnaRepo,
-  ) : super(const AnalyzeState());
+    this._dnaRepo, [
+    this._local,
+  ]) : super(const AnalyzeState());
 
   final JobAnalysisRepository _jobRepo;
   final CareerTargetRepository _targetRepo;
   final CareerDnaRepository _dnaRepo;
+  final CareerLocalDataSource? _local;
 
   Future<void> load() async {
     emit(state.copyWith(status: AnalyzeStatus.loading, clearMessage: true));
@@ -70,6 +73,16 @@ class AnalyzeCubit extends Cubit<AnalyzeState> {
       );
       final analyses = [result, ...state.analyses];
       await _jobRepo.saveAll(analyses);
+
+      // Log activity for the home screen.
+      final score = (result.overall * 100).round();
+      final role = target?.role ?? result.title;
+      await _local?.logActivity({
+        'type': 'match',
+        'text': '$score% match for $role',
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+
       emit(
         state.copyWith(
           status: AnalyzeStatus.success,

@@ -41,11 +41,13 @@ class _HomeScreenState extends State<HomeScreen> {
   String _displayName = 'Ahmed Al-Rashidi';
 
   late final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  List<_ActivityItem> _activityItems = [];
 
   @override
   void initState() {
     super.initState();
     _loadUser();
+    _loadActivity();
   }
 
   ActionCenterCubit _buildActionCenterCubit(SharedPreferences prefs) {
@@ -75,6 +77,66 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (_) {
       // Supabase may be unavailable (e.g., widget tests) — keep the fallback.
     }
+  }
+
+  Future<void> _loadActivity() async {
+    final prefs = await _prefs;
+    final ds = CareerLocalDataSource(prefs);
+    final log = await ds.readActivityLog();
+    if (!mounted) return;
+    setState(() {
+      _activityItems = [
+        for (final e in log)
+          _ActivityItem(
+            _iconForType(e['type'] as String? ?? ''),
+            e['text'] as String? ?? '',
+            _relativeTime(e['timestamp'] as String? ?? ''),
+            _colorForType(e['type'] as String? ?? ''),
+          ),
+      ];
+    });
+  }
+
+  static IconData _iconForType(String type) {
+    switch (type) {
+      case 'match':
+        return Icons.track_changes_rounded;
+      case 'cv':
+        return Icons.bolt_rounded;
+      case 'interview':
+        return Icons.mic_rounded;
+      case 'analysis':
+        return Icons.analytics_rounded;
+      default:
+        return Icons.circle;
+    }
+  }
+
+  static Color _colorForType(String type) {
+    switch (type) {
+      case 'match':
+        return AppColors.teal;
+      case 'cv':
+        return AppColors.purple;
+      case 'interview':
+        return AppColors.amber;
+      case 'analysis':
+        return AppColors.brand;
+      default:
+        return AppColors.muted;
+    }
+  }
+
+  static String _relativeTime(String iso) {
+    if (iso.isEmpty) return '';
+    final dt = DateTime.tryParse(iso);
+    if (dt == null) return '';
+    final diff = DateTime.now().difference(dt);
+    if (diff.inMinutes < 1) return 'now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    if (diff.inDays < 7) return '${diff.inDays}d ago';
+    return '${(diff.inDays / 7).floor()}w ago';
   }
 
   String _greeting(AppLocalizations l10n) {
@@ -123,11 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           NxReveal(
             delay: const Duration(milliseconds: 160),
-            child: const _RecentActivity(),
-          ),
-          NxReveal(
-            delay: const Duration(milliseconds: 240),
-            child: const _Upcoming(),
+            child: _RecentActivity(items: _activityItems),
           ),
         ],
       ),
@@ -244,21 +302,12 @@ class _QuickActions extends StatelessWidget {
       ];
 
   void _onTap(BuildContext context, _QuickActionItem item) {
-    final l10n = AppLocalizations.of(context)!;
     final tab = item.tab;
     if (tab == null) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(l10n.homeComingSoon),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: AppColors.cardHi,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
+      GoRouter.of(context).push(
+        Routes.interviewPractice,
+        extra: {'role': '', 'company': ''},
+      );
       return;
     }
     onOpenTab(tab);
@@ -340,17 +389,14 @@ class _ActivityItem {
 }
 
 class _RecentActivity extends StatelessWidget {
-  const _RecentActivity();
+  const _RecentActivity({required this.items});
 
-  static const _items = [
-    _ActivityItem(Icons.track_changes_rounded, 'New 91% match for Google Flutter role', '2h ago', AppColors.teal),
-    _ActivityItem(Icons.bolt_rounded, 'CV optimized · +3 ATS points (89→92)', 'Yesterday', AppColors.purple),
-    _ActivityItem(Icons.mic_rounded, 'Interview practice · HR round · Score 78%', '2d ago', AppColors.amber),
-  ];
+  final List<_ActivityItem> items;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    if (items.isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Column(
@@ -365,10 +411,10 @@ class _RecentActivity extends StatelessWidget {
             ),
             child: Column(
               children: [
-                for (var i = 0; i < _items.length; i++)
+                for (var i = 0; i < items.length; i++)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                    decoration: i < _items.length - 1
+                    decoration: i < items.length - 1
                         ? const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.border)))
                         : null,
                     child: Row(
@@ -377,89 +423,23 @@ class _RecentActivity extends StatelessWidget {
                           width: 34,
                           height: 34,
                           decoration: BoxDecoration(
-                            color: _items[i].color.withValues(alpha: 0.08),
+                            color: items[i].color.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: Icon(_items[i].icon, size: 15, color: _items[i].color),
+                          child: Icon(items[i].icon, size: 15, color: items[i].color),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            _items[i].text,
+                            items[i].text,
                             style: AppTextStyles.bodySub.copyWith(fontSize: 13, height: 1.45),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(_items[i].time, style: AppTextStyles.mono),
+                        Text(items[i].time, style: AppTextStyles.mono),
                       ],
                     ),
                   ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Upcoming extends StatelessWidget {
-  const _Upcoming();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SectionLabel(l10n.homeUpcoming),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.tealBg,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: AppColors.tealBdr),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Google · Flutter Engineer', style: AppTextStyles.body),
-                      const SizedBox(height: 4),
-                      const Row(
-                        children: [
-                          Icon(Icons.schedule_rounded, size: 13, color: AppColors.teal),
-                          SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              'Interview · Tomorrow 3:00 PM',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontFamily: AppTextStyles.monoFont,
-                                color: AppColors.teal,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: AppColors.teal,
-                    borderRadius: BorderRadius.circular(13),
-                  ),
-                  child: const Icon(Icons.mic_rounded, size: 18, color: AppColors.background),
-                ),
               ],
             ),
           ),

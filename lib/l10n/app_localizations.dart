@@ -4634,6 +4634,24 @@ abstract class AppLocalizations {
   /// **'Type your answer here. Use a real example if you can.'**
   String get practiceAnswerHint;
 
+  /// No description provided for @practiceAnswerHintVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the mic to speak, or type your answer here.'**
+  String get practiceAnswerHintVoice;
+
+  /// No description provided for @practiceTapToSpeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to speak'**
+  String get practiceTapToSpeak;
+
+  /// No description provided for @practiceListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening...'**
+  String get practiceListening;
+
   /// No description provided for @practiceSubmit.
   ///
   /// In en, this message translates to:

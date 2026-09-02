@@ -2383,6 +2383,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Type your answer here. Use a real example if you can.';
 
   @override
+  String get practiceAnswerHintVoice =>
+      'Tap the mic to speak, or type your answer here.';
+
+  @override
+  String get practiceTapToSpeak => 'Tap to speak';
+
+  @override
+  String get practiceListening => 'Listening...';
+
+  @override
   String get practiceSubmit => 'Submit answer';
 
   @override

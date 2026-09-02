@@ -199,6 +199,7 @@ class _AiIntakeViewState extends State<_AiIntakeView>
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             const Spacer(flex: 2),
             // AI Avatar

@@ -49,7 +49,7 @@ class AnalyzeScreen extends StatelessWidget {
         final targetRepo = CareerTargetRepositoryImpl(remote, local);
         final dnaRepo = CareerDnaRepositoryImpl(remote: remote, local: local);
         return BlocProvider<AnalyzeCubit>(
-          create: (_) => AnalyzeCubit(jobRepo, targetRepo, dnaRepo)..load(),
+          create: (_) => AnalyzeCubit(jobRepo, targetRepo, dnaRepo, local)..load(),
           child: _AnalyzeView(onOpenStudio: onOpenStudio),
         );
       },

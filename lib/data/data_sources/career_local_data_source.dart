@@ -61,6 +61,28 @@ class CareerLocalDataSource {
 
   Future<void> writeUserIdentity(Map<String, dynamic> row) async =>
       _prefs?.setString(identityKey, jsonEncodeSafe(row));
+
+  // ── Activity log ────────────────────────────────────────────────────────
+
+  static const String _activityKey = 'activity_log_v1';
+
+  /// Returns the most recent activity items, newest first.
+  Future<List<Map<String, dynamic>>> readActivityLog() async {
+    if (!_available) return const [];
+    final raw = _prefs!.getString(_activityKey);
+    if (raw == null) return const [];
+    final list = jsonDecodeStrictList(raw);
+    return [for (final m in list) m];
+  }
+
+  /// Appends an activity entry and trims to the most recent 20.
+  Future<void> logActivity(Map<String, dynamic> entry) async {
+    if (!_available) return;
+    final list = List<Map<String, dynamic>>.from(await readActivityLog());
+    list.insert(0, entry);
+    if (list.length > 20) list.removeRange(20, list.length);
+    await _prefs!.setString(_activityKey, jsonEncodeSafe(list));
+  }
 }
 
 const String _careerDnaKey = 'career_dna_v1';
