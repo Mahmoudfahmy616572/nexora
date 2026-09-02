@@ -97,6 +97,8 @@ List<IntakeQuestion> buildIntakeQuestions() => [
           ListField(name: 'role', inputType: IntakeInputType.shortText, label: (l) => l.intakePlaceholderRole),
           ListField(name: 'company', inputType: IntakeInputType.shortText, label: (l) => l.intakeCompany),
           ListField(name: 'years', inputType: IntakeInputType.shortText, label: (l) => l.intakeYears),
+          ListField(name: 'duration_months', inputType: IntakeInputType.shortText, label: (l) => l.intakeDurationMonths),
+          ListField(name: 'achievements', inputType: IntakeInputType.tags, label: (l) => l.intakeAchievements),
         ],
       ),
 
@@ -274,12 +276,12 @@ List<IntakeQuestion> buildIntakeQuestions() => [
 /// conditional questions appear/disappear as the user types.
 List<IntakeQuestion> questionsFor({
   required CareerStage? stage,
-  required CareerGoal? goal,
+  required Set<CareerGoal> goals,
   required TargetField? field,
   required Map<String, dynamic> answers,
 }) =>
     buildIntakeQuestions()
-        .where((q) => q.appliesTo(stage: stage, goal: goal, field: field, answers: answers))
+        .where((q) => q.appliesTo(stage: stage, goals: goals, field: field, answers: answers))
         .toList();
 
 /// Builds a [CareerDna] from the raw intake [answers] plus the pre-auth [choices].
@@ -331,7 +333,7 @@ CareerDna applyAnswersToDna({
       education: education,
       experience: experience,
       projects: projects,
-      certifications: certifications,
+      certifications: certifications.map((s) => ProfileCertification.fromString(s)).toList(),
       achievements: achievements,
       languages: languages,
     ),
@@ -366,6 +368,14 @@ List<ProfileExperience> _asExperience(Object? value) {
           role: (e['role'] as String? ?? '').trim(),
           company: (e['company'] as String? ?? '').trim(),
           years: int.tryParse((e['years'] as String? ?? '').trim()) ?? 0,
+          durationMonths: int.tryParse((e['duration_months'] as String? ?? '').trim()) ?? 0,
+          achievements: (e['achievements'] is List
+              ? (e['achievements'] as List).map((a) => a.toString().trim()).where((s) => s.isNotEmpty).toList()
+              : (e['achievements'] as String? ?? '')
+                  .split(',')
+                  .map((s) => s.trim())
+                  .where((s) => s.isNotEmpty)
+                  .toList()),
         )
   ].where((e) => e.role.isNotEmpty).toList();
 }

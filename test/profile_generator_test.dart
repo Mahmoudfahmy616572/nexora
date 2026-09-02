@@ -187,7 +187,7 @@ void main() {
       expect(result.data.experience.first.role, 'Intern');
       expect(result.data.projects, hasLength(1));
       expect(result.data.education.first.field, 'Computer Science');
-      expect(result.data.certifications, equals(['Flutter Bootcamp']));
+      expect(result.data.certifications.map((c) => c.name).toList(), equals(['Flutter Bootcamp']));
       expect(result.data.languages, equals(['Arabic', 'English']));
     });
 

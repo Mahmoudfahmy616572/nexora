@@ -242,7 +242,7 @@ void main() {
             name: 'AwesomeLib',
             description: 'A library',
             tech: ['Dart'],
-            links: ['https://github.com/example/awesomelib'],
+            links: [CvContactLink(label: 'GitHub', url: 'https://github.com/example/awesomelib')],
           ),
         ],
         education: const [],
@@ -296,7 +296,7 @@ CvContent _shortCv() => CvContent(
         email: 'ahmed@example.com',
         phone: '+20 100 123 4567',
         location: 'Cairo, Egypt',
-        links: ['linkedin.com/in/ahmed', 'github.com/ahmed'],
+        links: [CvContactLink(label: 'LinkedIn', url: 'linkedin.com/in/ahmed'), CvContactLink(label: 'GitHub', url: 'github.com/ahmed')],
       ),
       summary:
           'Full-stack developer with 3+ years of experience building scalable web and mobile applications.',
@@ -352,7 +352,7 @@ CvContent _longCv() => CvContent(
         email: 'senior@example.com',
         phone: '+1 555 0123',
         location: 'San Francisco, CA',
-        links: ['linkedin.com/in/senior', 'github.com/senior', 'senior.dev'],
+        links: [CvContactLink(label: 'LinkedIn', url: 'linkedin.com/in/senior'), CvContactLink(label: 'GitHub', url: 'github.com/senior'), CvContactLink(label: 'Portfolio', url: 'senior.dev')],
       ),
       summary:
           'Senior software engineer with 10+ years of experience designing and building distributed systems, '

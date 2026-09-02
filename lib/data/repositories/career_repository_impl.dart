@@ -11,6 +11,7 @@ import '../../domain/entities/interview_practice_session.dart';
 import '../../domain/entities/job_application.dart';
 import '../../domain/entities/profile_data.dart';
 import '../../domain/entities/profile_section.dart';
+import '../../domain/entities/user_identity.dart';
 import '../../domain/analysis/job_analyzer.dart';
 import '../../domain/analysis/opportunity_match_engine.dart';
 import '../../domain/entities/job_extraction.dart';
@@ -54,7 +55,10 @@ abstract class _FallbackRepository<T> {
   Future<List<T>?> load() async {
     try {
       final rows = await _remote.fetchAll(table);
-      return [for (final row in rows) fromJson(row)];
+      if (rows.isNotEmpty) {
+        return [for (final row in rows) fromJson(row)];
+      }
+      // Remote returned empty — might be a failed insert. Check local.
     } catch (_) {
       // Supabase unavailable: fall back to local storage below.
     }
@@ -73,13 +77,16 @@ abstract class _FallbackRepository<T> {
   }
 
   Future<void> saveAll(List<T> items) async {
+    // Always mirror to local storage so the fallback path is always populated.
+    // Without this, a save that succeeds on Supabase but a later load that
+    // fails on Supabase would find no local data (the old code returned early
+    // after a successful remote save, skipping the local write).
+    await _local.writeList(key, [for (final item in items) jsonEncode(toJson(item))]);
     try {
       await _remote.replaceAll(table, [for (final item in items) toJson(item)]);
-      return;
     } catch (_) {
-      // Supabase unavailable: persist locally instead.
+      // Supabase unavailable: local mirror is already written.
     }
-    await _local.writeList(key, [for (final item in items) jsonEncode(toJson(item))]);
   }
 }
 
@@ -444,6 +451,7 @@ class CvGenerationRepositoryImpl implements CvGenerationRepository {
     JobAnalysis? analysis,
     required String templateId,
     required String language,
+    UserIdentity? identity,
   }) async {
     final input = <String, Object>{
       'career_dna': dna.toContext(),
@@ -451,6 +459,7 @@ class CvGenerationRepositoryImpl implements CvGenerationRepository {
       if (analysis != null) 'opportunity': analysis.toJson(),
       'template': {'id': templateId},
       'language': language,
+      if (identity != null && !identity.isEmpty) 'identity': identity.toJson(),
     };
     final data = await _remote.runCvGenerate(input);
     final content = CvContent.fromJson(

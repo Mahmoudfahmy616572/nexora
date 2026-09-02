@@ -30,6 +30,8 @@ class _MainShellState extends State<MainShell> {
   late MainTab _tab = widget.initialTab;
   String? _studioTargetId;
   String? _studioAnalysisId;
+  String? _pendingDnaSection;
+  DateTime? _lastBackPress;
 
   late final List<Widget> _screens = [
     HomeScreen(onOpenTab: (tab) => setState(() => _tab = tab)),
@@ -46,13 +48,27 @@ class _MainShellState extends State<MainShell> {
     });
   }
 
+  void openDnaSection(String sectionKey) {
+    setState(() {
+      _pendingDnaSection = sectionKey;
+      _tab = MainTab.dna;
+    });
+  }
+
   Widget _currentScreen() {
     if (_tab == MainTab.studio) {
       return StudioScreen(
         key: const ValueKey('studio'),
         targetId: _studioTargetId,
         analysisId: _studioAnalysisId,
+        onOpenTab: (tab) => setState(() => _tab = tab),
+        onOpenDnaSection: openDnaSection,
       );
+    }
+    if (_tab == MainTab.dna && _pendingDnaSection != null) {
+      final key = _pendingDnaSection;
+      _pendingDnaSection = null;
+      return DnaScreen(pendingSectionKey: key);
     }
     final index = _tab.index > 2 ? _tab.index - 1 : _tab.index;
     return _screens[index];
@@ -60,22 +76,42 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: AnimatedSwitcher(
-        duration: MotionTokens.fast,
-        switchInCurve: MotionTokens.standard,
-        switchOutCurve: Curves.easeIn,
-        child: KeyedSubtree(
-          key: ValueKey(_tab),
-          child: _currentScreen(),
+    final l10n = AppLocalizations.of(context)!;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        final now = DateTime.now();
+        if (_lastBackPress != null && now.difference(_lastBackPress!) < const Duration(seconds: 2)) {
+          Navigator.of(context).maybePop();
+        } else {
+          _lastBackPress = now;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.exitConfirm),
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: AnimatedSwitcher(
+          duration: MotionTokens.fast,
+          switchInCurve: MotionTokens.standard,
+          switchOutCurve: Curves.easeIn,
+          child: KeyedSubtree(
+            key: ValueKey(_tab),
+            child: _currentScreen(),
+          ),
         ),
-      ),
-      ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: _BottomNav(current: _tab, onSelected: (t) => setState(() => _tab = t)),
+        ),
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: _BottomNav(current: _tab, onSelected: (t) => setState(() => _tab = t)),
+        ),
       ),
     );
   }

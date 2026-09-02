@@ -74,6 +74,15 @@ class _FakeInterviewRepo implements CareerDnaRepository {
     required String language,
   }) async =>
       const {};
+
+  @override
+  Future<Map<String, dynamic>> aiIntake({
+    required List<Map<String, dynamic>> history,
+    String targetRole = '',
+    String language = 'en',
+    String mode = 'chat',
+    String githubUsername = '',
+  }) async => {};
 }
 
 class _FakeDnaRepo implements CareerDnaRepository {
@@ -125,6 +134,15 @@ class _FakeDnaRepo implements CareerDnaRepository {
     required bool finish,
   }) async =>
       const InterviewResult(done: true, profile: ProfileData());
+
+  @override
+  Future<Map<String, dynamic>> aiIntake({
+    required List<Map<String, dynamic>> history,
+    String targetRole = '',
+    String language = 'en',
+    String mode = 'chat',
+    String githubUsername = '',
+  }) async => {};
 }
 
 void main() {
@@ -134,31 +152,31 @@ void main() {
     test('question sets genuinely differ per stage', () {
       final student = ids(questionsFor(
         stage: CareerStage.student,
-        goal: CareerGoal.job,
+        goals: {CareerGoal.job},
         field: TargetField.engineering,
         answers: {},
       ));
       final fresh = ids(questionsFor(
         stage: CareerStage.freshGraduate,
-        goal: CareerGoal.job,
+        goals: {CareerGoal.job},
         field: TargetField.engineering,
         answers: {},
       ));
       final early = ids(questionsFor(
         stage: CareerStage.earlyCareer,
-        goal: CareerGoal.job,
+        goals: {CareerGoal.job},
         field: TargetField.engineering,
         answers: {},
       ));
       final experienced = ids(questionsFor(
         stage: CareerStage.experienced,
-        goal: CareerGoal.job,
+        goals: {CareerGoal.job},
         field: TargetField.engineering,
         answers: {},
       ));
       final changer = ids(questionsFor(
         stage: CareerStage.careerChanger,
-        goal: CareerGoal.careerChange,
+        goals: {CareerGoal.careerChange},
         field: TargetField.engineering,
         answers: {},
       ));
@@ -258,7 +276,7 @@ void main() {
       expect(dna.profile.experience, isEmpty); // no fabricated job
       expect(dna.profile.education, isNotEmpty);
       expect(dna.profile.projects, isNotEmpty);
-      expect(dna.profile.certifications, contains('AWS CCP'));
+      expect(dna.profile.certifications.map((c) => c.name).toList(), contains('AWS CCP'));
       expect(dna.extras['internships'], contains('Summer intern at X'));
       expect(dna.extras['coursework'], contains('Algorithms'));
     });
@@ -268,7 +286,7 @@ void main() {
       // a "no experience" style conditional stays hidden unless its trigger fires.
       final base = questionsFor(
         stage: CareerStage.student,
-        goal: CareerGoal.job,
+        goals: {CareerGoal.job},
         field: TargetField.engineering,
         answers: {},
       );

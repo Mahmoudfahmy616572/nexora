@@ -41,6 +41,7 @@ class NexoraApp extends StatelessWidget {
         builder: (context, state) {
           return MaterialApp.router(
             debugShowCheckedModeBanner: false,
+            scrollBehavior: const NexoraScrollBehavior(),
             onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
             theme: AppTheme.dark,
             locale: state.language == AppLanguage.arabic

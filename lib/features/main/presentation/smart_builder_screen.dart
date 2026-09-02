@@ -153,7 +153,7 @@ class _SmartBuilderScreenState extends State<SmartBuilderScreen> {
     _experience = [...result.data.experience];
     _projects = [...result.data.projects];
     _education = [...result.data.education];
-    _certifications = [...result.data.certifications];
+    _certifications = [...result.data.certifications.map((c) => c.name)];
     _achievements = [...result.data.achievements];
     _languages = [...result.data.languages];
     _summary.text = result.data.summary;
@@ -175,7 +175,7 @@ class _SmartBuilderScreenState extends State<SmartBuilderScreen> {
         experience: _experience,
         projects: _projects,
         education: _education,
-        certifications: _certifications,
+        certifications: _certifications.map((s) => ProfileCertification.fromString(s)).toList(),
         achievements: _achievements,
         languages: _languages,
       );
@@ -1098,7 +1098,7 @@ class _ExperienceCard extends StatelessWidget {
                         Text(items[i].role.isEmpty ? l10n.sbPlaceholderRole : items[i].role, style: AppTextStyles.body),
                         const SizedBox(height: 2),
                         Text(
-                          '${items[i].company}${items[i].years > 0 ? ' · ${items[i].years}y' : ''}',
+                          '${items[i].company}${items[i].durationLabel.isNotEmpty ? ' · ${items[i].durationLabel}' : ''}',
                           style: AppTextStyles.bodyMuted,
                         ),
                       ],

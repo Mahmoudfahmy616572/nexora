@@ -13,6 +13,8 @@ class SectionRow extends StatelessWidget {
     required this.pct,
     this.color = AppColors.teal,
     this.onTap,
+    this.subtitle,
+    this.statusText,
   });
 
   final IconData icon;
@@ -22,6 +24,13 @@ class SectionRow extends StatelessWidget {
 
   /// Invoked when the row is tapped (e.g. to open a section detail sheet).
   final VoidCallback? onTap;
+
+  /// Optional subtitle shown below the label in a smaller, muted style.
+  final String? subtitle;
+
+  /// When non-null, shown instead of the percentage text and hides the
+  /// progress bar.  Start with ✓ for teal, ⚠ for amber.
+  final String? statusText;
 
   @override
   Widget build(BuildContext context) {
@@ -55,29 +64,48 @@ class SectionRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(label, style: AppTextStyles.body),
-                  const SizedBox(height: 5),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(2),
-                    child: LinearProgressIndicator(
-                      value: pct / 100,
-                      minHeight: 3,
-                      color: done ? AppColors.teal : color,
-                      backgroundColor: AppColors.border,
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(subtitle!, style: AppTextStyles.bodySub.copyWith(fontSize: 12, height: 1.35)),
+                  ],
+                  if (statusText == null) ...[
+                    const SizedBox(height: 5),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(2),
+                      child: LinearProgressIndicator(
+                        value: pct / 100,
+                        minHeight: 3,
+                        color: done ? AppColors.teal : color,
+                        backgroundColor: AppColors.border,
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
-            const SizedBox(width: 12),
-            Text(
-              '${pct.round()}%',
-              style: TextStyle(
-                fontSize: 12,
-                fontFamily: AppTextStyles.monoFont,
-                fontWeight: FontWeight.w600,
-                color: pctColor,
+            if (statusText != null) ...[
+              const SizedBox(width: 12),
+              Text(
+                statusText!,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontFamily: AppTextStyles.monoFont,
+                  fontWeight: FontWeight.w600,
+                  color: statusText!.startsWith('\u2713') ? AppColors.teal : AppColors.amber,
+                ),
               ),
-            ),
+            ] else ...[
+              const SizedBox(width: 12),
+              Text(
+                '${pct.round()}%',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontFamily: AppTextStyles.monoFont,
+                  fontWeight: FontWeight.w600,
+                  color: pctColor,
+                ),
+              ),
+            ],
             const SizedBox(width: 4),
             const Icon(Icons.chevron_right, size: 16, color: AppColors.textMuted),
           ],

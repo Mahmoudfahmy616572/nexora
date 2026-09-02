@@ -87,7 +87,7 @@ ExperienceStrength _experienceStrength(ProfileData profile) {
   final count = profile.experience.length;
   final years = profile.experience.fold<double>(
     0,
-    (sum, e) => sum + e.years,
+    (sum, e) => sum + e.effectiveMonths / 12.0,
   );
   if (count >= 3 || years >= 4) return ExperienceStrength.strong;
   if (count >= 2 || years >= 2) return ExperienceStrength.moderate;

@@ -109,7 +109,7 @@ void main() {
   testWidgets('preview renders certifications and languages', (tester) async {
     final content = CvFactualBuilder.build(CareerDna(
       profile: ProfileData(
-        certifications: const ['AWS Certified'],
+        certifications: const [ProfileCertification(name: 'AWS Certified')],
         languages: const ['English', 'Arabic'],
       ),
     ));

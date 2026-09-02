@@ -244,15 +244,20 @@ void main() {
 
   group('8. Content Completeness', () {
     test('all data classes instantiate correctly', () async {
-      const header = CvHeader(name: 'Test', title: 'Dev', email: 't@e.com', phone: '123', location: 'City', links: ['u']);
+      const header = CvHeader(name: 'Test', title: 'Dev', email: 't@e.com', phone: '123', location: 'City', links: [CvContactLink(label: 'Web', url: 'u')]);
       expect(header.name, 'Test');
 
       const exp = CvExperience(role: 'R', company: 'C', startDate: '2020', endDate: '2023', bullets: ['A', 'B']);
       expect(exp.effectiveBullets, ['A', 'B']);
 
-      const proj = CvProject(name: 'P', tech: ['T'], bullets: ['X'], links: ['l']);
+      const proj = CvProject(
+        name: 'P',
+        tech: ['T'],
+        bullets: ['X'],
+        links: [CvContactLink(label: 'L', url: 'https://l.test')],
+      );
       expect(proj.effectiveBullets, ['X']);
-      expect(proj.effectiveLinks, ['l']);
+      expect(proj.effectiveLinks, ['https://l.test']);
 
       const edu = CvEducation(degree: 'BS', field: 'CS', institution: 'Uni', year: '2020');
       expect(edu.degree, 'BS');
@@ -278,11 +283,6 @@ void main() {
     test('effectiveBullets returns empty when nothing set', () {
       const exp = CvExperience(role: 'R');
       expect(exp.effectiveBullets, isEmpty);
-    });
-
-    test('effectiveLinks falls back to link', () {
-      const proj = CvProject(name: 'P', link: 'https://github.com/example');
-      expect(proj.effectiveLinks, ['https://github.com/example']);
     });
 
     test('effectiveLinks returns empty when nothing set', () {
@@ -397,7 +397,7 @@ CvContent _freshGraduate() => CvContent(
         email: 'sara.ahmed@example.com',
         phone: '+20 111 234 5678',
         location: 'Cairo, Egypt',
-        links: ['linkedin.com/in/saraahmed', 'github.com/saraahmed'],
+        links: [CvContactLink(label: 'LinkedIn', url: 'linkedin.com/in/saraahmed'), CvContactLink(label: 'GitHub', url: 'github.com/saraahmed')],
       ),
       summary: 'Motivated Flutter developer eager to build intuitive user interfaces.',
       experience: const [
@@ -448,7 +448,7 @@ CvContent _experiencedCandidate() => CvContent(
         email: 'omar.khaled@example.com',
         phone: '+20 122 345 6789',
         location: 'Cairo, Egypt',
-        links: ['linkedin.com/in/omarkhaled', 'github.com/omarkhaled'],
+        links: [CvContactLink(label: 'LinkedIn', url: 'linkedin.com/in/omarkhaled'), CvContactLink(label: 'GitHub', url: 'github.com/omarkhaled')],
       ),
       summary: 'Senior full-stack engineer with 8+ years of experience building scalable web platforms and leading cross-functional teams.',
       experience: const [
@@ -492,7 +492,7 @@ CvContent _experiencedCandidate() => CvContent(
             'Real-time CI/CD pipeline monitoring for 50+ repos',
             'Automated incident alerts reducing response time by 40%',
           ],
-          links: ['github.com/omarkhaled/devops-dashboard'],
+          links: [CvContactLink(label: 'GitHub', url: 'github.com/omarkhaled/devops-dashboard')],
         ),
         CvProject(
           name: 'Inventory Pro',
@@ -506,7 +506,7 @@ CvContent _experiencedCandidate() => CvContent(
           name: 'API Gateway',
           description: 'Centralized API gateway with rate limiting and auth',
           tech: ['Go', 'Redis', 'PostgreSQL'],
-          links: ['github.com/omarkhaled/api-gateway'],
+          links: [CvContactLink(label: 'GitHub', url: 'github.com/omarkhaled/api-gateway')],
         ),
       ],
       education: const [
@@ -601,7 +601,7 @@ CvContent _longCv() => CvContent(
         email: 'ahmed.farouk@example.com',
         phone: '+20 115 678 9012',
         location: 'Alexandria, Egypt',
-        links: ['linkedin.com/in/ahmedfarouk', 'github.com/ahmedfarouk', 'ahmedfarouk.dev'],
+        links: [CvContactLink(label: 'LinkedIn', url: 'linkedin.com/in/ahmedfarouk'), CvContactLink(label: 'GitHub', url: 'github.com/ahmedfarouk'), CvContactLink(label: 'Portfolio', url: 'ahmedfarouk.dev')],
       ),
       summary: 'Platform architect with 12+ years building distributed systems, leading engineering teams, and driving technical strategy.',
       experience: const [
@@ -707,7 +707,7 @@ CvContent _veryLongCv() => CvContent(
         email: 'youssef.ibrahim@example.com',
         phone: '+20 100 111 2222',
         location: 'Dubai, UAE',
-        links: ['linkedin.com/in/youssefibrahim', 'github.com/youssefibrahim', 'youssef.engineer'],
+        links: [CvContactLink(label: 'LinkedIn', url: 'linkedin.com/in/youssefibrahim'), CvContactLink(label: 'GitHub', url: 'github.com/youssefibrahim'), CvContactLink(label: 'Portfolio', url: 'youssef.engineer')],
       ),
       summary: 'Principal engineer with 18+ years of experience in distributed systems, cloud architecture, and technical leadership across fintech and e-commerce domains.',
       experience: const [

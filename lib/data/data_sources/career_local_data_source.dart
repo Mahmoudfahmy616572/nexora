@@ -49,6 +49,18 @@ class CareerLocalDataSource {
 
   Future<void> writeVersions(List<Map<String, dynamic>> versions) async =>
       _prefs?.setString(_versionsKey, jsonEncodeSafe(versions));
+
+  static const String identityKey = 'user_identity_v1';
+
+  Future<Map<String, dynamic>?> readUserIdentity() async {
+    if (!_available) return null;
+    final raw = _prefs!.getString(identityKey);
+    if (raw == null) return null;
+    return jsonDecodeStrict(raw);
+  }
+
+  Future<void> writeUserIdentity(Map<String, dynamic> row) async =>
+      _prefs?.setString(identityKey, jsonEncodeSafe(row));
 }
 
 const String _careerDnaKey = 'career_dna_v1';

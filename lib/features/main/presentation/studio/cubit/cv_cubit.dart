@@ -2,16 +2,20 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../domain/cv/cv_content_validator.dart';
 import '../../../../../domain/cv/cv_factual_builder.dart';
+import '../../../../../domain/cv/cv_readiness_engine.dart';
 import '../../../../../domain/entities/career_dna.dart';
 import '../../../../../domain/entities/career_target.dart';
 import '../../../../../domain/entities/cv_content.dart';
 import '../../../../../domain/entities/cv_document.dart';
 import '../../../../../domain/entities/job_analysis.dart';
+import '../../../../../domain/entities/profile_data.dart';
+import '../../../../../domain/entities/user_identity.dart';
 import '../../../../../domain/repositories/career_dna_repository.dart';
 import '../../../../../domain/repositories/career_target_repository.dart';
 import '../../../../../domain/repositories/cv_document_repository.dart';
 import '../../../../../domain/repositories/cv_generation_repository.dart';
 import '../../../../../domain/repositories/job_analysis_repository.dart';
+import '../../../../../domain/repositories/user_identity_repository.dart';
 
 import 'cv_state.dart';
 
@@ -23,14 +27,16 @@ class CvCubit extends Cubit<CvState> {
     this._genRepo,
     this._dnaRepo,
     this._targetRepo,
-    this._analysisRepo,
-  ) : super(const CvState());
+    this._analysisRepo, {
+    this._identityRepo,
+  }) : super(const CvState());
 
   final CvDocumentRepository _docRepo;
   final CvGenerationRepository _genRepo;
   final CareerDnaRepository _dnaRepo;
   final CareerTargetRepository _targetRepo;
   final JobAnalysisRepository _analysisRepo;
+  final UserIdentityRepository? _identityRepo;
 
   static String _newId() => CareerTarget.newId();
 
@@ -40,9 +46,6 @@ class CvCubit extends Cubit<CvState> {
   Future<CareerDna> _ensureDna(CareerDna? cached) async =>
       cached ?? (await _dnaRepo.load()) ?? CareerDna();
 
-  /// Emits only when the cubit is still open. Guards async methods that may
-  /// complete after the cubit was closed (e.g. during navigation), which would
-  /// otherwise throw `Bad state: Cannot emit new states after calling close`.
   void _safeEmit(CvState next) {
     if (!isClosed) emit(next);
   }
@@ -54,17 +57,20 @@ class CvCubit extends Cubit<CvState> {
         _docRepo.loadDocuments(),
         _targetRepo.loadAll(),
         _analysisRepo.load(),
+        if (_identityRepo != null) _identityRepo.load() else Future.value(null),
       ]);
       final dna = await _dnaRepo.load();
       final documents = results[0] as List<CvDocument>;
       final targets = results[1] as List<CareerTarget>;
       final analyses = results[2] as List<JobAnalysis>? ?? const [];
+      final identity = results[3] as UserIdentity?;
       _safeEmit(state.copyWith(
         status: documents.isEmpty ? CvStatus.initial : CvStatus.ready,
         documents: documents,
         targets: targets,
         analyses: analyses,
         dna: dna,
+        identity: identity,
       ));
     } on Object {
       _safeEmit(state.copyWith(
@@ -134,30 +140,27 @@ class CvCubit extends Cubit<CvState> {
         : _first(state.analyses, (a) => a.id == state.analysisId);
     _safeEmit(state.copyWith(status: CvStatus.generating, clearMessage: true, dna: dna));
     try {
-      final content = await _genRepo.generate(
+      var content = await _genRepo.generate(
         dna: dna,
         target: target,
         analysis: analysis,
         templateId: state.templateId,
         language: 'en',
+        identity: state.identity,
       );
-      final result = CvContentValidator.validate(content, dna);
-      if (!result.valid) {
-        _safeEmit(state.copyWith(
-          status: CvStatus.failure,
-          content: content,
-          isAiGenerated: true,
-          validationIssues: result.issues,
-          message: 'AI generation could not be safely verified. '
-              'Use your Factual CV instead.',
-        ));
-        return;
-      }
+      content = _injectProjectLinks(content, dna);
+      content = _injectHeaderLinks(content, state.identity);
+      content = _injectExperienceDuration(content, dna);
+      final result = CvContentValidator.validate(content, dna, identity: state.identity);
       _safeEmit(state.copyWith(
         status: CvStatus.ready,
         content: content,
         isAiGenerated: true,
-        validationIssues: const [],
+        validationIssues: result.issues,
+        message: result.valid
+            ? null
+            : 'AI generation contains some unverified details. '
+                'Review carefully or use your Factual CV.',
       ));
     } on Object {
       _safeEmit(state.copyWith(
@@ -168,6 +171,250 @@ class CvCubit extends Cubit<CvState> {
     }
   }
 
+  static CvContent _injectProjectLinks(CvContent content, CareerDna dna) {
+    // Inject project links
+    if (dna.profile.projects.isNotEmpty) {
+      final linksByName = <String, List<ProjectLink>>{
+        for (final p in dna.profile.projects)
+          if (p.links.isNotEmpty) _norm(p.name): p.links,
+      };
+      if (linksByName.isNotEmpty) {
+        content = content.copyWith(
+          projects: [
+            for (final proj in content.projects)
+              if (proj.links.isEmpty && linksByName.containsKey(_norm(proj.name)))
+                CvProject(
+                  name: proj.name,
+                  description: proj.description,
+                  tech: proj.tech,
+                  links: [
+                    for (final l in linksByName[_norm(proj.name)]!)
+                      CvContactLink(
+                        label: l.label.trim().isNotEmpty
+                            ? l.label.trim()
+                            : ProjectLink.autoLabel(l.url, proj.name),
+                        url: l.url.trim(),
+                      ),
+                  ],
+                  bullets: proj.bullets,
+                  role: proj.role,
+                  date: proj.date,
+                  outcome: proj.outcome,
+                  keyFeatures: proj.keyFeatures,
+                  challenges: proj.challenges,
+                  integrations: proj.integrations,
+                  source: proj.source,
+                )
+              else
+                proj,
+          ],
+        );
+      }
+    }
+
+    // Inject certification links
+    if (dna.profile.certifications.isNotEmpty) {
+      final linkByName = <String, String>{
+        for (final c in dna.profile.certifications)
+          if (c.link.trim().isNotEmpty) _norm(c.name): c.link.trim(),
+      };
+      if (linkByName.isNotEmpty) {
+        content = content.copyWith(
+          certifications: [
+            for (final cert in content.certifications)
+              if (cert.link.trim().isEmpty && linkByName.containsKey(_norm(cert.name)))
+                CvCertification(
+                  name: cert.name,
+                  issuer: cert.issuer,
+                  year: cert.year,
+                  link: linkByName[_norm(cert.name)]!,
+                  source: cert.source,
+                )
+              else
+                cert,
+          ],
+        );
+      }
+    }
+
+    return content;
+  }
+
+  static String _norm(String s) =>
+      s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '').trim();
+
+  static CvContent _injectHeaderLinks(CvContent content, UserIdentity? identity) {
+    if (identity == null) return content;
+    final existing = content.header.links;
+
+    // Map known identity URLs to their short labels.
+    final urlToLabel = <String, String>{
+      if (identity.linkedinUrl.trim().isNotEmpty)
+        identity.linkedinUrl.trim().toLowerCase(): 'LinkedIn',
+      if (identity.githubUrl.trim().isNotEmpty)
+        identity.githubUrl.trim().toLowerCase(): 'GitHub',
+      if (identity.portfolioUrl.trim().isNotEmpty)
+        identity.portfolioUrl.trim().toLowerCase(): 'Portfolio',
+    };
+
+    // Known URL patterns for matching.
+    final knownUrlPatterns = urlToLabel.keys.toList();
+
+    bool looksLikeUrl(String s) {
+      final lower = s.toLowerCase();
+      return lower.contains('://') ||
+          lower.startsWith('www.') ||
+          RegExp(r'\.(com|io|dev|me|org|net|co|app)\b').hasMatch(lower);
+    }
+
+    String? matchKnownUrl(String s) {
+      final lower = s.toLowerCase().trim();
+      for (final ku in knownUrlPatterns) {
+        if (ku == lower || lower.contains(ku) || ku.contains(lower)) return ku;
+      }
+      return null;
+    }
+
+    // Step 1: Fix labels that look like URLs, remove duplicates.
+    final seenUrls = <String>{};
+    final fixed = <CvContactLink>[];
+    for (final l in existing) {
+      final urlKey = l.url.trim().toLowerCase();
+      final labelLower = l.label.trim().toLowerCase();
+      final isDuplicate = !seenUrls.add(urlKey);
+      if (isDuplicate) continue;
+
+      if (looksLikeUrl(labelLower)) {
+        final matchedKey = matchKnownUrl(urlKey);
+        if (matchedKey != null) {
+          fixed.add(CvContactLink(label: urlToLabel[matchedKey]!, url: l.url.trim()));
+        } else {
+          fixed.add(l);
+        }
+      } else if (urlToLabel.containsKey(urlKey) && labelLower == urlKey) {
+        fixed.add(CvContactLink(label: urlToLabel[urlKey]!, url: l.url.trim()));
+      } else {
+        fixed.add(l);
+      }
+    }
+
+    // Step 2: Add missing links.
+    final knownUrls = {for (final l in fixed) l.url.trim().toLowerCase()};
+    final injected = <CvContactLink>[
+      ...fixed,
+      if (identity.linkedinUrl.trim().isNotEmpty &&
+          !knownUrls.contains(identity.linkedinUrl.trim().toLowerCase()))
+        CvContactLink(label: 'LinkedIn', url: identity.linkedinUrl.trim()),
+      if (identity.githubUrl.trim().isNotEmpty &&
+          !knownUrls.contains(identity.githubUrl.trim().toLowerCase()))
+        CvContactLink(label: 'GitHub', url: identity.githubUrl.trim()),
+      if (identity.portfolioUrl.trim().isNotEmpty &&
+          !knownUrls.contains(identity.portfolioUrl.trim().toLowerCase()))
+        CvContactLink(label: 'Portfolio', url: identity.portfolioUrl.trim()),
+    ];
+
+    // Step 3: Strip raw URLs dumped as plain text in header fields.
+    String stripUrlsFromText(String text) {
+      if (text.isEmpty) return text;
+      var result = text;
+      for (final url in urlToLabel.keys) {
+        result = result.replaceAll(RegExp(RegExp.escape(url), caseSensitive: false), '');
+      }
+      // Also strip any remaining https://... or http://... patterns.
+      result = result.replaceAll(RegExp(r'https?://\S+'), '');
+      // Clean up extra commas, spaces, newlines left behind.
+      result = result.replaceAll(RegExp(r'[,\s]+'), ' ').trim();
+      return result;
+    }
+
+    final cleanSubtitle = stripUrlsFromText(content.header.subtitle);
+
+    final linksChanged = injected.length != fixed.length || !_listEquals(injected, fixed);
+    final subtitleChanged = cleanSubtitle != content.header.subtitle;
+    if (!linksChanged && !subtitleChanged) return content;
+    return content.copyWith(
+      header: content.header.copyWith(
+        links: linksChanged ? injected : content.header.links,
+        subtitle: subtitleChanged ? cleanSubtitle : content.header.subtitle,
+      ),
+    );
+  }
+
+  static bool _listEquals(List<CvContactLink> a, List<CvContactLink> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i].label != b[i].label || a[i].url != b[i].url) return false;
+    }
+    return true;
+  }
+
+  static CvContent _injectExperienceDuration(CvContent content, CareerDna dna) {
+    if (dna.profile.experience.isEmpty) return content;
+    final durationByNorm = <String, int>{
+      for (final e in dna.profile.experience)
+        if (e.effectiveMonths > 0)
+          _norm('${e.role} ${e.company}'): e.effectiveMonths,
+    };
+    final achievementsByNorm = <String, List<String>>{
+      for (final e in dna.profile.experience)
+        if (e.achievements.isNotEmpty)
+          _norm('${e.role} ${e.company}'): e.achievements,
+    };
+    if (durationByNorm.isEmpty && achievementsByNorm.isEmpty) return content;
+
+    int? matchDuration(String aiRole, String aiCompany) {
+      final key = _norm('$aiRole $aiCompany');
+      if (key.isEmpty) return null;
+      // Exact match.
+      if (durationByNorm.containsKey(key)) return durationByNorm[key];
+      // Substring: AI role contains DNA role or vice versa.
+      for (final entry in durationByNorm.entries) {
+        if (entry.key.length >= 3 && key.length >= 3 &&
+            (key.contains(entry.key) || entry.key.contains(key))) {
+          return entry.value;
+        }
+      }
+      return null;
+    }
+
+    List<String>? matchAchievements(String aiRole, String aiCompany) {
+      final key = _norm('$aiRole $aiCompany');
+      if (key.isEmpty) return null;
+      if (achievementsByNorm.containsKey(key)) return achievementsByNorm[key];
+      for (final entry in achievementsByNorm.entries) {
+        if (entry.key.length >= 3 && key.length >= 3 &&
+            (key.contains(entry.key) || entry.key.contains(key))) {
+          return entry.value;
+        }
+      }
+      return null;
+    }
+
+    return content.copyWith(
+      experience: [
+        for (final exp in content.experience)
+          CvExperience(
+            role: exp.role,
+            company: exp.company,
+            years: exp.years,
+            durationMonths: exp.effectiveMonths > 0
+                ? exp.effectiveMonths
+                : (matchDuration(exp.role, exp.company) ?? 0),
+            startDate: exp.startDate,
+            endDate: exp.endDate,
+            description: exp.description,
+            bullets: exp.bullets,
+            location: exp.location,
+            technologies: exp.technologies,
+            achievements: exp.achievements.isNotEmpty
+                ? exp.achievements
+                : (matchAchievements(exp.role, exp.company) ?? const []),
+            source: exp.source,
+          ),
+      ],
+    );
+  }
+
   /// Regenerates after a failure.
   Future<void> retry() => _generate();
 
@@ -175,7 +422,11 @@ class CvCubit extends Cubit<CvState> {
   Future<void> useFactual() async {
     final dna = await _ensureDna(state.dna);
     final target = _first(state.targets, (t) => t.id == state.targetId);
-    final content = CvFactualBuilder.build(dna, target: target);
+    final content = CvFactualBuilder.build(
+      dna,
+      target: target,
+      identity: state.identity,
+    );
     _safeEmit(state.copyWith(
       status: CvStatus.ready,
       content: content,
@@ -307,5 +558,20 @@ class CvCubit extends Cubit<CvState> {
         message: 'Could not delete the CV.',
       ));
     }
+  }
+
+  /// Evaluates CV creation readiness using the given engine.
+  CvReadinessReport evaluateReadiness(CvReadinessEngine engine) =>
+      engine.evaluate(
+        dna: state.dna,
+        target: _first(state.targets, (t) => t.id == state.targetId),
+        identity: state.identity,
+      );
+
+  /// Saves identity data and reloads.
+  Future<void> saveIdentity(UserIdentity identity) async {
+    if (_identityRepo == null) return;
+    await _identityRepo.save(identity);
+    _safeEmit(state.copyWith(identity: identity));
   }
 }

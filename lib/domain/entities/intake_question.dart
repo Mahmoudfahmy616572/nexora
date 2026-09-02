@@ -8,6 +8,7 @@ enum IntakeInputType {
   tags,
   stringList,
   structuredList,
+  links,
 }
 
 /// Logical grouping used to lay out the form and for analytics.
@@ -100,14 +101,14 @@ class IntakeQuestion {
 
   bool appliesTo({
     required CareerStage? stage,
-    required CareerGoal? goal,
+    required Set<CareerGoal> goals,
     required TargetField? field,
     required Map<String, dynamic> answers,
   }) {
     if (stages.isNotEmpty && stage != null && !stages.contains(stage)) {
       return false;
     }
-    if (goals.isNotEmpty && goal != null && !goals.contains(goal)) {
+    if (goals.isNotEmpty && this.goals.isNotEmpty && this.goals.toSet().intersection(goals).isEmpty) {
       return false;
     }
     if (fields.isNotEmpty && field != null && !fields.contains(field)) {

@@ -146,7 +146,7 @@ class CareerIntelligencePanel extends StatelessWidget {
               width: double.infinity,
               height: 44,
               child: FilledButton(
-                onPressed: () => context.push('/targets/new'),
+                onPressed: () => context.push('/targets/form'),
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.teal,
                   foregroundColor: AppColors.background,

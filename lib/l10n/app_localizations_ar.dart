@@ -412,6 +412,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dnaPersonalProfile => 'الملف الشخصي';
 
   @override
+  String get dnaPersonalProfileSubtitle => 'الهوية ومعلومات الاتصال';
+
+  @override
+  String get dnaIdentityComplete => '✓ مكتمل';
+
+  @override
+  String dnaIdentityMissing(int count) {
+    return '⚠ $count عناصر ناقصة';
+  }
+
+  @override
   String get dnaEducation => 'التعليم';
 
   @override
@@ -1512,6 +1523,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get intakeProjectTech => 'التقنيات';
 
   @override
+  String get intakeProjectLinks => 'روابط المشروع (روابط خارجية)';
+
+  @override
   String get intakePlaceholderRole => 'الدور';
 
   @override
@@ -1583,6 +1597,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get intakeYears => 'عدد السنوات';
+
+  @override
+  String get intakeDurationMonths => 'المدة (بالأشهر)';
 
   @override
   String get intakeBack => 'رجوع';
@@ -2401,4 +2418,58 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get practiceDone => 'تم';
+
+  @override
+  String get cvCompleteProfile => 'أكمل الملف الشخصي';
+
+  @override
+  String get cvQualityCouldBeBetter => 'جودة السيرة الذاتية يمكن تحسينها';
+
+  @override
+  String get exitConfirm => 'اضغط رجوع مرة أخرى للخروج';
+
+  @override
+  String get exitConfirmTitle => 'الخروج من التطبيق؟';
+
+  @override
+  String get enhanceTitle => 'تحسين الـ DNA';
+
+  @override
+  String get enhanceAcceptAll => 'قبول الكل';
+
+  @override
+  String get enhanceSuggestionsLeft => 'اقتراحات للمراجعة';
+
+  @override
+  String get enhanceAccepted => 'مقبول';
+
+  @override
+  String get enhanceRejected => 'متخطى';
+
+  @override
+  String get enhanceBefore => 'قبل';
+
+  @override
+  String get enhanceAfter => 'بعد';
+
+  @override
+  String get enhanceAccept => 'قبول';
+
+  @override
+  String get enhanceReject => 'تخطى';
+
+  @override
+  String get enhanceApply => 'تطبيق التحسينات';
+
+  @override
+  String get enhanceApplied => 'تم تحديث الـ CareerDNA بنجاح';
+
+  @override
+  String get enhanceError => 'فشل تحميل الاقتراحات';
+
+  @override
+  String get enhanceRetry => 'إعادة المحاولة';
+
+  @override
+  String get enhanceBtn => 'تحسين DNA';
 }

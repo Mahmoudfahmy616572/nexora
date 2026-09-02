@@ -19,11 +19,22 @@ import '../../../domain/repositories/profile_repository.dart';
 import '../../../domain/repositories/profile_section_repository.dart';
 import '../../../domain/repositories/profile_skills_repository.dart';
 import '../../../presentation/career_dna/cubit/career_dna_cubit.dart';
+import '../../../presentation/career_dna/edit_widgets.dart';
 import '../../../presentation/career_intelligence/career_intelligence_panel.dart';
 import '../../../presentation/onboarding/choice_options.dart';
 import 'smart_builder_screen.dart';
+import 'dna_screen_widgets.dart';
 import 'widgets/app_chip.dart';
 import 'widgets/section_row.dart';
+import '../../../domain/entities/user_identity.dart';
+import '../../../data/repositories/user_identity_repository_impl.dart';
+import '../../../domain/repositories/user_identity_repository.dart';
+
+String _linkSummary(String json) {
+  final links = ProjectLink.listFromJson(json);
+  if (links.isEmpty) return '';
+  return links.length == 1 ? '1 link' : '${links.length} links';
+}
 
 /// Which real profile dataset a base section edits (null = user-added).
 enum _SectionKind {
@@ -45,7 +56,11 @@ enum _SectionKind {
 /// on the Analyze tab. User-added sections persist too (Supabase online,
 /// SharedPreferences offline).
 class DnaScreen extends StatefulWidget {
-  const DnaScreen({super.key});
+  const DnaScreen({super.key, this.pendingSectionKey});
+
+  /// When non-null the screen will auto-open the matching section editor
+  /// after the initial data load completes.
+  final String? pendingSectionKey;
 
   @override
   State<DnaScreen> createState() => _DnaScreenState();
@@ -60,6 +75,8 @@ class _DnaSection {
     this.categoryCode = '',
     this.id = '',
     this.kind,
+    this.subtitle,
+    this.statusText,
   });
 
   final IconData icon;
@@ -76,7 +93,10 @@ class _DnaSection {
   /// Which profile dataset this section edits; null for user-added sections.
   final _SectionKind? kind;
 
-  _DnaSection copyWith({double? pct}) => _DnaSection(
+  final String? subtitle;
+  final String? statusText;
+
+  _DnaSection copyWith({double? pct, String? subtitle, String? statusText}) => _DnaSection(
         icon: icon,
         label: label,
         pct: pct ?? this.pct,
@@ -84,6 +104,8 @@ class _DnaSection {
         categoryCode: categoryCode,
         id: id,
         kind: kind,
+        subtitle: subtitle ?? this.subtitle,
+        statusText: statusText ?? this.statusText,
       );
 }
 
@@ -94,11 +116,13 @@ class _DnaScreenState extends State<DnaScreen> {
   List<String> _skills = const [];
   List<_DnaSection> _custom = [];
   ProfileData _profile = const ProfileData();
-  late List<_DnaSection> _sections = _compose(_profile, _skills, const []);
+  late List<_DnaSection> _sections = [];
   bool _ready = false;
   ProfileSectionRepository? _repository;
   ProfileSkillsRepository? _skillsRepository;
   ProfileRepository? _profileRepository;
+  UserIdentity _identity = const UserIdentity();
+  UserIdentityRepository? _identityRepo;
 
   /// Completeness derived from how much real evidence exists.
   static double _pctFor(int count) => count == 0 ? 0 : (count >= 2 ? 100 : 60);
@@ -111,14 +135,35 @@ class _DnaScreenState extends State<DnaScreen> {
         kind: _SectionKind.skills,
       );
 
-  static List<_DnaSection> _profileSections(ProfileData profile, List<String> skills) => [
-        _DnaSection(
-          icon: Icons.person_rounded,
-          label: 'Personal Profile',
-          pct: profile.summary.isEmpty ? 0 : 100,
-          kind: _SectionKind.summary,
-        ),
-        _DnaSection(
+  List<_DnaSection> _profileSections(ProfileData profile, List<String> skills) {
+    final l10n = AppLocalizations.of(context)!;
+    final identityFields = [
+      _identity.fullName,
+      _identity.professionalTitle,
+      _identity.email,
+      _identity.phone,
+      _identity.location,
+      _identity.linkedinUrl,
+      _identity.githubUrl,
+      _identity.portfolioUrl,
+    ];
+    final filledCount = identityFields.where((f) => f.isNotEmpty).length;
+    final allFilled = filledCount == identityFields.length;
+    final missingCount = identityFields.length - filledCount;
+    final identityPct = identityFields.isEmpty ? 0.0 : (filledCount * 100 / identityFields.length).toDouble();
+
+    return [
+      _DnaSection(
+        icon: Icons.person_rounded,
+        label: l10n.dnaPersonalProfile,
+        pct: identityPct,
+        subtitle: l10n.dnaPersonalProfileSubtitle,
+        statusText: allFilled
+            ? l10n.dnaIdentityComplete
+            : l10n.dnaIdentityMissing(missingCount),
+        kind: _SectionKind.summary,
+      ),
+      _DnaSection(
           icon: Icons.school_rounded,
           label: 'Education',
           pct: _pctFor(profile.education.length),
@@ -158,8 +203,9 @@ class _DnaScreenState extends State<DnaScreen> {
           kind: _SectionKind.languages,
         ),
       ];
+  }
 
-  static List<_DnaSection> _compose(
+  List<_DnaSection> _compose(
     ProfileData profile,
     List<String> skills,
     List<_DnaSection> custom,
@@ -184,6 +230,7 @@ class _DnaScreenState extends State<DnaScreen> {
     _repository = ProfileSectionRepositoryImpl(remote, local);
     _skillsRepository = ProfileSkillsRepositoryImpl(remote, local);
     _profileRepository = ProfileRepositoryImpl(remote, local);
+    _identityRepo = UserIdentityRepositoryImpl(remote: remote, local: local);
 
     // Load the structured Career DNA identity so the Command Center can show the
     // user's declared goal / stage / target alongside their evidence.
@@ -196,12 +243,37 @@ class _DnaScreenState extends State<DnaScreen> {
     final skills = await _skillsRepository!.load();
     final profile = await _profileRepository!.load();
     final custom = await _repository!.load();
+    final identity = await _identityRepo?.load();
     if (!mounted) return;
     if (skills != null) _skills = skills;
     if (profile != null) _profile = profile;
+    if (identity != null) _identity = identity;
     if (custom != null) _custom = [for (final section in custom) _toUiSection(section)];
     _rebuild();
     setState(() => _ready = true);
+
+    if (widget.pendingSectionKey != null && mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final key = widget.pendingSectionKey;
+        if (key == null) return;
+        const sectionKeyMap = {
+          'identity': 'summary',
+          'target_role': 'summary',
+          'experience': 'experience',
+          'projects': 'projects',
+          'skills': 'skills',
+          'education': 'education',
+        };
+        final kindName = sectionKeyMap[key];
+        if (kindName == null) return;
+        final match = _sections.cast<_DnaSection?>().firstWhere(
+          (s) => s!.kind?.name == kindName,
+          orElse: () => null,
+        );
+        if (match != null) _openSection(match);
+      });
+    }
   }
 
   Future<void> _persistCustomSections() async {
@@ -243,15 +315,27 @@ class _DnaScreenState extends State<DnaScreen> {
   }
 
   Future<void> _openFullProfile() async {
+    UserIdentity? updatedIdentity;
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => _ProfileEditorScreen(
           profile: _profile,
           skills: _skills,
+          identity: _identity,
           onSave: _saveFullProfile,
+          onSaveIdentity: (identity) async {
+            updatedIdentity = identity;
+            await _identityRepo?.save(identity);
+          },
         ),
       ),
     );
+    if (updatedIdentity != null) {
+      setState(() {
+        _identity = updatedIdentity!;
+        _rebuild();
+      });
+    }
   }
 
   Future<void> _openSmartBuilder() async {
@@ -270,6 +354,7 @@ class _DnaScreenState extends State<DnaScreen> {
     });
     await _profileRepository?.save(profile);
     await _skillsRepository?.save(skills);
+    await _syncProfileToDna();
   }
 
   Future<void> _showAddSectionSheet() async {
@@ -347,6 +432,10 @@ class _DnaScreenState extends State<DnaScreen> {
 
   Future<void> _openSection(_DnaSection section) async {
     final kind = section.kind;
+    if (kind == _SectionKind.summary) {
+      await _editIdentity();
+      return;
+    }
     if (kind == null) {
       await _showSectionDetail(section);
       return;
@@ -359,63 +448,67 @@ class _DnaScreenState extends State<DnaScreen> {
   }
 
   /// Field layout for a section's real-data editor.
-  static _SectionEditor _editorFor(_SectionKind kind) => switch (kind) {
-        _SectionKind.summary => const _SectionEditor(
+  static SectionEditor _editorFor(_SectionKind kind) => switch (kind) {
+        _SectionKind.summary => const SectionEditor(
             title: 'Personal Profile',
             subtitle: 'A short summary hiring teams read first — the AI uses it when advising you.',
             fields: [
-              _FieldSpec(
+              FieldSpec(
                 label: 'Summary',
                 hint: 'e.g. Flutter engineer with 4+ years shipping real-time products used by thousands of riders.',
                 lines: 4,
               ),
             ],
           ),
-        _SectionKind.experience => const _SectionEditor(
+        _SectionKind.experience => const SectionEditor(
             title: 'Experience',
             subtitle: 'Real roles you have held — these back your experience match score.',
             fields: [
-              _FieldSpec(label: 'Role', hint: 'e.g. Senior Flutter Engineer'),
-              _FieldSpec(label: 'Company', hint: 'e.g. Careem'),
-              _FieldSpec(label: 'Years', hint: 'e.g. 2.5'),
+              FieldSpec(label: 'Role', hint: 'e.g. Senior Flutter Engineer'),
+              FieldSpec(label: 'Company', hint: 'e.g. Careem'),
+              FieldSpec(label: 'Years', hint: 'e.g. 2.5'),
             ],
           ),
-        _SectionKind.projects => const _SectionEditor(
+          _SectionKind.projects => const SectionEditor(
             title: 'Projects',
             subtitle: 'Projects you shipped — the AI reads these to verify skills and give tailored advice.',
             fields: [
-              _FieldSpec(label: 'Name', hint: 'e.g. ShipLink'),
-              _FieldSpec(label: 'Description', hint: 'What it does and your part in it…', lines: 3),
-              _FieldSpec(label: 'Tech (comma separated)', hint: 'Flutter, Dart, Supabase, Google Maps'),
+              FieldSpec(label: 'Name', hint: 'e.g. ShipLink'),
+              FieldSpec(label: 'Description', hint: 'What it does and your part in it…', lines: 3),
+              FieldSpec(label: 'Tech (comma separated)', hint: 'Flutter, Dart, Supabase, Google Maps'),
+              FieldSpec(label: 'Links (URLs, optional)', hint: 'Live demo, store page, repo…', isLinks: true),
             ],
           ),
-        _SectionKind.education => const _SectionEditor(
+        _SectionKind.education => const SectionEditor(
             title: 'Education',
             subtitle: 'Degrees you hold.',
             fields: [
-              _FieldSpec(label: 'Degree', hint: 'e.g. B.Sc. Computer Engineering'),
-              _FieldSpec(label: 'Field', hint: 'e.g. Software Engineering'),
+              FieldSpec(label: 'Degree', hint: 'e.g. B.Sc. Computer Engineering'),
+              FieldSpec(label: 'Field', hint: 'e.g. Software Engineering'),
             ],
           ),
-        _SectionKind.certifications => const _SectionEditor(
+        _SectionKind.certifications => const SectionEditor(
             title: 'Certifications',
             subtitle: 'Certificates that verify your skills.',
-            fields: [_FieldSpec(label: 'Certification', hint: 'e.g. AWS Certified Developer')],
+            fields: [
+              FieldSpec(label: 'Certification', hint: 'e.g. AWS Certified Developer'),
+              FieldSpec(label: 'Link (optional)', hint: 'e.g. https://drive.google.com/cert'),
+            ],
           ),
-        _SectionKind.achievements => const _SectionEditor(
+        _SectionKind.achievements => const SectionEditor(
             title: 'Achievements',
             subtitle: 'Wins and recognitions worth proving.',
-            fields: [_FieldSpec(label: 'Achievement', hint: 'e.g. 1st place, University Hackathon 2025')],
+            fields: [FieldSpec(label: 'Achievement', hint: 'e.g. 1st place, University Hackathon 2025')],
           ),
-        _SectionKind.languages => const _SectionEditor(
+        _SectionKind.languages => const SectionEditor(
             title: 'Languages',
             subtitle: 'Spoken languages you can prove.',
-            fields: [_FieldSpec(label: 'Language', hint: 'e.g. Arabic (Native)')],
+            fields: [FieldSpec(label: 'Language', hint: 'e.g. Arabic (Native)')],
           ),
-        _SectionKind.skills => const _SectionEditor(
+        _SectionKind.skills => const SectionEditor(
             title: 'Skills',
             subtitle: 'Skills you can prove — these drive your match scores.',
-            fields: [_FieldSpec(label: 'Skill', hint: 'e.g. Flutter, State Management, REST APIs')],
+            fields: [FieldSpec(label: 'Skill', hint: 'e.g. Flutter, State Management, REST APIs')],
           ),
       };
 
@@ -426,15 +519,16 @@ class _DnaScreenState extends State<DnaScreen> {
             [p.summary]
           ],
         _SectionKind.experience => [
-            for (final e in p.experience) [e.role, e.company, e.years == 0 ? '' : e.years.toString()],
+            for (final e in p.experience) [e.role, e.company, e.durationLabel],
           ],
         _SectionKind.projects => [
-            for (final e in p.projects) [e.name, e.description, e.tech.join(', ')],
+            for (final e in p.projects)
+              [e.name, e.description, e.tech.join(', '), ProjectLink.listToJson(e.links)],
           ],
         _SectionKind.education => [
             for (final e in p.education) [e.degree, e.field],
           ],
-        _SectionKind.certifications => [for (final c in p.certifications) [c]],
+        _SectionKind.certifications => [for (final c in p.certifications) [c.name, c.link]],
         _SectionKind.achievements => [for (final a in p.achievements) [a]],
         _SectionKind.languages => [for (final l in p.languages) [l]],
         _SectionKind.skills => const [],
@@ -467,7 +561,12 @@ class _DnaScreenState extends State<DnaScreen> {
         _SectionKind.projects => p.copyWith(
             projects: [
               for (final e in entries)
-                ProfileProject(name: _at(e, 0), description: _at(e, 1), tech: _csv(_at(e, 2))),
+                ProfileProject(
+                  name: _at(e, 0),
+                  description: _at(e, 1),
+                  tech: _csv(_at(e, 2)),
+                  links: ProjectLink.listFromJson(_at(e, 3)),
+                ),
             ],
           ),
         _SectionKind.education => p.copyWith(
@@ -475,20 +574,65 @@ class _DnaScreenState extends State<DnaScreen> {
               for (final e in entries) ProfileEducation(degree: _at(e, 0), field: _at(e, 1)),
             ],
           ),
-        _SectionKind.certifications => p.copyWith(certifications: _column(entries)),
+        _SectionKind.certifications => p.copyWith(certifications: [
+              for (final e in entries)
+                ProfileCertification(name: _at(e, 0), link: _at(e, 1)),
+            ]),
         _SectionKind.achievements => p.copyWith(achievements: _column(entries)),
         _SectionKind.languages => p.copyWith(languages: _column(entries)),
         _SectionKind.skills => p,
       };
 
   Future<void> _editSection(_SectionKind kind) async {
+    if (kind == _SectionKind.experience) {
+      final result = await showModalBottomSheet<List<ExperienceEntry>>(
+        context: context,
+        backgroundColor: AppColors.cardHi,
+        showDragHandle: true,
+        isScrollControlled: true,
+        builder: (_) => ExperienceEditorSheet(
+          entries: ExperienceEntryBridge.fromProfile(_profile.experience),
+          field: context.read<CareerDnaCubit>().state.dna?.targetRole,
+        ),
+      );
+      if (result == null || !mounted) return;
+      setState(() {
+        _profile = _profile.copyWith(
+          experience: [
+            for (final e in result)
+              ProfileExperience(
+                role: e.role,
+                company: e.company,
+                durationMonths: e.durationMonths,
+                achievements: e.achievements,
+              ),
+          ],
+        );
+        _rebuild();
+      });
+      await _profileRepository?.save(_profile);
+      await _syncProfileToDna();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: const Text('Experience saved — match scores updated'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppColors.cardHi,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      return;
+    }
+
     final editor = _editorFor(kind);
     final result = await showModalBottomSheet<List<List<String>>>(
       context: context,
       backgroundColor: AppColors.cardHi,
       showDragHandle: true,
       isScrollControlled: true,
-      builder: (_) => _SectionEditorSheet(
+      builder: (_) => SectionEditorSheet(
         title: editor.title,
         subtitle: editor.subtitle,
         fields: editor.fields,
@@ -501,6 +645,7 @@ class _DnaScreenState extends State<DnaScreen> {
       _rebuild();
     });
     await _profileRepository?.save(_profile);
+    await _syncProfileToDna();
     if (!mounted) return;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -512,6 +657,18 @@ class _DnaScreenState extends State<DnaScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
+  }
+
+  Future<void> _syncProfileToDna() async {
+    final dnaCubit = context.read<CareerDnaCubit>();
+    final current = dnaCubit.state.dna;
+    if (current == null) return;
+    dnaCubit.updateDraft(current.copyWith(profile: _profile));
+    try {
+      await dnaCubit.save();
+    } on Object {
+      // no-op
+    }
   }
 
   Future<void> _openSkillsEditor() async {
@@ -528,6 +685,34 @@ class _DnaScreenState extends State<DnaScreen> {
       _rebuild();
     });
     await _skillsRepository?.save(result);
+  }
+
+  Future<void> _editIdentity() async {
+    final l10n = AppLocalizations.of(context)!;
+    final result = await showModalBottomSheet<UserIdentity>(
+      context: context,
+      backgroundColor: AppColors.cardHi,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (_) => _IdentityEditorSheet(initial: _identity),
+    );
+    if (result == null || !mounted) return;
+    setState(() {
+      _identity = result;
+      _rebuild();
+    });
+    await _identityRepo?.save(_identity);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('${l10n.dnaPersonalProfile} saved — CV header updated'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.cardHi,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
   }
 
   @override
@@ -945,9 +1130,13 @@ class _CompletenessCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('0%', style: AppTextStyles.mono),
-              Text(
-                '${overall.round()}% · Target 95%',
-                style: const TextStyle(fontSize: 11, fontFamily: AppTextStyles.monoFont, color: AppColors.teal),
+              Flexible(
+                child: Text(
+                  '${overall.round()}% · Target 95%',
+                  style: const TextStyle(fontSize: 11, fontFamily: AppTextStyles.monoFont, color: AppColors.teal),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
               ),
               const Text('100%', style: AppTextStyles.mono),
             ],
@@ -1031,6 +1220,8 @@ class _ProfileSections extends StatelessWidget {
               label: section.label,
               pct: section.pct,
               color: section.color,
+              subtitle: section.subtitle,
+              statusText: section.statusText,
               onTap: () => onSectionTap(section),
             ),
           Padding(
@@ -1410,17 +1601,23 @@ class _SkillsSheetState extends State<_SkillsSheet> {
 }
 
 /// One input in a section editor (label + hint + optional multi-line).
-class _FieldSpec {
-  const _FieldSpec({required this.label, required this.hint, this.lines = 1});
+class FieldSpec {
+  const FieldSpec({
+    required this.label,
+    required this.hint,
+    this.lines = 1,
+    this.isLinks = false,
+  });
 
   final String label;
   final String hint;
   final int lines;
+  final bool isLinks;
 }
 
 /// Static configuration describing how a section's real data is edited.
-class _SectionEditor {
-  const _SectionEditor({
+class SectionEditor {
+  const SectionEditor({
     required this.title,
     required this.subtitle,
     required this.fields,
@@ -1428,13 +1625,14 @@ class _SectionEditor {
 
   final String title;
   final String subtitle;
-  final List<_FieldSpec> fields;
+  final List<FieldSpec> fields;
 }
 
 /// Generic editor for one real profile section: existing entries are listed
 /// and editable, new ones can be added, and everything is returned on save.
-class _SectionEditorSheet extends StatefulWidget {
-  const _SectionEditorSheet({
+class SectionEditorSheet extends StatefulWidget {
+  const SectionEditorSheet({
+    super.key,
     required this.title,
     required this.subtitle,
     required this.fields,
@@ -1443,20 +1641,21 @@ class _SectionEditorSheet extends StatefulWidget {
 
   final String title;
   final String subtitle;
-  final List<_FieldSpec> fields;
+  final List<FieldSpec> fields;
   final List<List<String>> initial;
 
   @override
-  State<_SectionEditorSheet> createState() => _SectionEditorSheetState();
+  State<SectionEditorSheet> createState() => SectionEditorSheetState();
 }
 
-class _SectionEditorSheetState extends State<_SectionEditorSheet> {
+class SectionEditorSheetState extends State<SectionEditorSheet> {
   late final List<List<String>> _entries = [
     for (final entry in widget.initial) [...entry],
   ];
   late final List<TextEditingController> _controllers = [
     for (final _ in widget.fields) TextEditingController(),
   ];
+  String _linksJson = '';
   int? _editingIndex;
 
   @override
@@ -1470,14 +1669,32 @@ class _SectionEditorSheetState extends State<_SectionEditorSheet> {
   void _startEdit([int? index]) {
     setState(() {
       _editingIndex = index;
+      _linksJson = '';
       for (var i = 0; i < _controllers.length; i++) {
-        _controllers[i].text = index == null ? '' : _entries[index][i];
+        if (index == null) {
+          _controllers[i].clear();
+        } else {
+          final value = i < _entries[index].length ? _entries[index][i] : '';
+          if (widget.fields[i].isLinks) {
+            _linksJson = value;
+          } else {
+            _controllers[i].text = value;
+          }
+        }
       }
     });
   }
 
   void _saveEntry() {
-    final values = [for (final controller in _controllers) controller.text.trim()];
+    final values = <String>[];
+    for (var i = 0; i < widget.fields.length; i++) {
+      if (widget.fields[i].isLinks) {
+        final json = _linksJson.trim();
+        values.add(json == '[]' || json.isEmpty ? '' : json);
+      } else {
+        values.add(_controllers[i].text.trim());
+      }
+    }
     if (values.every((value) => value.isEmpty)) return;
     setState(() {
       final index = _editingIndex;
@@ -1487,6 +1704,7 @@ class _SectionEditorSheetState extends State<_SectionEditorSheet> {
         _entries[index] = values;
       }
       _editingIndex = null;
+      _linksJson = '';
       for (final controller in _controllers) {
         controller.clear();
       }
@@ -1531,11 +1749,16 @@ class _SectionEditorSheetState extends State<_SectionEditorSheet> {
                     for (var i = 0; i < _entries.length; i++)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8),
-                        child: _EntryCard(
+                        child:                         _EntryCard(
                           title: _entries[i].first,
-                          subtitle: _entries[i].length > 1
-                              ? _entries[i].sublist(1).where((v) => v.isNotEmpty).join(' · ')
-                              : '',
+                          subtitle: [
+                            for (var j = 1; j < _entries[i].length; j++)
+                              if (j < widget.fields.length && !widget.fields[j].isLinks)
+                                _entries[i][j],
+                            for (var j = 0; j < _entries[i].length; j++)
+                              if (j < widget.fields.length && widget.fields[j].isLinks)
+                                _linkSummary(_entries[i][j]),
+                          ].where((v) => v.isNotEmpty).join(' · '),
                           onEdit: () => _startEdit(i),
                           onDelete: () => _remove(i),
                         ),
@@ -1550,30 +1773,40 @@ class _SectionEditorSheetState extends State<_SectionEditorSheet> {
                   ),
                   const SizedBox(height: 6),
                   for (var i = 0; i < widget.fields.length; i++)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: TextField(
-                        controller: _controllers[i],
-                        maxLines: widget.fields[i].lines,
-                        style: const TextStyle(color: AppColors.text),
-                        decoration: InputDecoration(
-                          labelText: widget.fields[i].label,
-                          hintText: widget.fields[i].hint,
-                          labelStyle: AppTextStyles.bodySub,
-                          hintStyle: AppTextStyles.bodySub,
-                          filled: true,
-                          fillColor: AppColors.card,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: AppColors.border),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: AppColors.border),
+                    if (widget.fields[i].isLinks)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: LinksEditor(
+                          initial: _linksJson,
+                          hint: widget.fields[i].label,
+                          onChanged: (v) => setState(() => _linksJson = v),
+                        ),
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: TextField(
+                          controller: _controllers[i],
+                          maxLines: widget.fields[i].lines,
+                          style: const TextStyle(color: AppColors.text),
+                          decoration: InputDecoration(
+                            labelText: widget.fields[i].label,
+                            hintText: widget.fields[i].hint,
+                            labelStyle: AppTextStyles.bodySub,
+                            hintStyle: AppTextStyles.bodySub,
+                            filled: true,
+                            fillColor: AppColors.card,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.border),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.border),
+                            ),
                           ),
                         ),
                       ),
-                    ),
                   Row(
                     children: [
                       Expanded(
@@ -1690,11 +1923,15 @@ class _ProfileEditorScreen extends StatefulWidget {
     required this.profile,
     required this.skills,
     required this.onSave,
+    this.identity,
+    this.onSaveIdentity,
   });
 
   final ProfileData profile;
   final List<String> skills;
   final Future<void> Function(ProfileData profile, List<String> skills) onSave;
+  final UserIdentity? identity;
+  final Future<void> Function(UserIdentity identity)? onSaveIdentity;
 
   @override
   State<_ProfileEditorScreen> createState() => _ProfileEditorScreenState();
@@ -1736,6 +1973,7 @@ class _ProfileEditorScreenState extends State<_ProfileEditorScreen> {
 
   late ProfileData _profile = widget.profile;
   late List<String> _skills = [...widget.skills];
+  late UserIdentity? _identity = widget.identity;
   bool _saving = false;
 
   double get _overall {
@@ -1756,7 +1994,13 @@ class _ProfileEditorScreenState extends State<_ProfileEditorScreen> {
   String _summaryFor(_SectionKind kind) {
     final p = _profile;
     return switch (kind) {
-      _SectionKind.summary => p.summary.isEmpty ? 'Tap to add your summary' : p.summary,
+      _SectionKind.summary => _identity == null || (_identity!.isEmpty && p.summary.isEmpty)
+          ? 'Tap to add your identity & contact details'
+          : [
+              if (_identity != null && _identity!.fullName.isNotEmpty) _identity!.fullName,
+              if (_identity != null && _identity!.professionalTitle.isNotEmpty) _identity!.professionalTitle,
+              if (_identity != null && _identity!.email.isNotEmpty) _identity!.email,
+            ].where((s) => s.isNotEmpty).join(' · '),
       _SectionKind.experience => p.experience.isEmpty
           ? 'No roles yet'
           : p.experience.map((e) => [e.role, e.company].where((v) => v.isNotEmpty).join(' · ')).join(', '),
@@ -1766,7 +2010,7 @@ class _ProfileEditorScreenState extends State<_ProfileEditorScreen> {
       _SectionKind.education => p.education.isEmpty
           ? 'No degrees yet'
           : p.education.map((e) => e.degree).join(', '),
-      _SectionKind.certifications => p.certifications.isEmpty ? 'No certifications yet' : p.certifications.join(', '),
+      _SectionKind.certifications => p.certifications.isEmpty ? 'No certifications yet' : p.certifications.map((c) => c.name).join(', '),
       _SectionKind.achievements => p.achievements.isEmpty ? 'No achievements yet' : p.achievements.join(', '),
       _SectionKind.languages => p.languages.isEmpty ? 'No languages yet' : p.languages.join(', '),
       _SectionKind.skills => _skills.isEmpty ? 'No skills yet' : _skills.join(', '),
@@ -1774,6 +2018,18 @@ class _ProfileEditorScreenState extends State<_ProfileEditorScreen> {
   }
 
   Future<void> _edit(_SectionKind kind) async {
+    if (kind == _SectionKind.summary) {
+      final result = await showModalBottomSheet<UserIdentity>(
+        context: context,
+        backgroundColor: AppColors.cardHi,
+        showDragHandle: true,
+        isScrollControlled: true,
+        builder: (_) => _IdentityEditorSheet(initial: _identity ?? const UserIdentity()),
+      );
+      if (result == null || !mounted) return;
+      setState(() => _identity = result);
+      return;
+    }
     if (kind == _SectionKind.skills) {
       final result = await showModalBottomSheet<List<String>>(
         context: context,
@@ -1786,6 +2042,33 @@ class _ProfileEditorScreenState extends State<_ProfileEditorScreen> {
       setState(() => _skills = result);
       return;
     }
+    if (kind == _SectionKind.experience) {
+      final result = await showModalBottomSheet<List<ExperienceEntry>>(
+        context: context,
+        backgroundColor: AppColors.cardHi,
+        showDragHandle: true,
+        isScrollControlled: true,
+        builder: (_) => ExperienceEditorSheet(
+          entries: ExperienceEntryBridge.fromProfile(_profile.experience),
+          field: context.read<CareerDnaCubit>().state.dna?.targetRole,
+        ),
+      );
+      if (result == null || !mounted) return;
+      setState(() {
+        _profile = _profile.copyWith(
+          experience: [
+            for (final e in result)
+              ProfileExperience(
+                role: e.role,
+                company: e.company,
+                durationMonths: e.durationMonths,
+                achievements: e.achievements,
+              ),
+          ],
+        );
+      });
+      return;
+    }
 
     final editor = _DnaScreenState._editorFor(kind);
     final result = await showModalBottomSheet<List<List<String>>>(
@@ -1793,7 +2076,7 @@ class _ProfileEditorScreenState extends State<_ProfileEditorScreen> {
       backgroundColor: AppColors.cardHi,
       showDragHandle: true,
       isScrollControlled: true,
-      builder: (_) => _SectionEditorSheet(
+      builder: (_) => SectionEditorSheet(
         title: editor.title,
         subtitle: editor.subtitle,
         fields: editor.fields,
@@ -1807,6 +2090,9 @@ class _ProfileEditorScreenState extends State<_ProfileEditorScreen> {
   Future<void> _save() async {
     setState(() => _saving = true);
     await widget.onSave(_profile, _skills);
+    if (_identity != null && widget.onSaveIdentity != null) {
+      await widget.onSaveIdentity!(_identity!);
+    }
     if (!mounted) return;
     Navigator.of(context).pop();
   }
@@ -1976,6 +2262,146 @@ class _ProfileSectionTile extends StatelessWidget {
               ),
               const Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.textMuted),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Bottom-sheet editor for [UserIdentity] fields.
+class _IdentityEditorSheet extends StatefulWidget {
+  const _IdentityEditorSheet({required this.initial});
+
+  final UserIdentity initial;
+
+  @override
+  State<_IdentityEditorSheet> createState() => _IdentityEditorSheetState();
+}
+
+class _IdentityEditorSheetState extends State<_IdentityEditorSheet> {
+  late final TextEditingController _fullName;
+  late final TextEditingController _professionalTitle;
+  late final TextEditingController _email;
+  late final TextEditingController _phone;
+  late final TextEditingController _location;
+  late final TextEditingController _linkedinUrl;
+  late final TextEditingController _githubUrl;
+  late final TextEditingController _portfolioUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    final i = widget.initial;
+    _fullName = TextEditingController(text: i.fullName);
+    _professionalTitle = TextEditingController(text: i.professionalTitle);
+    _email = TextEditingController(text: i.email);
+    _phone = TextEditingController(text: i.phone);
+    _location = TextEditingController(text: i.location);
+    _linkedinUrl = TextEditingController(text: i.linkedinUrl);
+    _githubUrl = TextEditingController(text: i.githubUrl);
+    _portfolioUrl = TextEditingController(text: i.portfolioUrl);
+  }
+
+  @override
+  void dispose() {
+    _fullName.dispose();
+    _professionalTitle.dispose();
+    _email.dispose();
+    _phone.dispose();
+    _location.dispose();
+    _linkedinUrl.dispose();
+    _githubUrl.dispose();
+    _portfolioUrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Identity & Contact', style: AppTextStyles.cardTitle),
+          const SizedBox(height: 4),
+          Text(
+            'Your contact details appear on the generated CV header.',
+            style: AppTextStyles.bodySub,
+          ),
+          const SizedBox(height: 14),
+          Flexible(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildField(_fullName, 'Full Name', 'e.g. Jane Doe'),
+                  _buildField(_professionalTitle, 'Professional Title', 'e.g. Flutter Engineer'),
+                  _buildField(_email, 'Email', 'e.g. jane@example.com'),
+                  _buildField(_phone, 'Phone', 'e.g. +971 50 123 4567'),
+                  _buildField(_location, 'Location', 'e.g. Dubai, UAE'),
+                  _buildField(_linkedinUrl, 'LinkedIn URL', 'https://linkedin.com/in/...'),
+                  _buildField(_githubUrl, 'GitHub URL', 'https://github.com/...'),
+                  _buildField(_portfolioUrl, 'Portfolio URL', 'https://...'),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: FilledButton(
+              onPressed: () => Navigator.of(context).pop(
+                UserIdentity(
+                  fullName: _fullName.text.trim(),
+                  professionalTitle: _professionalTitle.text.trim(),
+                  email: _email.text.trim(),
+                  phone: _phone.text.trim(),
+                  location: _location.text.trim(),
+                  linkedinUrl: _linkedinUrl.text.trim(),
+                  githubUrl: _githubUrl.text.trim(),
+                  portfolioUrl: _portfolioUrl.text.trim(),
+                ),
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.teal,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Save', style: AppTextStyles.primaryButton),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildField(TextEditingController ctrl, String label, String hint) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: TextField(
+        controller: ctrl,
+        style: const TextStyle(color: AppColors.text),
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          labelStyle: AppTextStyles.bodySub,
+          hintStyle: AppTextStyles.bodySub,
+          filled: true,
+          fillColor: AppColors.card,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.border),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.border),
           ),
         ),
       ),

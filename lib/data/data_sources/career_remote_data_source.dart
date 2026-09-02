@@ -84,6 +84,21 @@ class CareerRemoteDataSource {
     return data;
   }
 
+  /// Identity / contact row scoped to the current user.
+  Future<Map<String, dynamic>?> fetchUserIdentity() async {
+    final client = _client;
+    final userId = client.auth.currentUser!.id;
+    final rows = await client.from('user_identity').select().eq('user_id', userId);
+    if (rows.isEmpty) return null;
+    return Map<String, dynamic>.from(rows.first as Map);
+  }
+
+  Future<void> saveUserIdentity(Map<String, dynamic> row) async {
+    final client = _client;
+    final userId = client.auth.currentUser!.id;
+    await client.from('user_identity').upsert({...row, 'user_id': userId});
+  }
+
   /// Runs the hosted AI CV generation edge function with the user's JWT.
   /// Returns the raw JSON `{ content, sourceLabel }` where `content` is the
   /// structured CV content object.
@@ -211,6 +226,47 @@ class CareerRemoteDataSource {
       throw StateError(data['error'] as String);
     }
     return data;
+  }
+
+  /// Runs the AI conversational intake edge function. Supports modes:
+  /// - `github_import`: imports from GitHub username
+  /// - `chat`: multi-turn conversational intake
+  /// - `finalize`: produces final CareerDNA from conversation
+  Future<Map<String, dynamic>> runAiIntake(Map<String, dynamic> body) async {
+    final client = _client;
+    final response = await client.functions
+        .invoke('ai_intake', body: body)
+        .timeout(const Duration(seconds: 60));
+    final data = response.data;
+    if (data is! Map<String, dynamic>) {
+      throw StateError('AI returned an unexpected response');
+    }
+    if (data['error'] != null) {
+      throw StateError(data['error'] as String);
+    }
+    return data;
+  }
+
+  /// Runs the AI enhance CareerDNA edge function.
+  /// Returns `{ suggestions: [...] }` with concrete improvements.
+  Future<Map<String, dynamic>> runAiEnhance(Map<String, dynamic> body) async {
+    final client = _client;
+    try {
+      final response = await client.functions
+          .invoke('ai_enhance', body: body)
+          .timeout(const Duration(seconds: 60));
+      final data = response.data;
+      if (data is! Map<String, dynamic>) {
+        throw StateError('AI returned an unexpected response');
+      }
+      if (data['error'] != null) {
+        throw StateError('${data['error']}');
+      }
+      return data;
+    } catch (e) {
+      if (e is StateError) rethrow;
+      throw StateError('Network error: $e');
+    }
   }
 
   /// The current Career DNA row from `career_dna`, or `null` if none yet.

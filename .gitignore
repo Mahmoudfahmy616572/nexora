@@ -49,3 +49,13 @@ app.*.map.json
 
 # Local device screenshots (not referenced by the app)
 /assets/screenshots/
+
+# Security / secrets
+.env
+.env.*
+*.pem
+*.key
+*.jks
+secrets/
+credentials/
+android/key.properties

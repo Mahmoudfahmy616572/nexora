@@ -126,6 +126,16 @@ ActionCenterState _readyDecision() {
 class _FakeDna implements CareerDnaRepository {
   @override
   Future<CareerDna?> load() async => _dna();
+
+  @override
+  Future<Map<String, dynamic>> aiIntake({
+    required List<Map<String, dynamic>> history,
+    String targetRole = '',
+    String language = 'en',
+    String mode = 'chat',
+    String githubUsername = '',
+  }) async => {};
+
   @override
   dynamic noSuchMethod(_) => throw UnimplementedError();
 }

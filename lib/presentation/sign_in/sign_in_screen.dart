@@ -70,89 +70,11 @@ class _SignInViewState extends State<_SignInView> {
     }
   }
 
-  Future<void> _showResetDialog() async {
-    final l10n = AppLocalizations.of(context)!;
-    final controller = TextEditingController(text: _email.text.trim());
-    var loading = false;
-    var sent = false;
-    if (!mounted) return;
-    await showDialog<void>(
+  void _showResetDialog() {
+    showDialog<void>(
       context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          backgroundColor: AppColors.card,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-            side: BorderSide(color: AppColors.border),
-          ),
-          title: Text(l10n.resetPasswordTitle, style: AppTextStyles.cardTitle),
-          content: SizedBox(
-            width: 320,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  l10n.resetPasswordBody,
-                  style: AppTextStyles.bodySub.copyWith(height: 1.5),
-                ),
-                const SizedBox(height: 14),
-                _AuthField(
-                  controller: controller,
-                  hint: l10n.emailHint,
-                  icon: Icons.alternate_email_rounded,
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                if (sent) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    l10n.resetPasswordSent,
-                    style: const TextStyle(fontSize: 12, color: AppColors.teal, height: 1.5),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: loading ? null : () => Navigator.of(context).pop(),
-              child: Text(l10n.backLabel, style: const TextStyle(color: AppColors.textSub)),
-            ),
-            ElevatedButton(
-              onPressed: loading
-                  ? null
-                  : () async {
-                      setState(() => loading = true);
-                      try {
-                        await AuthRepositoryImpl(AuthRemoteDataSource())
-                            .resetPassword(email: controller.text.trim());
-                      } on Object {
-                        // Always show the neutral confirmation to avoid leaking
-                        // which emails exist.
-                      }
-                      setState(() => loading = false);
-                      setState(() => sent = true);
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.teal,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: loading
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                    )
-                  : Text(l10n.resetPasswordSend),
-            ),
-          ],
-        ),
-      ),
+      builder: (_) => _ResetPasswordDialog(initialEmail: _email.text.trim()),
     );
-    controller.dispose();
   }
 
   @override
@@ -232,13 +154,7 @@ class _SignInViewState extends State<_SignInView> {
                             fontFamily: AppTextStyles.fontFamily,
                           ),
                         ),
-                        onPressed: () {},
-                      ),
-                      const SizedBox(height: 10),
-                      _SocialPill(
-                        label: l10n.continueApple,
-                        icon: const Icon(Icons.apple, size: 16, color: AppColors.text),
-                        onPressed: () {},
+                        onPressed: () => context.read<SignInCubit>().signInWithGoogle(),
                       ),
                       const SizedBox(height: 20),
                       const _OrDivider(),
@@ -664,6 +580,109 @@ class _AuthFieldState extends State<_AuthField> {
             const SizedBox(width: 16),
         ],
       ),
+    );
+  }
+}
+
+/// Password-reset dialog. Owns its [TextEditingController] in [State.initState]
+/// and disposes it in [State.dispose], which runs only after the dialog's exit
+/// animation completes — avoiding the "used after being disposed" crash.
+class _ResetPasswordDialog extends StatefulWidget {
+  const _ResetPasswordDialog({required this.initialEmail});
+
+  final String initialEmail;
+
+  @override
+  State<_ResetPasswordDialog> createState() => _ResetPasswordDialogState();
+}
+
+class _ResetPasswordDialogState extends State<_ResetPasswordDialog> {
+  late final TextEditingController _controller =
+      TextEditingController(text: widget.initialEmail);
+  var _loading = false;
+  var _sent = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _send() async {
+    setState(() => _loading = true);
+    try {
+      await AuthRepositoryImpl(AuthRemoteDataSource())
+          .resetPassword(email: _controller.text.trim());
+    } on Object {
+      // Always show the neutral confirmation to avoid leaking which emails exist.
+    }
+    if (!mounted) return;
+    setState(() {
+      _loading = false;
+      _sent = true;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return AlertDialog(
+      backgroundColor: AppColors.card,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(color: AppColors.border),
+      ),
+      title: Text(l10n.resetPasswordTitle, style: AppTextStyles.cardTitle),
+      content: SizedBox(
+        width: 320,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.resetPasswordBody,
+              style: AppTextStyles.bodySub.copyWith(height: 1.5),
+            ),
+            const SizedBox(height: 14),
+            _AuthField(
+              controller: _controller,
+              hint: l10n.emailHint,
+              icon: Icons.alternate_email_rounded,
+              keyboardType: TextInputType.emailAddress,
+            ),
+            if (_sent) ...[
+              const SizedBox(height: 12),
+              Text(
+                l10n.resetPasswordSent,
+                style: const TextStyle(fontSize: 12, color: AppColors.teal, height: 1.5),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _loading ? null : () => Navigator.of(context).pop(),
+          child: Text(l10n.backLabel, style: const TextStyle(color: AppColors.textSub)),
+        ),
+        ElevatedButton(
+          onPressed: _loading ? null : _send,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.teal,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          child: _loading
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                )
+              : Text(l10n.resetPasswordSend),
+        ),
+      ],
     );
   }
 }

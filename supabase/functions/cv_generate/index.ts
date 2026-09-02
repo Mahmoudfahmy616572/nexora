@@ -48,7 +48,26 @@ function extractJson(text: string): Record<string, unknown> {
     const start = t.indexOf('{');
     const end = t.lastIndexOf('}');
     if (start >= 0 && end > start) {
-      return JSON.parse(t.slice(start, end + 1)) as Record<string, unknown>;
+      let slice = t.slice(start, end + 1);
+      try {
+        return JSON.parse(slice) as Record<string, unknown>;
+      } catch {
+        // Truncated JSON: try closing unclosed brackets/braces.
+        let fixed = slice;
+        const openBrackets = (fixed.match(/\[/g) || []).length;
+        const closeBrackets = (fixed.match(/\]/g) || []).length;
+        const openBraces = (fixed.match(/{/g) || []).length;
+        const closeBraces = (fixed.match(/}/g) || []).length;
+        // Remove trailing incomplete value (e.g. "description": "some te...)
+        fixed = fixed.replace(/,\s*"[^"]*"\s*:\s*"?[^"\]]*$/, '');
+        fixed += ']'.repeat(Math.max(0, openBrackets - closeBrackets));
+        fixed += '}'.repeat(Math.max(0, openBraces - closeBraces));
+        try {
+          return JSON.parse(fixed) as Record<string, unknown>;
+        } catch {
+          // Give up.
+        }
+      }
     }
     throw new Error('AI returned malformed output');
   }
@@ -87,8 +106,13 @@ serve(async (req) => {
     const opportunity = (body.opportunity ?? {}) as Record<string, unknown>;
     const template = (body.template ?? {}) as Record<string, unknown>;
     const language = String(body.language ?? 'en').toLowerCase();
+    const identity = (body.identity ?? {}) as Record<string, unknown>;
 
-    const profile = (dna.profile ?? dna.content ?? {}) as Record<string, unknown>;
+    // toContext() (the client payload) places experience/projects/education/
+    // skills/summary at the TOP level of the dna object, while some callers may
+    // nest them under `profile` or `content`. Resolve from the nested location
+    // first, then fall back to the top level so nothing is dropped.
+    const profile = (dna.profile ?? dna.content ?? dna) as Record<string, unknown>;
     const experience = list(profile.experience).map((e) =>
       e as Record<string, unknown>
     );
@@ -99,7 +123,11 @@ serve(async (req) => {
       e as Record<string, unknown>
     );
     const skills = list(dna.skills).map((s) => String(s));
-    const certifications = list(profile.certifications).map((c) => String(c));
+    const certifications = list(profile.certifications).map((c) =>
+      c && typeof c === 'object'
+        ? { name: str((c as Record<string, unknown>).name), link: str((c as Record<string, unknown>).link) }
+        : { name: String(c), link: '' }
+    );
     const achievements = list(profile.achievements).map((a) => String(a));
     const languages = list(profile.languages).map((l) => String(l));
     const summary = str(profile.summary);
@@ -110,9 +138,11 @@ serve(async (req) => {
       facts.push(
         `- professional_experience: ${
           experience
-            .map((e) =>
-              `${str(e.role)} at ${str(e.company)} (${str(e.years)} yrs)`
-            )
+            .map((e) => {
+              const dur = str(e.duration_months) || String((Number(e.years) || 0) * 12);
+              const expAchievements = list(e.achievements).map(String);
+              return `${str(e.role)} at ${str(e.company)} (${dur} months)${expAchievements.length > 0 ? ' — achievements: ' + expAchievements.join('; ') : ''}`;
+            })
             .join('; ')
         }`,
       );
@@ -121,11 +151,19 @@ serve(async (req) => {
       facts.push(
         `- projects: ${
           projects
-            .map((p) =>
-              `${str(p.name)} — ${str(p.description).slice(0, 400)} (tech: ${
+            .map((p) => {
+              const links = list(p.links)
+                .map((l) =>
+                  l && typeof l === 'object'
+                    ? `${str((l as Record<string, unknown>).label) || str((l as Record<string, unknown>).url)} <${str((l as Record<string, unknown>).url)}>`
+                    : String(l)
+                )
+                .filter(Boolean)
+                .join(', ');
+              return `${str(p.name)} — ${str(p.description).slice(0, 400)} (tech: ${
                 list(p.tech).map(String).join(', ')
-              })`
-            )
+              })${links ? ` [links: ${links}]` : ''}`;
+            })
             .join(' | ')
         }`,
       );
@@ -141,12 +179,37 @@ serve(async (req) => {
     }
     if (skills.length) facts.push(`- skills: ${skills.join(', ')}`);
     if (certifications.length) {
-      facts.push(`- certifications: ${certifications.join(', ')}`);
+      facts.push(`- certifications: ${
+        certifications.map(c => c.link ? `${c.name} [link: ${c.link}]` : c.name).join(', ')
+      }`);
     }
     if (achievements.length) {
       facts.push(`- achievements: ${achievements.join(' | ')}`);
     }
     if (languages.length) facts.push(`- languages: ${languages.join(', ')}`);
+
+    // UserIdentity.toJson() uses snake_case keys (matching the Supabase column
+    // names), so read those here rather than camelCase.
+    const identityName = str(identity.full_name);
+    const identityTitle = str(identity.professional_title);
+    const identityEmail = str(identity.email);
+    const identityPhone = str(identity.phone);
+    const identityLocation = str(identity.location);
+    const identityLinkedin = str(identity.linkedin_url);
+    const identityGithub = str(identity.github_url);
+    const identityPortfolio = str(identity.portfolio_url);
+
+    if (identityName) facts.push(`- user_name: ${identityName}`);
+    if (identityTitle) facts.push(`- user_title: ${identityTitle}`);
+    if (identityEmail) facts.push(`- user_email: ${identityEmail}`);
+    if (identityPhone) facts.push(`- user_phone: ${identityPhone}`);
+    if (identityLocation) facts.push(`- user_location: ${identityLocation}`);
+    const identityLinks = [
+      identityLinkedin ? `LinkedIn <${identityLinkedin}>` : '',
+      identityGithub ? `GitHub <${identityGithub}>` : '',
+      identityPortfolio ? `Portfolio <${identityPortfolio}>` : '',
+    ].filter(Boolean);
+    if (identityLinks.length) facts.push(`- user_links: ${identityLinks.join(', ')}`);
 
     const targetLines = Object.entries(target)
       .filter(([, v]) => v != null && str(v) !== '')
@@ -184,20 +247,26 @@ serve(async (req) => {
       '',
       'Return ONLY a JSON object with this exact shape:',
       '{',
-      '  "header": { "name": "", "title": "", "subtitle": "", "email": "", "phone": "", "location": "", "links": [] },',
+      '  "header": { "name": "", "title": "", "subtitle": "", "email": "", "phone": "", "location": "", "links": [ { "label": "", "url": "" } ] },',
       '  "summary": string,',
-      '  "experience": [ { "role": "", "company": "", "years": number|null, "startDate": "", "endDate": "", "description": "" } ],',
-      '  "projects": [ { "name": "", "description": "", "tech": [string], "link": "" } ],',
+      '  "experience": [ { "role": "", "company": "", "years": number|null, "durationMonths": number, "startDate": "", "endDate": "", "description": "", "achievements": [string] } ],',
+      '  "projects": [ { "name": "", "description": "", "tech": [string], "links": [ { "label": "", "url": "" } ] } ],',
       '  "education": [ { "degree": "", "field": "", "institution": "", "year": "" } ],',
       '  "skillGroups": [ { "title": "", "skills": [string] } ],',
-      '  "certifications": [ { "name": "", "issuer": "", "year": "" } ],',
-      '  "achievements": [ { "text": "" } ],',
+      '  "certifications": [ { "name": "", "issuer": "", "year": "", "link": "" } ],',
       '  "languages": [ { "name": "", "level": "" } ]',
       '}',
       '',
       'Rules for the JSON:',
       '- Only include sections whose source facts exist; omit empty arrays.',
-      '- "header.name" must be empty unless explicitly provided.',
+      '- "header.name" MUST use the provided user_name fact if available, otherwise leave empty.',
+      '- "header.title" MUST use the provided user_title fact if available, otherwise use the target role.',
+      '- "header.email", "header.phone", "header.location" MUST use the provided user_* facts.',
+      '- "header.links" MUST use the provided user_links facts. Each link MUST be an object with "label" (short name like "LinkedIn") and "url" (the full URL). NEVER put raw URLs as labels.',
+      '- "projects[].links" MUST use the provided project "[links: ...]" facts, preserving each link\'s label and url exactly.',
+      '- "certifications[].link" MUST use the provided certification "[link: ...]" url if available, otherwise leave empty.',
+      '- "experience[].durationMonths" MUST use the provided duration_months fact. If duration is given in months, output it directly. If given in years, multiply by 12.',
+      '- "experience[].achievements" MUST use the provided per-experience achievements exactly as given. Do NOT invent new achievements.',
       '- Keep every value a direct rephrasing of a provided fact.',
       '- "skillGroups" should group the provided skills sensibly.',
       '',
@@ -217,7 +286,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'openai/gpt-oss-120b',
         temperature: 0.3,
-        max_tokens: 1600,
+        max_tokens: 4000,
         response_format: { type: 'json_object' },
         messages: [{ role: 'user', content: prompt }],
       }),

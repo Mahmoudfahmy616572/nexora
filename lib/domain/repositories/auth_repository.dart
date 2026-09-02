@@ -33,4 +33,7 @@ abstract interface class AuthRepository {
 
   /// Ends the current session and returns to the signed-out state.
   Future<void> signOut();
+
+  /// Signs in with Google OAuth.
+  Future<void> signInWithGoogle();
 }

@@ -53,6 +53,7 @@ class _VerifyEmailViewState extends State<_VerifyEmailView> {
       List.generate(_length, (_) => FocusNode());
 
   Timer? _timer;
+  Timer? _successTimer;
   int _seconds = 30;
   bool _ready = false;
 
@@ -65,6 +66,7 @@ class _VerifyEmailViewState extends State<_VerifyEmailView> {
   @override
   void dispose() {
     _timer?.cancel();
+    _successTimer?.cancel();
     for (final c in _controllers) {
       c.dispose();
     }
@@ -128,7 +130,7 @@ class _VerifyEmailViewState extends State<_VerifyEmailView> {
             listener: (context, state) {
               if (state.verified) {
                 _timer?.cancel();
-                Timer(const Duration(milliseconds: 1600), () {
+                _successTimer = Timer(const Duration(milliseconds: 1600), () {
                   if (mounted) {
                     // Fresh sign-up with pre-auth choices continues into the
                     // adaptive intake; otherwise land on the DNA tab.

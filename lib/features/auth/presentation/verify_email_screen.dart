@@ -32,6 +32,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
       List.generate(_length, (_) => FocusNode());
 
   Timer? _timer;
+  Timer? _successTimer;
   int _seconds = 30;
   bool _ready = false;
   bool _verified = false;
@@ -45,6 +46,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _successTimer?.cancel();
     for (final c in _controllers) {
       c.dispose();
     }
@@ -98,7 +100,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     FocusScope.of(context).unfocus();
     _timer?.cancel();
     setState(() => _verified = true);
-    Timer(const Duration(milliseconds: 1600), () {
+    _successTimer = Timer(const Duration(milliseconds: 1600), () {
       if (mounted) context.go(Routes.main);
     });
   }

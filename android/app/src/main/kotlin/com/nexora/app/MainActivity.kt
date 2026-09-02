@@ -1,4 +1,4 @@
-package com.example.nexora
+package com.nexora.app
 
 import io.flutter.embedding.android.FlutterActivity
 

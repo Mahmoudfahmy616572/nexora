@@ -293,7 +293,7 @@ final _fullContent = CvContent(
     email: 'alex@example.com',
     phone: '+1 555 010 000',
     location: 'Remote',
-    links: ['github.com/alexdoe'],
+    links: [CvContactLink(label: 'GitHub', url: 'github.com/alexdoe')],
   ),
   summary:
       'Versatile engineer with experience across product delivery, research '

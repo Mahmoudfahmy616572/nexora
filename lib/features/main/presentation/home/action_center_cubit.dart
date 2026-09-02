@@ -50,13 +50,17 @@ class ActionCenterCubit extends Cubit<ActionCenterCubitState> {
   }
 
   Future<void> load() async {
+    if (isClosed) return;
     emit(const ActionCenterCubitState(status: ActionCenterStatus.loading));
 
     final dna = await _safe(() => dnaRepo.load(), null);
+    if (isClosed) return;
     final targets =
         await _safe(() => targetRepo.loadAll(), const <CareerTarget>[]);
+    if (isClosed) return;
     final analyses =
         await _safe(() => analysisRepo.load(), null) ?? const <JobAnalysis>[];
+    if (isClosed) return;
     final documents =
         await _safe(() => docRepo.loadDocuments(), const <CvDocument>[]);
 
@@ -70,6 +74,7 @@ class ActionCenterCubit extends Cubit<ActionCenterCubitState> {
 
     final versionsByDoc = <String, List<CvVersion>>{};
     for (final d in documents) {
+      if (isClosed) return;
       versionsByDoc[d.id] = await _safe(
         () => docRepo.loadVersions(d.id),
         const <CvVersion>[],
@@ -79,6 +84,7 @@ class ActionCenterCubit extends Cubit<ActionCenterCubitState> {
     final evaluations = <CvEvaluation>[];
     for (final versions in versionsByDoc.values) {
       for (final v in versions) {
+        if (isClosed) return;
         final e = await _safe(() => evalRepo.loadEvaluation(v.id), null);
         if (e != null) evaluations.add(e);
       }
@@ -86,6 +92,7 @@ class ActionCenterCubit extends Cubit<ActionCenterCubitState> {
 
     final suggestions = <CvSuggestion>[];
     for (final e in evaluations) {
+      if (isClosed) return;
       final list = await _safe(
         () => suggestionRepo.loadByEvaluation(e.id),
         const <CvSuggestion>[],
@@ -93,6 +100,7 @@ class ActionCenterCubit extends Cubit<ActionCenterCubitState> {
       suggestions.addAll(list);
     }
 
+    if (isClosed) return;
     final applications =
         await _safe(() => applicationRepo.load(), null) ?? const <JobApplication>[];
 
@@ -117,6 +125,7 @@ class ActionCenterCubit extends Cubit<ActionCenterCubitState> {
       hasInterviewPrep: hasInterviewPrep,
     ));
 
+    if (isClosed) return;
     emit(ActionCenterCubitState(
       status: ActionCenterStatus.ready,
       decision: decision,

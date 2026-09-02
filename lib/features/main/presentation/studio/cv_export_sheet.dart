@@ -21,9 +21,11 @@ String cvToText(CvContent content) {
     if (h.email.isNotEmpty) h.email,
     if (h.phone.isNotEmpty) h.phone,
     if (h.location.isNotEmpty) h.location,
-    ...h.links,
   ].join('  •  ');
   if (contact.isNotEmpty) buffer.writeln(contact);
+  if (h.links.isNotEmpty) {
+    buffer.writeln(h.links.map((l) => l.label).join('  •  '));
+  }
   if (content.summary.isNotEmpty) {
     buffer.writeln();
     buffer.writeln('SUMMARY');

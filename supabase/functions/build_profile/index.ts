@@ -6,7 +6,7 @@
 // function is missing, unconfigured, or offline.
 //
 // Deploy:
-//   supabase functions deploy build_profile --no-verify-jwt
+//   supabase functions deploy build_profile
 //   supabase secrets set GROQ_API_KEY=gsk_...
 //
 // Request body:
@@ -37,6 +37,18 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // --- Auth check ---
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const supabase = (await import('https://esm.sh/@supabase/supabase-js@2.45.4')).createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data: { user } } = await supabase.auth.getUser(authHeader.replace(/^Bearer\s+/i, ''));
+    if (!user) {
+      return json({ error: 'Unauthorized' }, 401);
+    }
+
     const body = (await req.json()) as {
       interests?: unknown;
       customInterests?: unknown;

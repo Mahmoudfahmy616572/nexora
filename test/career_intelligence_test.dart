@@ -44,7 +44,7 @@ void main() {
           ProfileProject(name: 'P2', description: 'd', tech: ['Dart']),
           ProfileProject(name: 'P3', description: 'd', tech: ['Firebase']),
         ],
-        certifications: const ['AWS'],
+        certifications: const [ProfileCertification(name: 'AWS')],
         achievements: const ['Hackathon'],
         languages: const ['Arabic'],
       );

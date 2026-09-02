@@ -36,3 +36,26 @@ abstract final class AppTheme {
     );
   }
 }
+
+/// Global scroll behavior that disables the Material 3 stretching / rubber-band
+/// overscroll and the edge glow, so screens settle cleanly at their ends
+/// instead of stretching (the "pull" feel the user reported).
+class NexoraScrollBehavior extends MaterialScrollBehavior {
+  const NexoraScrollBehavior();
+
+  @override
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child;
+  }
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    return const ClampingScrollPhysics(
+      parent: RangeMaintainingScrollPhysics(),
+    );
+  }
+}

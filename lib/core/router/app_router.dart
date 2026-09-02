@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -5,13 +8,15 @@ import '../../features/main/presentation/main_shell.dart';
 import '../../features/main/presentation/main_tab.dart';
 import '../../features/main/presentation/settings_screen.dart';
 import '../../presentation/career_dna/career_dna_review_screen.dart';
-import '../../presentation/career_intake/adaptive_intake_screen.dart';
+import '../../presentation/career_intake/ai_intake_screen.dart';
 import '../../presentation/career_interview/interview_screen.dart';
 import '../../presentation/onboarding/field_screen.dart';
 import '../../presentation/onboarding/goal_screen.dart';
 import '../../presentation/onboarding/onboarding_screen.dart';
 import '../../presentation/onboarding/stage_screen.dart';
+import '../../presentation/onboarding/cubit/onboarding_choices_cubit.dart';
 import '../../presentation/sign_in/sign_in_screen.dart';
+import '../../presentation/splash/splash_screen.dart';
 import '../../presentation/verify_email/verify_email_screen.dart';
 import '../../presentation/welcome/welcome_screen.dart';
 import '../../presentation/target/target_list_screen.dart';
@@ -24,6 +29,7 @@ import '../../domain/entities/career_target.dart';
 /// Route names for the entire application.
 abstract final class Routes {
   static const String main = '/';
+  static const String splash = '/splash';
   static const String welcome = '/welcome';
   static const String onboarding = '/onboarding';
   static const String login = '/login';
@@ -40,17 +46,29 @@ abstract final class Routes {
 }
 
 final GoRouter appRouter = GoRouter(
-  initialLocation: Routes.welcome,
+  initialLocation: Routes.splash,
+  refreshListenable: GoRouterRefreshStream(
+    Supabase.instance.client.auth.onAuthStateChange.map((_) => null),
+  ),
   redirect: (context, state) {
-    // Restore the session: a returning signed-in user lands on the app shell
-    // instead of the marketing welcome screen. Safe when Supabase is not
-    // initialized (e.g., widget tests) — no redirect happens then.
+    // Guard: never navigate back to the splash once past it (e.g. system back).
+    if (state.matchedLocation == Routes.splash) {
+      return null;
+    }
+    // A signed-in user shouldn't see the welcome screen (e.g. after a stale
+    // session resolves mid-flow); send them to the correct place.
     if (state.matchedLocation == Routes.welcome && _isSignedIn()) {
-      return Routes.main;
+      return OnboardingChoicesCubit.isOnboardingCompleted
+          ? Routes.main
+          : Routes.intake;
     }
     return null;
   },
   routes: [
+    GoRoute(
+      path: Routes.splash,
+      builder: (context, state) => const SplashScreen(),
+    ),
     GoRoute(
       path: Routes.main,
       builder: (context, state) => MainShell(
@@ -76,7 +94,7 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: Routes.intake,
-      builder: (context, state) => const AdaptiveIntakeScreen(),
+      builder: (context, state) => const AiIntakeScreen(),
     ),
     GoRoute(
       path: Routes.interview,
@@ -131,8 +149,28 @@ final GoRouter appRouter = GoRouter(
 
 bool _isSignedIn() {
   try {
-    return Supabase.instance.client.auth.currentSession != null;
-  } catch (_) {
+    final session = Supabase.instance.client.auth.currentSession;
+    final isSigned = session != null;
+    debugPrint('[AUTH] _isSignedIn: $isSigned, session: ${session?.accessToken != null ? "exists" : "null"}');
+    return isSigned;
+  } catch (e) {
+    debugPrint('[AUTH] _isSignedIn error: $e');
     return false;
+  }
+}
+
+/// Converts a [Stream] into a [Listenable] for GoRouter's [refreshListenable].
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen((_) => notifyListeners());
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
   }
 }

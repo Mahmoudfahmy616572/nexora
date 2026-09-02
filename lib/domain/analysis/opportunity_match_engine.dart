@@ -145,10 +145,10 @@ class OpportunityMatchEngine {
       final roleCanon = _canon(e.role);
       if (_covers(roleCanon, reqCanon) ||
           (e.company.isNotEmpty && _covers(_canon(e.company), reqCanon))) {
-        if (e.years > 0) {
+        if (e.effectiveMonths > 0) {
           return (
             source: EvidenceSource.professionalExperience,
-            text: '${e.years} yr${e.years == 1 ? '' : 's'} as ${e.role}${e.company.isNotEmpty ? ' at ${e.company}' : ''}'
+            text: '${e.durationLabel} as ${e.role}${e.company.isNotEmpty ? ' at ${e.company}' : ''}'
           );
         }
       }
@@ -156,13 +156,18 @@ class OpportunityMatchEngine {
     if (projectTech.contains(reqCanon)) {
       return (source: EvidenceSource.project, text: 'Project ${projectEvidence[reqCanon]}');
     }
-    final certs = <String>{for (final c in dna.profile.certifications) _canon(c)};
+    final certs = <String>{for (final c in dna.profile.certifications) _canon(c.name)};
     if (certs.contains(reqCanon)) {
       return (source: EvidenceSource.certification, text: 'Certification: $reqCanon');
     }
     final declared = <String>{for (final s in dna.skills) _canon(s)};
     if (declared.contains(reqCanon)) {
       return (source: EvidenceSource.declaredSkill, text: 'Declared skill: $reqCanon');
+    }
+    for (final dc in declared) {
+      if (_covers(dc, reqCanon) || _covers(reqCanon, dc)) {
+        return (source: EvidenceSource.declaredSkill, text: 'Declared skill: $dc');
+      }
     }
     return null;
   }
@@ -212,7 +217,7 @@ class OpportunityMatchEngine {
     final partial = _partialEvidence(reqCanon, dna, {
       ...{for (final s in dna.skills) _canon(s)},
       ...projectTech,
-      ...{for (final c in dna.profile.certifications) _canon(c)},
+      ...{for (final c in dna.profile.certifications) _canon(c.name)},
       ...{for (final e in dna.profile.experience) _canon(e.role)},
     });
     if (partial != null) {
@@ -383,7 +388,12 @@ class OpportunityMatchEngine {
 
   double _keywordScore(JobExtraction extraction, Set<String> pool) {
     if (extraction.keywords.isEmpty) return 70.0;
-    final matched = extraction.keywords.where((k) => pool.contains(_canon(k))).length;
+    final matched = extraction.keywords.where((k) {
+      final kc = _canon(k);
+      if (pool.contains(kc)) return true;
+      final kt = _tokens(k);
+      return kt.isNotEmpty && kt.every((t) => pool.any((p) => p.contains(t) || t.contains(p)));
+    }).length;
     return (100 * matched / extraction.keywords.length).clamp(0, 100);
   }
 
@@ -487,11 +497,26 @@ class OpportunityMatchEngine {
         _experienceScore(extraction.experienceYearsRequired, yearsTotal, dna.stage).toDouble();
     final double educationScore =
         _educationScore(extraction.educationRequired, highestRank).toDouble();
+    final summaryTokens = _tokens(dna.profile.summary).toSet();
+    final expTokens = <String>{};
+    for (final x in dna.profile.experience) {
+      expTokens.addAll(_tokens(x.description));
+      for (final b in x.bullets) {
+        expTokens.addAll(_tokens(b));
+      }
+    }
+    final projTokens = <String>{};
+    for (final p in dna.profile.projects) {
+      projTokens.addAll(_tokens(p.description));
+    }
     final keywordPool = <String>{
       ...{for (final s in dna.skills) _canon(s)},
       ...projectTech,
-      ...{for (final c in dna.profile.certifications) _canon(c)},
-      ...{for (final e in dna.profile.experience) _canon(e.role)},
+      ...{for (final c in dna.profile.certifications) _canon(c.name)},
+      ...{for (final x in dna.profile.experience) _canon(x.role)},
+      ...summaryTokens,
+      ...expTokens,
+      ...projTokens,
     };
     final double keywordsScore = _keywordScore(extraction, keywordPool).toDouble();
     final candidateLangs = <String>{for (final l in dna.profile.languages) l.trim().toLowerCase()};

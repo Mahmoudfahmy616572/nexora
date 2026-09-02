@@ -120,7 +120,7 @@ class _Scene extends StatelessWidget {
       width: 240,
       height: 340,
       child: Stack(
-        clipBehavior: Clip.none,
+        clipBehavior: Clip.hardEdge,
         children: [
           Positioned(
             left: -40,

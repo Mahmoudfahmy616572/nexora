@@ -48,4 +48,15 @@ class SignInCubit extends Cubit<SignInState> {
       emit(state.copyWith(loading: false, error: e.message));
     }
   }
+
+  /// Signs in with Google OAuth.
+  Future<void> signInWithGoogle() async {
+    emit(state.copyWith(loading: true, clearError: true));
+    try {
+      await repository.signInWithGoogle();
+      emit(state.copyWith(loading: false, outcome: SignInOutcome.signedIn));
+    } on AuthFailure catch (e) {
+      emit(state.copyWith(loading: false, error: e.message));
+    }
+  }
 }

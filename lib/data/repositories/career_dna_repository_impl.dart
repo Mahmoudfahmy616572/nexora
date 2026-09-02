@@ -199,6 +199,23 @@ class CareerDnaRepositoryImpl implements CareerDnaRepository {
       throw Exception('AI mock feedback failed: $e');
     }
   }
+
+  @override
+  Future<Map<String, dynamic>> aiIntake({
+    required List<Map<String, dynamic>> history,
+    String targetRole = '',
+    String language = 'en',
+    String mode = 'chat',
+    String githubUsername = '',
+  }) async {
+    return _remote.runAiIntake({
+      'mode': mode,
+      'history': history,
+      'target_role': targetRole,
+      'language': language,
+      'github_username': githubUsername,
+    });
+  }
 }
 
 CareerDna _fromVersionRow(Map<String, dynamic> row) {

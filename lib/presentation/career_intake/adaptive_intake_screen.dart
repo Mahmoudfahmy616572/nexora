@@ -8,9 +8,9 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/nexora_buttons.dart';
 import '../../../domain/entities/career_dna.dart';
 import '../../../domain/entities/intake_question.dart';
+import '../onboarding/cubit/onboarding_choices_cubit.dart';
 import '../../../l10n/app_localizations.dart';
 import '../career_dna/cubit/career_dna_cubit.dart';
-import '../onboarding/cubit/onboarding_choices_cubit.dart';
 import 'intake_config.dart';
 import 'intake_widgets.dart';
 
@@ -46,13 +46,13 @@ class _AdaptiveIntakeScreenState extends State<AdaptiveIntakeScreen> {
     ];
     _answers['experience'] = [
       for (final e in dna.profile.experience)
-        {'role': e.role, 'company': e.company, 'years': e.years.toString()},
+        {'role': e.role, 'company': e.company, 'years': e.years.toString(), 'duration_months': e.durationMonths.toString(), 'achievements': e.achievements.join(', ')},
     ];
     _answers['projects'] = [
       for (final p in dna.profile.projects)
         {'name': p.name, 'description': p.description, 'tech': p.tech.join(', ')},
     ];
-    _answers['certifications'] = [...dna.profile.certifications];
+    _answers['certifications'] = [...dna.profile.certifications.map((c) => c.name)];
     _answers['achievements'] = [...dna.profile.achievements];
     _answers['languages'] = [...dna.profile.languages];
     for (final entry in dna.extras.entries) {
@@ -80,7 +80,7 @@ class _AdaptiveIntakeScreenState extends State<AdaptiveIntakeScreen> {
     final choices = context.watch<OnboardingChoicesCubit>().state;
     return questionsFor(
       stage: choices.stage,
-      goal: choices.goal,
+      goals: choices.goals,
       field: choices.targetField,
       answers: _answers,
     );
@@ -112,6 +112,7 @@ class _AdaptiveIntakeScreenState extends State<AdaptiveIntakeScreen> {
       return;
     }
     context.read<CareerDnaCubit>().updateDraft(dna);
+    OnboardingChoicesCubit.markOnboardingCompleted();
     context.go(Routes.interview);
   }
 
@@ -356,6 +357,11 @@ class _QuestionCard extends StatelessWidget {
             answers[question.key] = items;
             onChange();
           },
+        ),
+      IntakeInputType.links => IntakeTextField(
+          controller: ctrl(question.key),
+          label: questionText,
+          hint: placeholder ?? '',
         ),
     };
 

@@ -97,12 +97,6 @@ class _SignInScreenState extends State<SignInScreen> {
                       ),
                       onPressed: () {},
                     ),
-                    const SizedBox(height: 10),
-                    _SocialPill(
-                      label: l10n.authContinueApple,
-                      icon: const Icon(Icons.apple, size: 16, color: AppColors.text),
-                      onPressed: () {},
-                    ),
                     const SizedBox(height: 20),
                     const _OrDivider(),
                     const SizedBox(height: 20),

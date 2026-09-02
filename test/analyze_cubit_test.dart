@@ -117,6 +117,15 @@ class FakeDnaRepo implements CareerDnaRepository {
     required String language,
   }) async =>
       const {};
+
+  @override
+  Future<Map<String, dynamic>> aiIntake({
+    required List<Map<String, dynamic>> history,
+    String targetRole = '',
+    String language = 'en',
+    String mode = 'chat',
+    String githubUsername = '',
+  }) async => {};
 }
 
 class FakeTargetRepo implements CareerTargetRepository {

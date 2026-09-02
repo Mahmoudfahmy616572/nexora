@@ -115,8 +115,8 @@ void main() {
       expect(remote.replaceAllTable, 'job_applications');
       expect(remote.replaceAllRows, hasLength(2));
       expect(remote.replaceAllRows!.first['id'], 'a1');
-      // Local fallback was not used on success.
-      expect(local.writeListValues, isNull);
+      // Local mirror is always written for resilience.
+      expect(local.writeListValues, hasLength(2));
     });
 
     test('saveAll falls back to local when remote throws', () async {

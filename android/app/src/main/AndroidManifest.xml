@@ -3,7 +3,7 @@
          profiles add this automatically). -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="nexora"
+        android:label="Nexora"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

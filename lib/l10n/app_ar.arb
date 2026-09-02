@@ -139,6 +139,14 @@
   "dnaEvidenceTail": " — لن يختلق الذكاء الاصطناعي خبرة أو مهارات. تُستخدم فقط الادعاءات الموثقة.",
   "dnaProfileSections": "أقسام الملف الشخصي",
   "dnaPersonalProfile": "الملف الشخصي",
+  "dnaPersonalProfileSubtitle": "الهوية ومعلومات الاتصال",
+  "dnaIdentityComplete": "\u2713 مكتمل",
+  "dnaIdentityMissing": "\u26A0 {count} عناصر ناقصة",
+  "@dnaIdentityMissing": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "dnaEducation": "التعليم",
   "dnaExperience": "الخبرة",
   "dnaProjects": "المشاريع",
@@ -546,6 +554,7 @@
   "intakeProjectName": "اسم المشروع",
   "intakeProjectDesc": "ماذا بنيت؟",
   "intakeProjectTech": "التقنيات",
+  "intakeProjectLinks": "روابط المشروع (روابط خارجية)",
   "intakePlaceholderRole": "الدور",
   "intakeCerts": "الشهادات",
   "intakeAddCert": "إضافة شهادة",
@@ -570,6 +579,7 @@
   "intakeReasonTransition": "لماذا تغير مجال عملك؟",
   "intakeCompany": "الشركة",
   "intakeYears": "عدد السنوات",
+  "intakeDurationMonths": "المدة (بالأشهر)",
   "intakeBack": "رجوع",
   "intakeSkip": "تخطي",
   "intakeFinish": "إنهاء",
@@ -882,5 +892,23 @@
     "placeholders": {
       "count": { "type": "int" }
     }
-  }
+  },
+  "cvCompleteProfile": "أكمل الملف الشخصي",
+  "cvQualityCouldBeBetter": "جودة السيرة الذاتية يمكن تحسينها",
+  "exitConfirm": "اضغط رجوع مرة أخرى للخروج",
+  "exitConfirmTitle": "الخروج من التطبيق؟",
+  "enhanceTitle": "تحسين الـ DNA",
+  "enhanceAcceptAll": "قبول الكل",
+  "enhanceSuggestionsLeft": "اقتراحات للمراجعة",
+  "enhanceAccepted": "مقبول",
+  "enhanceRejected": "متخطى",
+  "enhanceBefore": "قبل",
+  "enhanceAfter": "بعد",
+  "enhanceAccept": "قبول",
+  "enhanceReject": "تخطى",
+  "enhanceApply": "تطبيق التحسينات",
+  "enhanceApplied": "تم تحديث الـ CareerDNA بنجاح",
+  "enhanceError": "فشل تحميل الاقتراحات",
+  "enhanceRetry": "إعادة المحاولة",
+  "enhanceBtn": "تحسين DNA"
 }

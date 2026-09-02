@@ -878,6 +878,24 @@ abstract class AppLocalizations {
   /// **'Personal Profile'**
   String get dnaPersonalProfile;
 
+  /// No description provided for @dnaPersonalProfileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity & contact details'**
+  String get dnaPersonalProfileSubtitle;
+
+  /// No description provided for @dnaIdentityComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'✓ Complete'**
+  String get dnaIdentityComplete;
+
+  /// No description provided for @dnaIdentityMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'⚠ {count} items missing'**
+  String dnaIdentityMissing(int count);
+
   /// No description provided for @dnaEducation.
   ///
   /// In en, this message translates to:
@@ -3014,6 +3032,12 @@ abstract class AppLocalizations {
   /// **'Technologies'**
   String get intakeProjectTech;
 
+  /// No description provided for @intakeProjectLinks.
+  ///
+  /// In en, this message translates to:
+  /// **'Project links (URLs)'**
+  String get intakeProjectLinks;
+
   /// No description provided for @intakePlaceholderRole.
   ///
   /// In en, this message translates to:
@@ -3157,6 +3181,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Years'**
   String get intakeYears;
+
+  /// No description provided for @intakeDurationMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration (months)'**
+  String get intakeDurationMonths;
 
   /// No description provided for @intakeBack.
   ///
@@ -4717,6 +4747,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Done'**
   String get practiceDone;
+
+  /// No description provided for @cvCompleteProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Profile'**
+  String get cvCompleteProfile;
+
+  /// No description provided for @cvQualityCouldBeBetter.
+  ///
+  /// In en, this message translates to:
+  /// **'CV quality could be better'**
+  String get cvQualityCouldBeBetter;
+
+  /// No description provided for @exitConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Press back again to exit'**
+  String get exitConfirm;
+
+  /// No description provided for @exitConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit app?'**
+  String get exitConfirmTitle;
+
+  /// No description provided for @enhanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enhance Your DNA'**
+  String get enhanceTitle;
+
+  /// No description provided for @enhanceAcceptAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept All'**
+  String get enhanceAcceptAll;
+
+  /// No description provided for @enhanceSuggestionsLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'suggestions to review'**
+  String get enhanceSuggestionsLeft;
+
+  /// No description provided for @enhanceAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'accepted'**
+  String get enhanceAccepted;
+
+  /// No description provided for @enhanceRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'skipped'**
+  String get enhanceRejected;
+
+  /// No description provided for @enhanceBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Before'**
+  String get enhanceBefore;
+
+  /// No description provided for @enhanceAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'After'**
+  String get enhanceAfter;
+
+  /// No description provided for @enhanceAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get enhanceAccept;
+
+  /// No description provided for @enhanceReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get enhanceReject;
+
+  /// No description provided for @enhanceApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply Changes'**
+  String get enhanceApply;
+
+  /// No description provided for @enhanceApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'CareerDNA updated successfully'**
+  String get enhanceApplied;
+
+  /// No description provided for @enhanceError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load suggestions'**
+  String get enhanceError;
+
+  /// No description provided for @enhanceRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get enhanceRetry;
+
+  /// No description provided for @enhanceBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Enhance DNA'**
+  String get enhanceBtn;
 }
 
 class _AppLocalizationsDelegate

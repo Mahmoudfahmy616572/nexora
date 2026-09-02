@@ -139,6 +139,14 @@
   "dnaEvidenceTail": " — the AI will never fabricate experience or skills. Only verified claims are used.",
   "dnaProfileSections": "PROFILE SECTIONS",
   "dnaPersonalProfile": "Personal Profile",
+  "dnaPersonalProfileSubtitle": "Identity & contact details",
+  "dnaIdentityComplete": "\u2713 Complete",
+  "dnaIdentityMissing": "\u26A0 {count} items missing",
+  "@dnaIdentityMissing": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "dnaEducation": "Education",
   "dnaExperience": "Experience",
   "dnaProjects": "Projects",
@@ -546,6 +554,7 @@
   "intakeProjectName": "Project name",
   "intakeProjectDesc": "What did you build?",
   "intakeProjectTech": "Technologies",
+  "intakeProjectLinks": "Project links (URLs)",
   "intakePlaceholderRole": "Role",
   "intakeCerts": "Certifications",
   "intakeAddCert": "Add certification",
@@ -570,6 +579,7 @@
   "intakeReasonTransition": "Why are you changing careers?",
   "intakeCompany": "Company",
   "intakeYears": "Years",
+  "intakeDurationMonths": "Duration (months)",
   "intakeBack": "Back",
   "intakeSkip": "Skip",
   "intakeFinish": "Finish",
@@ -884,5 +894,23 @@
     "placeholders": {
       "count": { "type": "int" }
     }
-  }
+  },
+  "cvCompleteProfile": "Complete Profile",
+  "cvQualityCouldBeBetter": "CV quality could be better",
+  "exitConfirm": "Press back again to exit",
+  "exitConfirmTitle": "Exit app?",
+  "enhanceTitle": "Enhance Your DNA",
+  "enhanceAcceptAll": "Accept All",
+  "enhanceSuggestionsLeft": "suggestions to review",
+  "enhanceAccepted": "accepted",
+  "enhanceRejected": "skipped",
+  "enhanceBefore": "Before",
+  "enhanceAfter": "After",
+  "enhanceAccept": "Accept",
+  "enhanceReject": "Skip",
+  "enhanceApply": "Apply Changes",
+  "enhanceApplied": "CareerDNA updated successfully",
+  "enhanceError": "Failed to load suggestions",
+  "enhanceRetry": "Retry",
+  "enhanceBtn": "Enhance DNA"
 }

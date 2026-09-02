@@ -38,7 +38,7 @@ class _TargetListScreenState extends State<TargetListScreen> {
         );
         return BlocProvider<TargetCubit>(
           create: (_) => TargetCubit(repo)..loadTargets(),
-          child: _TargetListView(l10n: l10n),
+          child: _shell(l10n, _TargetListView(l10n: l10n)),
         );
       },
     );

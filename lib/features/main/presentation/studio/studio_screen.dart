@@ -7,12 +7,14 @@ import '../../../../data/data_sources/career_local_data_source.dart';
 import '../../../../data/data_sources/career_remote_data_source.dart';
 import '../../../../data/repositories/career_dna_repository_impl.dart';
 import '../../../../data/repositories/career_repository_impl.dart';
+import '../../../../data/repositories/user_identity_repository_impl.dart';
 import '../../../../domain/cv/cv_template_registry.dart';
 import '../../../../domain/entities/career_dna.dart' show CareerStage;
 import '../../../../domain/entities/career_target.dart';
 import '../../../../domain/entities/cv_content.dart';
 import '../../../../domain/entities/cv_document.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../main_tab.dart';
 import 'cubit/cv_cubit.dart';
 import 'cubit/cv_state.dart';
 import 'cv_create_sheet.dart';
@@ -21,9 +23,11 @@ import 'cv_export_sheet.dart';
 import 'cv_preview.dart';
 
 class StudioScreen extends StatelessWidget {
-  const StudioScreen({this.analysisId, this.targetId, super.key});
+  const StudioScreen({this.analysisId, this.targetId, this.onOpenTab, this.onOpenDnaSection, super.key});
   final String? analysisId;
   final String? targetId;
+  final ValueChanged<MainTab>? onOpenTab;
+  final ValueChanged<String>? onOpenDnaSection;
 
   @override
   Widget build(BuildContext context) => FutureBuilder<SharedPreferences>(
@@ -38,6 +42,8 @@ class StudioScreen extends StatelessWidget {
             prefs: snap.data!,
             analysisId: analysisId,
             targetId: targetId,
+            onOpenTab: onOpenTab,
+            onOpenDnaSection: onOpenDnaSection,
           );
         },
       );
@@ -48,10 +54,14 @@ class _StudioBody extends StatefulWidget {
     required this.prefs,
     this.analysisId,
     this.targetId,
+    this.onOpenTab,
+    this.onOpenDnaSection,
   });
   final SharedPreferences prefs;
   final String? analysisId;
   final String? targetId;
+  final ValueChanged<MainTab>? onOpenTab;
+  final ValueChanged<String>? onOpenDnaSection;
 
   @override
   State<_StudioBody> createState() => _StudioBodyState();
@@ -71,6 +81,7 @@ class _StudioBodyState extends State<_StudioBody> {
       CareerDnaRepositoryImpl(remote: remote, local: local),
       CareerTargetRepositoryImpl(remote, local),
       JobAnalysisRepositoryImpl(remote, local),
+      identityRepo: UserIdentityRepositoryImpl(remote: remote, local: local),
     );
     if (widget.targetId != null) _cubit.selectTarget(widget.targetId);
     if (widget.analysisId != null) _cubit.setAnalysisId(widget.analysisId);
@@ -86,21 +97,43 @@ class _StudioBodyState extends State<_StudioBody> {
   @override
   Widget build(BuildContext context) => BlocProvider<CvCubit>.value(
         value: _cubit,
-        child: const _StudioView(),
+        child: _StudioView(onOpenTab: widget.onOpenTab, onOpenDnaSection: widget.onOpenDnaSection),
       );
 }
 
 class _StudioView extends StatelessWidget {
-  const _StudioView();
+  const _StudioView({this.onOpenTab, this.onOpenDnaSection});
+  final ValueChanged<MainTab>? onOpenTab;
+  final ValueChanged<String>? onOpenDnaSection;
 
-  void _showCreate(BuildContext context) => showModalBottomSheet(
+  void _showCreate(BuildContext context) {
+    final cvCubit = context.read<CvCubit>();
+    showModalBottomSheet(
         context: context,
         isScrollControlled: true,
-        builder: (_) => BlocProvider.value(
-          value: context.read<CvCubit>(),
-          child: const CvCreateSheet(),
+        builder: (sheetContext) => BlocProvider.value(
+          value: cvCubit,
+          child: CvCreateSheet(
+            onCompleteProfile: onOpenTab != null
+                ? () {
+                    Navigator.pop(sheetContext);
+                    onOpenTab!(MainTab.dna);
+                  }
+                : null,
+            onFixMissing: onOpenDnaSection != null
+                ? (key) {
+                    Navigator.pop(sheetContext);
+                    if (key == 'target_role') {
+                      context.push('/targets/form');
+                    } else {
+                      onOpenDnaSection!(key);
+                    }
+                  }
+                : null,
+          ),
       ),
     );
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -413,6 +413,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dnaPersonalProfile => 'Personal Profile';
 
   @override
+  String get dnaPersonalProfileSubtitle => 'Identity & contact details';
+
+  @override
+  String get dnaIdentityComplete => '✓ Complete';
+
+  @override
+  String dnaIdentityMissing(int count) {
+    return '⚠ $count items missing';
+  }
+
+  @override
   String get dnaEducation => 'Education';
 
   @override
@@ -1523,6 +1534,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get intakeProjectTech => 'Technologies';
 
   @override
+  String get intakeProjectLinks => 'Project links (URLs)';
+
+  @override
   String get intakePlaceholderRole => 'Role';
 
   @override
@@ -1594,6 +1608,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get intakeYears => 'Years';
+
+  @override
+  String get intakeDurationMonths => 'Duration (months)';
 
   @override
   String get intakeBack => 'Back';
@@ -2423,4 +2440,58 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get practiceDone => 'Done';
+
+  @override
+  String get cvCompleteProfile => 'Complete Profile';
+
+  @override
+  String get cvQualityCouldBeBetter => 'CV quality could be better';
+
+  @override
+  String get exitConfirm => 'Press back again to exit';
+
+  @override
+  String get exitConfirmTitle => 'Exit app?';
+
+  @override
+  String get enhanceTitle => 'Enhance Your DNA';
+
+  @override
+  String get enhanceAcceptAll => 'Accept All';
+
+  @override
+  String get enhanceSuggestionsLeft => 'suggestions to review';
+
+  @override
+  String get enhanceAccepted => 'accepted';
+
+  @override
+  String get enhanceRejected => 'skipped';
+
+  @override
+  String get enhanceBefore => 'Before';
+
+  @override
+  String get enhanceAfter => 'After';
+
+  @override
+  String get enhanceAccept => 'Accept';
+
+  @override
+  String get enhanceReject => 'Skip';
+
+  @override
+  String get enhanceApply => 'Apply Changes';
+
+  @override
+  String get enhanceApplied => 'CareerDNA updated successfully';
+
+  @override
+  String get enhanceError => 'Failed to load suggestions';
+
+  @override
+  String get enhanceRetry => 'Retry';
+
+  @override
+  String get enhanceBtn => 'Enhance DNA';
 }

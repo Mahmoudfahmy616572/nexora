@@ -87,4 +87,16 @@ abstract interface class CareerDnaRepository {
     String? company,
     required String language,
   });
+
+  /// Runs the AI conversational intake. Modes:
+  /// - `chat` (default): multi-turn conversation to build CareerDNA
+  /// - `finalize`: produces final CareerDNA from full conversation
+  /// - `github_import`: imports from GitHub username
+  Future<Map<String, dynamic>> aiIntake({
+    required List<Map<String, dynamic>> history,
+    String targetRole = '',
+    String language = 'en',
+    String mode = 'chat',
+    String githubUsername = '',
+  });
 }

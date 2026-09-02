@@ -25,7 +25,7 @@ void main() {
       education: const [ProfileEducation(degree: 'B.Sc.', field: 'CS')],
       experience: const [ProfileExperience(role: 'Dev', company: 'A', years: 4)],
       projects: const [ProfileProject(name: 'P', description: 'd', tech: ['Flutter'])],
-      certifications: const ['AWS'],
+      certifications: const [ProfileCertification(name: 'AWS')],
       achievements: const ['X'],
       languages: const ['Arabic'],
     );

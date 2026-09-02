@@ -11,10 +11,14 @@ import '../../../data/repositories/career_dna_repository_impl.dart';
 import '../../../data/repositories/career_repository_impl.dart';
 import '../../../domain/entities/career_target.dart';
 import '../../../domain/entities/job_analysis.dart';
+import '../../../domain/entities/opportunity_analysis.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../presentation/career_dna/cubit/career_dna_cubit.dart';
 import 'analyze/cubit/analyze_cubit.dart';
 import 'analyze/cubit/analyze_state.dart';
 import 'analyze/opportunity_analysis_view.dart';
+import 'enhance/enhance_dna_cubit.dart';
+import 'enhance/enhance_dna_sheet.dart';
 
 /// Opportunity Intelligence (Analyze tab).
 ///
@@ -508,9 +512,17 @@ class _AnalysisCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          if (detail != null)
-            OpportunityAnalysisView(analysis: detail)
-          else ...[
+          if (detail != null) ...[
+            OpportunityAnalysisView(analysis: detail),
+            const SizedBox(height: 12),
+            _EnhanceButton(
+              analysis: detail,
+              jobDescription: analysis.jobDescription,
+              onEnhanced: () => context.read<AnalyzeCubit>().analyze(
+                description: analysis.jobDescription,
+              ),
+            ),
+          ] else ...[
             // Legacy analyses (no stored detail): render the simple scores.
             _LegacyScore(label: l10n.analyzeSkills, value: analysis.skills),
             _LegacyScore(label: l10n.analyzeExperience, value: analysis.experience),
@@ -552,6 +564,71 @@ class _AnalysisCard extends StatelessWidget {
   }
 }
 
+class _EnhanceButton extends StatelessWidget {
+  const _EnhanceButton({
+    required this.analysis,
+    required this.jobDescription,
+    this.onEnhanced,
+  });
+
+  final OpportunityAnalysis analysis;
+  final String jobDescription;
+  final VoidCallback? onEnhanced;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    // Collect gaps: not evidenced + weak requirements
+    final gaps = [
+      ...analysis.notEvidenced.map((r) => r.label),
+      ...analysis.requiredGaps.map((r) => r.label),
+    ];
+    if (gaps.isEmpty) return const SizedBox.shrink();
+
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () async {
+          final dnaCubit = context.read<CareerDnaCubit>();
+          final remote = CareerRemoteDataSource();
+          final dnaRepo = CareerDnaRepositoryImpl(remote: remote, local: CareerLocalDataSource(await SharedPreferences.getInstance()));
+          final dna = dnaCubit.state.dna ?? await dnaRepo.load();
+          if (dna == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.enhanceError), behavior: SnackBarBehavior.floating),
+            );
+            return;
+          }
+          if (!context.mounted) return;
+          final enhanceCubit = EnhanceDnaCubit(
+            dnaRepo,
+            remote,
+            dna: dna,
+            gaps: gaps,
+            targetRole: analysis.role.isNotEmpty ? analysis.role : null,
+          );
+          final applied = await showEnhanceDnaSheet(context, enhanceCubit);
+          if (applied && context.mounted) {
+            final updatedDna = await dnaRepo.load();
+            if (updatedDna != null) dnaCubit.updateDraft(updatedDna);
+            // Re-run analysis with updated DNA
+            if (jobDescription.isNotEmpty) {
+              onEnhanced?.call();
+            }
+          }
+        },
+        icon: const Icon(Icons.auto_fix_high_rounded, size: 16),
+        label: Text(l10n.enhanceBtn),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.amber,
+          side: BorderSide(color: Colors.amber.withValues(alpha: 0.4)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+    );
+  }
+}
+
 class _LegacyScore extends StatelessWidget {
   const _LegacyScore({required this.label, required this.value});
 
@@ -563,8 +640,17 @@ class _LegacyScore extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: 8),
         child: Row(
           children: [
-            SizedBox(width: 92, child: Text(label, style: AppTextStyles.bodySmall)),
+            Flexible(
+              flex: 2,
+              child: Text(
+                label,
+                style: AppTextStyles.bodySmall,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
             Expanded(
+              flex: 5,
               child: LinearProgressIndicator(
                 value: value / 100,
                 minHeight: 8,

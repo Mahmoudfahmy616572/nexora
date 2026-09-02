@@ -13,13 +13,18 @@ import 'domain/entities/app_language.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Connect to Supabase. The client key is injected via --dart-define; the
-  // service role key never ships in the app.
   if (SupabaseConfig.isConfigured) {
-    await Supabase.initialize(
-      url: SupabaseConfig.url,
-      publishableKey: SupabaseConfig.publishableKey,
-    );
+    try {
+      await Supabase.initialize(
+        url: SupabaseConfig.url,
+        publishableKey: SupabaseConfig.publishableKey,
+      );
+      await Supabase.instance.client.auth.getSession();
+      final hasSession = Supabase.instance.client.auth.currentSession != null;
+      debugPrint('[AUTH] Session restored: $hasSession');
+    } catch (e) {
+      debugPrint('[AUTH] Supabase init error: $e');
+    }
   } else {
     debugPrint(
       'Supabase not configured. Run with '
@@ -27,8 +32,6 @@ Future<void> main() async {
     );
   }
 
-  // Resolve the language before the first frame so the app never flashes
-  // the wrong locale: saved preference first, device language as fallback.
   final prefs = await SharedPreferences.getInstance();
   kPrefs = prefs;
   final repository = LocaleRepositoryImpl(LocaleLocalDataSource(prefs));

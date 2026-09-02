@@ -1,15 +1,17 @@
 import '../entities/career_dna.dart';
 import '../entities/career_target.dart';
 import '../entities/cv_content.dart';
+import 'cv_section_ordering.dart';
 import '../entities/profile_data.dart';
+import '../entities/user_identity.dart';
 
 /// Builds a [CvContent] directly from verified [CareerDna] facts.
 ///
 /// This is the deterministic fallback used when AI generation is unavailable
 /// or fails validation. It contains ONLY known facts and is clearly labelled
 /// as a "Factual CV". It never invents experience, employers, metrics, dates,
-/// or any other information, and the [CareerTarget] only influences ordering
-/// and emphasis — never the facts themselves.
+/// or any other information, and the [CareerTarget] influences ordering,
+/// emphasis, and prioritization — never the facts themselves.
 class CvFactualBuilder {
   const CvFactualBuilder._();
 
@@ -20,39 +22,54 @@ class CvFactualBuilder {
   // ---------------------------------------------------------------------------
 
   static const Map<String, List<String>> _skillCategories = {
-    'Programming & Architecture': [
-      'dart', 'flutter', 'kotlin', 'swift', 'java', 'python', 'javascript',
+    'Programming & Languages': [
+      'dart', 'kotlin', 'swift', 'java', 'python', 'javascript',
       'typescript', 'c++', 'c#', 'php', 'ruby', 'go', 'rust', 'scala',
-      'r', 'sql', 'html', 'css', 'sass', 'less',
+      'r', 'sql', 'html', 'css', 'sass', 'less', 'groovy', 'objective-c',
+    ],
+    'Frameworks & Architecture': [
+      'flutter', 'react', 'react native', 'angular', 'vue', 'vue.js',
+      'next.js', 'nuxt', 'svelte', 'django', 'flask', 'express',
+      'spring', 'laravel', 'rails', '.net', 'xamarin', 'ionic',
+      'tailwind', 'bootstrap', 'material', 'swiftui', 'jetpack compose',
       'oop', 'solid', 'clean architecture', 'mvvm', 'mvc', 'mvp',
       'bloc', 'bloc/cubit', 'cubit', 'provider', 'riverpod', 'getx',
-      'hooks', 'redux', 'mobx', 'get_it', 'injectable',
+      'hooks', 'redux', 'mobx', 'get_it', 'injectable', 'bloc/cubit',
     ],
     'Backend & Databases': [
       'firebase', 'firestore', 'realtime db', 'firebase auth',
       'cloud functions', 'cloud firestore', 'supabase', 'postgres',
       'postgresql', 'mysql', 'mongodb', 'redis', 'sqlite', 'hive',
-      'local storage', 'rest', 'graphql', 'firebase realtime database',
-      'appwrite', 'aws', 'gcp', 'azure', 'django', 'flask', 'express',
-      'node', 'node.js', 'spring', 'laravel',
+      'local storage', 'appwrite', 'aws', 'gcp', 'azure',
+      'node', 'node.js', 'deno',
     ],
     'APIs & Integrations': [
-      'rest apis', 'restful', 'graphql', 'websockets', 'socket.io',
+      'rest', 'rest apis', 'restful', 'graphql', 'websockets', 'socket.io',
       'google maps', 'maps', 'stripe', 'paymob', 'razorpay',
       'in-app purchase', 'push notifications', 'fcm', 'firebase cloud messaging',
       'deep linking', 'oauth', 'jwt', 'webhooks',
       'google sign-in', 'apple sign-in', 'facebook login',
     ],
+    'Mobile & Cross-Platform': [
+      'ios', 'android', 'flutter', 'react native', 'xamarin', 'ionic',
+      'swiftui', 'jetpack compose', 'material design', 'cupertino',
+      'adaptive layouts', 'responsive design', 'pwa',
+    ],
     'DevOps & Tools': [
       'git', 'github', 'gitlab', 'bitbucket', 'ci/cd', 'jenkins',
       'github actions', 'docker', 'kubernetes', 'fastlane', 'codemagic',
       'postman', 'android studio', 'vs code', 'xcode', 'intellij',
-      'figma', 'sketch', 'adobe xd', 'zeplin', 'jira', 'trello',
-      'notion', 'confluence', 'slack',
+      'jira', 'trello', 'notion', 'confluence', 'slack',
+    ],
+    'Design & Prototyping': [
+      'figma', 'sketch', 'adobe xd', 'zeplin', 'canva',
+      'photoshop', 'illustrator', 'after effects', 'premiere pro',
+      'ui/ux', 'user research', 'wireframing', 'prototyping',
+      'design systems', 'user testing',
     ],
     'Networking & Security': [
       'tcp/ip', 'osi model', 'routing', 'switching', 'network security',
-      'vpn', 'firewall', 'ssl', 'tls', 'https',
+      'vpn', 'firewall', 'ssl', 'tls', 'https', 'ci/cd',
     ],
   };
 
@@ -82,11 +99,13 @@ class CvFactualBuilder {
       buckets.putIfAbsent(placedCategory, () => []).add(skill);
     }
 
-    // Preferred ordering: Programming first, then Backend, APIs, DevOps, Networking, Other.
     const categoryOrder = [
-      'Programming & Architecture',
+      'Programming & Languages',
+      'Frameworks & Architecture',
+      'Mobile & Cross-Platform',
       'Backend & Databases',
       'APIs & Integrations',
+      'Design & Prototyping',
       'DevOps & Tools',
       'Networking & Security',
       'Other',
@@ -120,41 +139,62 @@ class CvFactualBuilder {
   // Main builder
   // ---------------------------------------------------------------------------
 
-  static CvContent build(CareerDna dna, {CareerTarget? target}) {
+  static CvContent build(CareerDna dna, {CareerTarget? target, UserIdentity? identity}) {
     final profile = dna.profile;
 
     // --- Experience ---
-    final experience = [
+    var experience = [
       for (final e in profile.experience)
-        CvExperience(
-          role: e.role,
-          company: e.company,
-          years: e.years,
-          bullets: _experienceBullets(e),
-          source: CvSource.careerDna,
-        ),
+        if (e.role.isNotEmpty || e.company.isNotEmpty || e.description.isNotEmpty)
+          CvExperience(
+            role: e.role,
+            company: e.company,
+            years: e.years,
+            durationMonths: e.durationMonths,
+            startDate: e.startDate,
+            endDate: e.endDate,
+            location: e.location,
+            description: e.description,
+            bullets: _experienceBullets(e),
+            technologies: e.technologies,
+            achievements: e.achievements,
+            source: CvSource.careerDna,
+          ),
     ];
 
     // --- Projects ---
-    final projects = [
+    var projects = [
       for (final p in profile.projects)
-        CvProject(
-          name: p.name,
-          description: p.description,
-          tech: p.tech,
-          bullets: _decomposeBullets(p.description),
-          source: CvSource.careerDna,
-        ),
+        if (p.name.isNotEmpty)
+          CvProject(
+            name: p.name,
+            description: p.description,
+            tech: p.tech,
+            role: p.role,
+            outcome: p.outcome,
+            bullets: _projectBullets(p),
+            links: [
+              for (final l in p.links.where((l) => l.url.trim().isNotEmpty))
+                CvContactLink(
+                  label: l.label.trim().isNotEmpty
+                      ? l.label.trim()
+                      : ProjectLink.autoLabel(l.url, p.name),
+                  url: l.url.trim(),
+                ),
+            ],
+            source: CvSource.careerDna,
+          ),
     ];
 
     // --- Education ---
     final education = [
       for (final e in profile.education)
-        CvEducation(
-          degree: e.degree,
-          field: e.field,
-          source: CvSource.careerDna,
-        ),
+        if (e.degree.isNotEmpty)
+          CvEducation(
+            degree: e.degree,
+            field: e.field,
+            source: CvSource.careerDna,
+          ),
     ];
 
     // --- Skills (categorized) ---
@@ -163,28 +203,49 @@ class CvFactualBuilder {
     // --- Certifications ---
     final certifications = [
       for (final c in profile.certifications)
-        CvCertification(name: c, source: CvSource.careerDna),
+        if (c.name.trim().isNotEmpty)
+          CvCertification(name: c.name, link: c.link.trim(), source: CvSource.careerDna),
     ];
 
     // --- Achievements ---
     final achievements = [
       for (final a in profile.achievements)
-        CvAchievement(text: a, source: CvSource.careerDna),
+        if (a.trim().isNotEmpty)
+          CvAchievement(text: a, source: CvSource.careerDna),
     ];
 
     // --- Languages ---
     final languages = [
       for (final l in profile.languages)
-        CvLanguage(name: l, source: CvSource.careerDna),
+        if (l.trim().isNotEmpty)
+          CvLanguage(name: l, source: CvSource.careerDna),
     ];
 
-    // --- Header ---
+    // --- Header (from identity when available) ---
+    final effectiveTitle = identity?.professionalTitle.isNotEmpty == true
+        ? identity!.professionalTitle
+        : target?.role.isNotEmpty == true
+            ? target!.role
+            : dna.targetRole;
+
     final header = CvHeader(
-      title: target?.role ?? dna.targetRole,
+      name: identity?.fullName ?? '',
+      title: effectiveTitle,
       subtitle: _emphasisFor(dna, target),
+      email: identity?.email ?? '',
+      phone: identity?.phone ?? '',
+      location: identity?.location ?? '',
+      links: [
+        if (identity?.linkedinUrl.isNotEmpty == true)
+          const CvContactLink(label: 'LinkedIn', url: '').copyWith(url: identity!.linkedinUrl),
+        if (identity?.githubUrl.isNotEmpty == true)
+          const CvContactLink(label: 'GitHub', url: '').copyWith(url: identity!.githubUrl),
+        if (identity?.portfolioUrl.isNotEmpty == true)
+          const CvContactLink(label: 'Portfolio', url: '').copyWith(url: identity!.portfolioUrl),
+      ],
     );
 
-    return CvContent(
+    var content = CvContent(
       header: header,
       summary: profile.summary,
       experience: experience,
@@ -196,17 +257,46 @@ class CvFactualBuilder {
       languages: languages,
       sourceLabel: factualLabel,
     );
+
+    // Apply target-aware prioritization.
+    if (target != null) {
+      content = content.copyWith(
+        experience: CvSectionOrdering.prioritizeExperience(
+          experience: content.experience,
+          target: target,
+        ),
+        projects: CvSectionOrdering.prioritizeProjects(
+          projects: content.projects,
+          target: target,
+        ),
+        skillGroups: CvSectionOrdering.prioritizeSkills(
+          groups: content.skillGroups,
+          target: target,
+        ),
+      );
+    }
+
+    return content;
   }
 
-  /// Generates factual bullets from a [ProfileExperience]. Since the source
-  /// data only contains role/company/years (no description), bullets are
-  /// necessarily minimal — the AI layer enriches these later.
+  /// Generates factual bullets from a [ProfileExperience].
+  ///
+  /// Uses explicit bullets if provided, falls back to decomposing the
+  /// description, or returns empty if nothing is available.
   static List<String> _experienceBullets(ProfileExperience e) {
-    // ProfileExperience has no description field, so we cannot invent bullets.
-    // Return empty — the template will fall back to role/company header only.
-    // AI generation is responsible for creating meaningful experience bullets
-    // from the CareerDna context.
-    return const [];
+    if (e.bullets.isNotEmpty) return e.bullets;
+    return _decomposeBullets(e.description);
+  }
+
+  /// Generates factual bullets from a [ProfileProject].
+  static List<String> _projectBullets(ProfileProject p) {
+    final parts = <String>[
+      ..._decomposeBullets(p.description),
+      ..._decomposeBullets(p.keyFeatures),
+      ..._decomposeBullets(p.challenges),
+      ..._decomposeBullets(p.outcome),
+    ];
+    return parts;
   }
 
   /// Target may influence which factual sections are emphasized, never invented.

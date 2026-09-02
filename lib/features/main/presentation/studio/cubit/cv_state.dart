@@ -6,6 +6,7 @@ import '../../../../../domain/entities/career_target.dart';
 import '../../../../../domain/entities/cv_content.dart';
 import '../../../../../domain/entities/cv_document.dart';
 import '../../../../../domain/entities/job_analysis.dart';
+import '../../../../../domain/entities/user_identity.dart';
 
 enum CvStatus {
   initial,
@@ -24,6 +25,7 @@ class CvState extends Equatable {
     this.targets = const [],
     this.analyses = const [],
     this.dna,
+    this.identity,
     this.selectedDocument,
     this.content,
     this.templateId = 'nexoraMinimal',
@@ -40,6 +42,7 @@ class CvState extends Equatable {
   final List<CareerTarget> targets;
   final List<JobAnalysis> analyses;
   final CareerDna? dna;
+  final UserIdentity? identity;
   final CvDocument? selectedDocument;
   final CvContent? content;
   final String templateId;
@@ -57,6 +60,8 @@ class CvState extends Equatable {
     List<JobAnalysis>? analyses,
     CareerDna? dna,
     bool clearDna = false,
+    UserIdentity? identity,
+    bool clearIdentity = false,
     CvDocument? selectedDocument,
     bool clearSelectedDocument = false,
     CvContent? content,
@@ -77,6 +82,7 @@ class CvState extends Equatable {
         targets: targets ?? this.targets,
         analyses: analyses ?? this.analyses,
         dna: clearDna ? null : (dna ?? this.dna),
+        identity: clearIdentity ? null : (identity ?? this.identity),
         selectedDocument: clearSelectedDocument
             ? null
             : (selectedDocument ?? this.selectedDocument),
@@ -101,6 +107,7 @@ class CvState extends Equatable {
         targets,
         analyses,
         dna,
+        identity,
         selectedDocument,
         content,
         templateId,

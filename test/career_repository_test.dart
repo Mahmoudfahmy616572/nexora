@@ -149,7 +149,7 @@ void main() {
           ProfileProject(name: 'ShipLink', description: 'Live tracking app', tech: ['Flutter', 'Dart']),
         ],
         education: [ProfileEducation(degree: 'B.Sc. Computer Engineering', field: 'Software')],
-        certifications: ['AWS Certified Developer'],
+        certifications: [ProfileCertification(name: 'AWS Certified Developer')],
         achievements: ['1st place, Hackathon 2025'],
         languages: ['Arabic (Native)', 'English (Fluent)'],
       );
@@ -163,7 +163,7 @@ void main() {
       expect(loaded.yearsTotal, 3);
       expect(loaded.projects.single.tech, ['Flutter', 'Dart']);
       expect(loaded.education.single.degree, 'B.Sc. Computer Engineering');
-      expect(loaded.certifications, ['AWS Certified Developer']);
+      expect(loaded.certifications.map((c) => c.name).toList(), ['AWS Certified Developer']);
       expect(loaded.achievements, ['1st place, Hackathon 2025']);
       expect(loaded.languages, ['Arabic (Native)', 'English (Fluent)']);
       expect(prefs.getString('profile.content'), isNotNull);

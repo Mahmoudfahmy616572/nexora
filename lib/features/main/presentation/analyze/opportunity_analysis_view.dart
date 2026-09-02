@@ -193,8 +193,17 @@ class _SubScores extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(
               children: [
-                SizedBox(width: 92, child: Text(label, style: theme.textTheme.bodySmall)),
+                Flexible(
+                  flex: 2,
+                  child: Text(
+                    label,
+                    style: theme.textTheme.bodySmall,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
                 Expanded(
+                  flex: 5,
                   child: LinearProgressIndicator(
                     value: value / 100,
                     minHeight: 8,

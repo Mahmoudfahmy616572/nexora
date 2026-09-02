@@ -10,6 +10,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../data/data_sources/auth_remote_data_source.dart';
 import '../../../data/repositories/auth_repository_impl.dart';
 import '../../../core/router/app_router.dart';
+import '../../../presentation/onboarding/cubit/onboarding_choices_cubit.dart';
 
 /// Profile / settings screen — reachable from the Home header avatar.
 ///
@@ -46,6 +47,7 @@ class SettingsScreen extends StatelessWidget {
 
     try {
       await AuthRepositoryImpl(AuthRemoteDataSource()).signOut();
+      OnboardingChoicesCubit.clearOnboardingCompleted();
       if (!context.mounted) return;
       GoRouter.of(context).go(Routes.login);
     } catch (_) {
@@ -134,7 +136,14 @@ class _Header extends StatelessWidget {
             tooltip: MaterialLocalizations.of(context).backButtonTooltip,
           ),
           const SizedBox(width: 4),
-          Text(title, style: AppTextStyles.screenTitle),
+          Flexible(
+            child: Text(
+              title,
+              style: AppTextStyles.screenTitle,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
         ],
       ),
     );

@@ -9,19 +9,19 @@ import 'cubit/onboarding_choices_cubit.dart';
 import 'choice_options.dart';
 import 'widgets/choice_layout.dart';
 
-/// Step 1/3 — pick the goal that brought the user to Nexora.
+/// Step 1/3 — pick the goals that brought the user to Nexora (multi-select).
 class GoalScreen extends StatelessWidget {
   const GoalScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final selected = context.watch<OnboardingChoicesCubit>().state.goal;
+    final selected = context.watch<OnboardingChoicesCubit>().state.goals;
     return ChoiceLayout(
       title: l10n.goalTitle,
       subtitle: l10n.goalSubtitle,
       progress: 1 / 3,
-      continueEnabled: selected != null,
+      continueEnabled: selected.isNotEmpty,
       onContinue: () => context.go(Routes.stage),
       footerNote: Text(
         l10n.changeLater,
@@ -36,8 +36,8 @@ class GoalScreen extends StatelessWidget {
               title: goalLabel(l10n, goal),
               description: goalDesc(l10n, goal),
               icon: goalIcon(goal),
-              selected: selected == goal,
-              onTap: () => context.read<OnboardingChoicesCubit>().setGoal(goal),
+              selected: selected.contains(goal),
+              onTap: () => context.read<OnboardingChoicesCubit>().toggleGoal(goal),
             ),
           ),
       ],

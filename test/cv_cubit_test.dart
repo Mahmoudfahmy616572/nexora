@@ -10,6 +10,7 @@ import 'package:nexora/domain/entities/career_dna.dart';
 import 'package:nexora/domain/entities/career_target.dart';
 import 'package:nexora/domain/entities/cv_content.dart';
 import 'package:nexora/domain/entities/profile_data.dart';
+import 'package:nexora/domain/entities/user_identity.dart';
 import 'package:nexora/domain/repositories/cv_generation_repository.dart';
 import 'package:nexora/features/main/presentation/studio/cubit/cv_cubit.dart';
 import 'package:nexora/domain/entities/job_analysis.dart';
@@ -27,6 +28,7 @@ class FakeGen implements CvGenerationRepository {
     JobAnalysis? analysis,
     required String templateId,
     required String language,
+    UserIdentity? identity,
   }) {
     if (throws) throw Exception('unavailable');
     return Future.value(content ?? CvFactualBuilder.build(dna, target: target));
@@ -100,15 +102,16 @@ void main() {
     expect(cubit.state.content!.projects.single.name, 'Delivery');
   });
 
-  test('fabricated generation is rejected with validation issues', () async {
+  test('fabricated generation is accepted with validation warning', () async {
     final fabricated = CvContent(
         experience: const [CvExperience(role: 'CEO', company: 'Imaginary')]);
     final cubit = await build(FakeGen(content: fabricated), dna: dnaWithFacts());
     await cubit.startCreation(
         title: 'CV', templateId: 'nexoraMinimal', targetId: 't1');
-    expect(cubit.state.status, CvStatus.failure);
+    expect(cubit.state.status, CvStatus.ready);
     expect(cubit.state.validationIssues, isNotEmpty);
-    expect(cubit.state.message, contains('verified'));
+    expect(cubit.state.message, contains('unverified'));
+    expect(cubit.state.content, isNotNull);
 
     await cubit.useFactual();
     expect(cubit.state.status, CvStatus.ready);

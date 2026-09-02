@@ -276,7 +276,7 @@ GeneratedProfile generateProfile({
   final experience = <ProfileExperience>[];
   final projects = <ProfileProject>[];
   final education = <ProfileEducation>[];
-  final certifications = <String>[];
+  final certifications = <ProfileCertification>[];
   final achievements = <String>[];
 
   for (final interest in effective) {
@@ -285,7 +285,7 @@ GeneratedProfile generateProfile({
     experience.add(blueprint.experience);
     projects.add(blueprint.project);
     education.add(blueprint.education);
-    certifications.add(blueprint.certification);
+    certifications.add(ProfileCertification.fromString(blueprint.certification));
     achievements.add(blueprint.achievement);
   }
 
@@ -295,7 +295,7 @@ GeneratedProfile generateProfile({
     experience.add(blueprint.experience);
     projects.add(blueprint.project);
     education.add(blueprint.education);
-    certifications.add(blueprint.certification);
+    certifications.add(ProfileCertification.fromString(blueprint.certification));
     achievements.add(blueprint.achievement);
   }
 

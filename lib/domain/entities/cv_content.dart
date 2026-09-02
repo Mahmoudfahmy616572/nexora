@@ -141,7 +141,7 @@ class CvHeader extends Equatable {
   final String email;
   final String phone;
   final String location;
-  final List<String> links;
+  final List<CvContactLink> links;
 
   Map<String, Object?> toJson() => {
         'name': name,
@@ -150,7 +150,7 @@ class CvHeader extends Equatable {
         'email': email,
         'phone': phone,
         'location': location,
-        'links': links,
+        'links': [for (final l in links) l.toJson()],
       };
 
   factory CvHeader.fromJson(Map<String, dynamic> json) => CvHeader(
@@ -160,7 +160,13 @@ class CvHeader extends Equatable {
         email: json['email'] as String? ?? '',
         phone: json['phone'] as String? ?? '',
         location: json['location'] as String? ?? '',
-        links: [for (final l in json['links'] as List? ?? const []) l as String],
+        links: [
+          for (final l in json['links'] as List? ?? const [])
+            if (l is Map<String, dynamic>)
+              CvContactLink.fromJson(l)
+            else if (l is String)
+              CvContactLink(label: '', url: l),
+        ],
       );
 
   CvHeader copyWith({
@@ -170,7 +176,7 @@ class CvHeader extends Equatable {
     String? email,
     String? phone,
     String? location,
-    List<String>? links,
+    List<CvContactLink>? links,
   }) =>
       CvHeader(
         name: name ?? this.name,
@@ -186,27 +192,56 @@ class CvHeader extends Equatable {
   List<Object?> get props => [name, title, subtitle, email, phone, location, links];
 }
 
+/// A human-readable contact link with a display label and a destination URL.
+class CvContactLink extends Equatable {
+  const CvContactLink({required this.label, required this.url});
+
+  final String label;
+  final String url;
+
+  Map<String, Object?> toJson() => {'label': label, 'url': url};
+
+  factory CvContactLink.fromJson(Map<String, dynamic> json) => CvContactLink(
+        label: json['label'] as String? ?? '',
+        url: json['url'] as String? ?? '',
+      );
+
+  CvContactLink copyWith({String? label, String? url}) => CvContactLink(
+        label: label ?? this.label,
+        url: url ?? this.url,
+      );
+
+  @override
+  List<Object?> get props => [label, url];
+}
+
 class CvExperience extends Equatable {
   const CvExperience({
     required this.role,
     this.company = '',
     this.years,
+    this.durationMonths = 0,
     this.startDate = '',
     this.endDate = '',
     this.description = '',
     this.bullets = const [],
     this.location = '',
+    this.technologies = const [],
+    this.achievements = const [],
     this.source = CvSource.ai,
   });
 
   final String role;
   final String company;
   final int? years;
+  final int durationMonths;
   final String startDate;
   final String endDate;
   final String description;
   final List<String> bullets;
   final String location;
+  final List<String> technologies;
+  final List<String> achievements;
   final CvSource source;
 
   /// Effective bullets: explicit bullets list, or [description] wrapped as a
@@ -217,15 +252,33 @@ class CvExperience extends Equatable {
     return const [];
   }
 
+  /// Canonical duration in months.
+  int get effectiveMonths =>
+      durationMonths > 0 ? durationMonths : (years ?? 0) * 12;
+
+  /// Human-readable duration label.
+  String get durationLabel {
+    final m = effectiveMonths;
+    if (m <= 0) return yearsLabel;
+    if (m < 12) return '$m month${m == 1 ? '' : 's'}';
+    final y = m / 12.0;
+    return y == y.roundToDouble()
+        ? '${y.toInt()} year${y.toInt() == 1 ? '' : 's'}'
+        : '${y.toStringAsFixed(1)} years';
+  }
+
   Map<String, Object?> toJson() => {
         'role': role,
         'company': company,
         'years': years,
+        'durationMonths': durationMonths,
         'startDate': startDate,
         'endDate': endDate,
         'description': description,
         'bullets': bullets,
         'location': location,
+        'technologies': technologies,
+        'achievements': achievements,
         'source': source.name,
       };
 
@@ -244,11 +297,14 @@ class CvExperience extends Equatable {
       role: json['role'] as String? ?? '',
       company: json['company'] as String? ?? '',
       years: json['years'] as int?,
+      durationMonths: (json['durationMonths'] as num?)?.toInt() ?? 0,
       startDate: json['startDate'] as String? ?? '',
       endDate: json['endDate'] as String? ?? '',
       description: json['description'] as String? ?? '',
       bullets: parsedBullets,
       location: json['location'] as String? ?? '',
+      technologies: [for (final t in json['technologies'] as List? ?? const []) t.toString()],
+      achievements: [for (final a in json['achievements'] as List? ?? const []) a.toString()],
       source: CvSource.values.firstWhere(
         (s) => s.name == (json['source'] as String?),
         orElse: () => CvSource.ai,
@@ -257,32 +313,44 @@ class CvExperience extends Equatable {
   }
 
   @override
-  List<Object?> get props => [role, company, years, startDate, endDate, description, bullets, location, source];
+  List<Object?> get props => [role, company, years, durationMonths, startDate, endDate, description, bullets, location, technologies, achievements, source];
 
   CvExperience copyWith({
     String? role,
     String? company,
     int? years,
+    int? durationMonths,
     String? startDate,
     String? endDate,
     String? description,
     List<String>? bullets,
     String? location,
+    List<String>? technologies,
+    List<String>? achievements,
     CvSource? source,
   }) =>
       CvExperience(
         role: role ?? this.role,
         company: company ?? this.company,
         years: years ?? this.years,
+        durationMonths: durationMonths ?? this.durationMonths,
         startDate: startDate ?? this.startDate,
         endDate: endDate ?? this.endDate,
         description: description ?? this.description,
         bullets: bullets ?? this.bullets,
         location: location ?? this.location,
+        technologies: technologies ?? this.technologies,
+        achievements: achievements ?? this.achievements,
         source: source ?? this.source,
       );
 
-  String get yearsLabel => years == null ? '' : '${years}y';
+  String get yearsLabel {
+    final m = effectiveMonths;
+    if (m <= 0) return '';
+    if (m < 12) return '${m}mo';
+    final y = m / 12;
+    return '${y.round()}y';
+  }
 }
 
 class CvProject extends Equatable {
@@ -290,22 +358,28 @@ class CvProject extends Equatable {
     required this.name,
     this.description = '',
     this.tech = const [],
-    this.link = '',
     this.links = const [],
     this.bullets = const [],
     this.role = '',
     this.date = '',
+    this.outcome = '',
+    this.keyFeatures = '',
+    this.challenges = '',
+    this.integrations = '',
     this.source = CvSource.ai,
   });
 
   final String name;
   final String description;
   final List<String> tech;
-  final String link;
-  final List<String> links;
+  final List<CvContactLink> links;
   final List<String> bullets;
   final String role;
   final String date;
+  final String outcome;
+  final String keyFeatures;
+  final String challenges;
+  final String integrations;
   final CvSource source;
 
   /// Effective bullets: explicit bullets list, or [description] wrapped as a
@@ -316,22 +390,22 @@ class CvProject extends Equatable {
     return const [];
   }
 
-  /// Effective links: explicit links list, or [link] wrapped as a list.
-  List<String> get effectiveLinks {
-    if (links.isNotEmpty) return links;
-    if (link.trim().isNotEmpty) return [link.trim()];
-    return const [];
-  }
+  /// Effective link URLs (non-empty), for plain-text consumers such as export.
+  List<String> get effectiveLinks =>
+      links.where((l) => l.url.trim().isNotEmpty).map((l) => l.url.trim()).toList();
 
   Map<String, Object?> toJson() => {
         'name': name,
         'description': description,
         'tech': tech,
-        'link': link,
-        'links': links,
+        'links': [for (final l in links) l.toJson()],
         'bullets': bullets,
         'role': role,
         'date': date,
+        'outcome': outcome,
+        'keyFeatures': keyFeatures,
+        'challenges': challenges,
+        'integrations': integrations,
         'source': source.name,
       };
 
@@ -345,15 +419,33 @@ class CvProject extends Equatable {
       final desc = json['description'] as String? ?? '';
       parsedBullets = desc.trim().isNotEmpty ? [desc.trim()] : const [];
     }
+    final linksRaw = json['links'];
+    final List<CvContactLink> parsedLinks;
+    if (linksRaw is List && linksRaw.isNotEmpty) {
+      parsedLinks = [
+        for (final l in linksRaw)
+          l is String
+              ? CvContactLink(label: l, url: l)
+              : CvContactLink.fromJson(Map<String, dynamic>.from(l)),
+      ];
+    } else {
+      final legacy = json['link'] as String? ?? '';
+      parsedLinks = legacy.trim().isNotEmpty
+          ? [CvContactLink(label: '', url: legacy.trim())]
+          : const [];
+    }
     return CvProject(
       name: json['name'] as String? ?? '',
       description: json['description'] as String? ?? '',
       tech: [for (final t in json['tech'] as List? ?? const []) t as String],
-      link: json['link'] as String? ?? '',
-      links: [for (final l in json['links'] as List? ?? const []) l as String],
+      links: parsedLinks,
       bullets: parsedBullets,
       role: json['role'] as String? ?? '',
       date: json['date'] as String? ?? '',
+      outcome: json['outcome'] as String? ?? '',
+      keyFeatures: json['keyFeatures'] as String? ?? '',
+      challenges: json['challenges'] as String? ?? '',
+      integrations: json['integrations'] as String? ?? '',
       source: CvSource.values.firstWhere(
         (s) => s.name == (json['source'] as String?),
         orElse: () => CvSource.ai,
@@ -362,28 +454,34 @@ class CvProject extends Equatable {
   }
 
   @override
-  List<Object?> get props => [name, description, tech, link, links, bullets, role, date, source];
+  List<Object?> get props => [name, description, tech, links, bullets, role, date, outcome, keyFeatures, challenges, integrations, source];
 
   CvProject copyWith({
     String? name,
     String? description,
     List<String>? tech,
-    String? link,
-    List<String>? links,
+    List<CvContactLink>? links,
     List<String>? bullets,
     String? role,
     String? date,
+    String? outcome,
+    String? keyFeatures,
+    String? challenges,
+    String? integrations,
     CvSource? source,
   }) =>
       CvProject(
         name: name ?? this.name,
         description: description ?? this.description,
         tech: tech ?? this.tech,
-        link: link ?? this.link,
         links: links ?? this.links,
         bullets: bullets ?? this.bullets,
         role: role ?? this.role,
         date: date ?? this.date,
+        outcome: outcome ?? this.outcome,
+        keyFeatures: keyFeatures ?? this.keyFeatures,
+        challenges: challenges ?? this.challenges,
+        integrations: integrations ?? this.integrations,
         source: source ?? this.source,
       );
 }
@@ -446,18 +544,21 @@ class CvCertification extends Equatable {
     required this.name,
     this.issuer = '',
     this.year = '',
+    this.link = '',
     this.source = CvSource.ai,
   });
 
   final String name;
   final String issuer;
   final String year;
+  final String link;
   final CvSource source;
 
   Map<String, Object?> toJson() => {
         'name': name,
         'issuer': issuer,
         'year': year,
+        if (link.isNotEmpty) 'link': link,
         'source': source.name,
       };
 
@@ -465,6 +566,7 @@ class CvCertification extends Equatable {
         name: json['name'] as String? ?? '',
         issuer: json['issuer'] as String? ?? '',
         year: json['year'] as String? ?? '',
+        link: json['link'] as String? ?? '',
         source: CvSource.values.firstWhere(
           (s) => s.name == (json['source'] as String?),
           orElse: () => CvSource.ai,
@@ -472,18 +574,20 @@ class CvCertification extends Equatable {
       );
 
   @override
-  List<Object?> get props => [name, issuer, year, source];
+  List<Object?> get props => [name, issuer, year, link, source];
 
   CvCertification copyWith({
     String? name,
     String? issuer,
     String? year,
+    String? link,
     CvSource? source,
   }) =>
       CvCertification(
         name: name ?? this.name,
         issuer: issuer ?? this.issuer,
         year: year ?? this.year,
+        link: link ?? this.link,
         source: source ?? this.source,
       );
 

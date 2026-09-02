@@ -124,6 +124,8 @@ void main() {
     await tapNav(tester, 'DNA');
 
     // Tapping a base section opens its real-data editor.
+    await tester.scrollUntilVisible(find.text('Experience'), -80);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Experience'));
     await tester.pumpAndSettle();
     expect(find.text('Save changes'), findsOneWidget);

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:convert';
 
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
@@ -13,6 +14,28 @@ import '../../../features/main/presentation/main_tab.dart';
 import '../../../l10n/app_localizations.dart';
 import '../career_dna/cubit/career_dna_cubit.dart';
 import 'edit_widgets.dart';
+
+String _encodeLinks(List<ProjectLink> links) => jsonEncode(
+      [for (final l in links) {'label': l.label, 'url': l.url}],
+    );
+
+List<ProjectLink> _decodeLinks(String? raw) {
+  if (raw == null || raw.isEmpty) return const [];
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is! List) return const [];
+    return [
+      for (final e in decoded)
+        if (e is Map && (e['url']?.toString().isNotEmpty ?? false))
+          ProjectLink(
+            label: (e['label'] as String?) ?? '',
+            url: (e['url'] as String?) ?? '',
+          ),
+    ];
+  } catch (_) {
+    return const [];
+  }
+}
 
 /// Final step of onboarding — review, edit every part of the compiled Career DNA,
 /// then save it (version 1) before entering the app. Manual edits are authoritative
@@ -40,11 +63,14 @@ class _CareerDnaReviewScreenState extends State<CareerDnaReviewScreen> {
     ListField(name: 'role', inputType: IntakeInputType.shortText, label: (l) => l.intakePlaceholderRole),
     ListField(name: 'company', inputType: IntakeInputType.shortText, label: (l) => l.intakeCompany),
     ListField(name: 'years', inputType: IntakeInputType.shortText, label: (l) => l.intakeYears),
+    ListField(name: 'duration_months', inputType: IntakeInputType.shortText, label: (l) => l.intakeDurationMonths),
+    ListField(name: 'achievements', inputType: IntakeInputType.tags, label: (l) => l.intakeAchievements),
   ];
   static final List<ListField> _projectSchema = [
     ListField(name: 'name', inputType: IntakeInputType.shortText, label: (l) => l.intakeProjectName),
     ListField(name: 'description', inputType: IntakeInputType.longText, label: (l) => l.intakeProjectDesc),
     ListField(name: 'tech', inputType: IntakeInputType.tags, label: (l) => l.intakeProjectTech),
+    ListField(name: 'links', inputType: IntakeInputType.links, label: (l) => l.intakeProjectLinks),
   ];
 
   @override
@@ -105,7 +131,13 @@ class _CareerDnaReviewScreenState extends State<CareerDnaReviewScreen> {
       schema: _experienceSchema,
       items: [
         for (final e in _draft!.profile.experience)
-          {'role': e.role, 'company': e.company, 'years': e.years.toString()},
+          {
+            'role': e.role,
+            'company': e.company,
+            'years': e.years.toString(),
+            'duration_months': e.durationMonths.toString(),
+            'achievements': e.achievements.join(', '),
+          },
       ],
     );
     if (result != null) {
@@ -117,6 +149,12 @@ class _CareerDnaReviewScreenState extends State<CareerDnaReviewScreen> {
                     role: m['role']?.trim() ?? '',
                     company: m['company']?.trim() ?? '',
                     years: int.tryParse((m['years'] ?? '').trim()) ?? 0,
+                    durationMonths: int.tryParse((m['duration_months'] ?? '').trim()) ?? 0,
+                    achievements: (m['achievements'] as String? ?? '')
+                        .split(',')
+                        .map((s) => s.trim())
+                        .where((s) => s.isNotEmpty)
+                        .toList(),
                   ),
               ].where((e) => e.role.isNotEmpty).toList(),
             ),
@@ -131,7 +169,12 @@ class _CareerDnaReviewScreenState extends State<CareerDnaReviewScreen> {
       schema: _projectSchema,
       items: [
         for (final p in _draft!.profile.projects)
-          {'name': p.name, 'description': p.description, 'tech': p.tech.join(', ')},
+          {
+            'name': p.name,
+            'description': p.description,
+            'tech': p.tech.join(', '),
+            'links': _encodeLinks(p.links),
+          },
       ],
     );
     if (result != null) {
@@ -147,6 +190,7 @@ class _CareerDnaReviewScreenState extends State<CareerDnaReviewScreen> {
                         .map((e) => e.trim())
                         .where((e) => e.isNotEmpty)
                         .toList(),
+                    links: _decodeLinks(m['links']),
                   ),
               ].where((e) => e.name.isNotEmpty).toList(),
             ),
@@ -264,9 +308,9 @@ class _CareerDnaReviewScreenState extends State<CareerDnaReviewScreen> {
                       ),
                       _SectionTile(
                         title: l10n.dnaCertifications,
-                        items: dna.profile.certifications,
-                        onTap: () => _editStringList(l10n.dnaCertifications, dna.profile.certifications, (v) {
-                          setState(() => _draft = _draft!.copyWith(profile: _draft!.profile.copyWith(certifications: v)));
+                        items: [for (final c in dna.profile.certifications) c.name],
+                        onTap: () => _editStringList(l10n.dnaCertifications, [for (final c in dna.profile.certifications) c.name], (v) {
+                          setState(() => _draft = _draft!.copyWith(profile: _draft!.profile.copyWith(certifications: v.map((s) => ProfileCertification.fromString(s)).toList())));
                         }),
                       ),
                       _SectionTile(

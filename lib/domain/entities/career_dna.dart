@@ -236,6 +236,8 @@ class CareerDna {
               'role': e.role,
               'company': e.company,
               'years': e.years,
+              'duration_months': e.effectiveMonths,
+              if (e.achievements.isNotEmpty) 'achievements': e.achievements,
               if (e.role.isNotEmpty || e.company.isNotEmpty)
                 'hint': 'Worked as ${e.role}${e.company.isNotEmpty ? ' at ${e.company}' : ''}',
             },
@@ -250,7 +252,7 @@ class CareerDna {
             },
         ],
         'skills': skills,
-        'certifications': profile.certifications,
+        'certifications': profile.certifications.map((c) => c.name).toList(),
         'achievements': profile.achievements,
         'languages': profile.languages,
         '_instructions': {

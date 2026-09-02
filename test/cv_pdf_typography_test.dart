@@ -15,7 +15,7 @@ final _richContent = CvContent(
     email: 'layla@example.com',
     phone: '+49 170 000 000',
     location: 'Berlin, DE',
-    links: ['github.com/layla'],
+    links: [CvContactLink(label: 'GitHub', url: 'github.com/layla')],
   ),
   summary:
       'Mobile engineer focused on shipping polished Flutter products. '
@@ -48,7 +48,7 @@ final _richContent = CvContent(
       name: 'Trackly',
       role: 'Creator',
       tech: ['Flutter', 'Supabase', 'Edge Functions'],
-      link: 'github.com/layla/trackly',
+      links: [CvContactLink(label: 'GitHub', url: 'github.com/layla/trackly')],
       bullets: [
         'Habit tracker with offline-first sync and 4.8 star rating.',
         'Open source with 300+ GitHub stars.',

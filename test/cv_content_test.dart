@@ -123,17 +123,28 @@ void main() {
       expect(p.effectiveBullets, ['A delivery app']);
     });
 
-    test('effectiveLinks returns links when present', () {
+    test('effectiveLinks returns urls when present', () {
       const p = CvProject(
         name: 'App',
-        links: ['https://github.com/app', 'https://demo.app'],
+        links: [
+          CvContactLink(label: 'GitHub', url: 'https://github.com/app'),
+          CvContactLink(label: 'Demo', url: 'https://demo.app'),
+        ],
       );
       expect(p.effectiveLinks, ['https://github.com/app', 'https://demo.app']);
     });
 
-    test('effectiveLinks falls back to single link', () {
-      const p = CvProject(name: 'App', link: 'https://github.com/app');
-      expect(p.effectiveLinks, ['https://github.com/app']);
+    test('links round-trip through toJson/fromJson', () {
+      const p = CvProject(
+        name: 'App',
+        links: [
+          CvContactLink(label: 'GitHub', url: 'https://github.com/app'),
+        ],
+      );
+      final back = CvProject.fromJson(p.toJson());
+      expect(back.links.length, 1);
+      expect(back.links.first.label, 'GitHub');
+      expect(back.links.first.url, 'https://github.com/app');
     });
 
     test('effectiveLinks returns empty when none', () {

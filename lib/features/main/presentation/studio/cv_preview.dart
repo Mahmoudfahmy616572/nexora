@@ -5,6 +5,7 @@ import '../../../../domain/cv/cv_template_registry.dart';
 import '../../../../domain/entities/career_dna.dart';
 import '../../../../domain/entities/career_target.dart';
 import '../../../../domain/entities/cv_content.dart';
+import 'link_launcher.dart';
 
 /// Renders structured [CvContent] into a printable CV using the selected
 /// template. The template changes only styling/priority — never the content.
@@ -231,14 +232,41 @@ class _Header extends StatelessWidget {
         // ── Links ──
         if (h.links.isNotEmpty) ...[
           SizedBox(height: template.spacing * 0.15),
-          Text(
-            h.links.join('  •  '),
-            style: TextStyle(
-              fontSize: template.metaTextSize,
-              color: template.mutedColor,
-              fontFamily: template.fontFamily,
-              height: 1.3,
-            ),
+          Wrap(
+            spacing: 6,
+            runSpacing: 2,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              for (var i = 0; i < h.links.length; i++) ...[
+                if (i > 0)
+                  Text(
+                    '·',
+                    style: TextStyle(
+                      fontSize: template.metaTextSize,
+                      color: template.mutedColor,
+                      fontFamily: template.fontFamily,
+                      height: 1.3,
+                    ),
+                  ),
+                GestureDetector(
+                  onTap: h.links[i].url.trim().isNotEmpty
+                      ? () => LinkLauncher.open(h.links[i].url.trim())
+                      : null,
+                  child: Text(
+                    h.links[i].label.isNotEmpty
+                        ? h.links[i].label
+                        : h.links[i].url,
+                    style: TextStyle(
+                      fontSize: template.metaTextSize,
+                      color: template.accent,
+                      fontFamily: template.fontFamily,
+                      decoration: TextDecoration.underline,
+                      height: 1.3,
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
         ],
       ],
@@ -370,7 +398,7 @@ class _ExperienceItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bullets = item.effectiveBullets;
-    final dateStr = _formatDateRange(item.startDate, item.endDate, item.yearsLabel);
+    final dateStr = _formatDateRange(item.startDate, item.endDate, item.durationLabel);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -466,6 +494,34 @@ class _ExperienceItem extends StatelessWidget {
             ),
           ),
         ],
+
+        // ── Per-experience achievements ──
+        if (item.achievements.isNotEmpty) ...[
+          SizedBox(height: template.bulletSpacing + 1),
+          for (final ach in item.achievements)
+            Padding(
+              padding: EdgeInsets.only(bottom: template.bulletSpacing, left: 0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.emoji_events_outlined, size: template.metaTextSize, color: template.mutedColor),
+                  SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      ach,
+                      style: TextStyle(
+                        fontSize: template.metaTextSize,
+                        color: template.bodyColor,
+                        fontFamily: template.fontFamily,
+                        fontStyle: FontStyle.italic,
+                        height: 1.45,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ],
     );
   }
@@ -505,7 +561,7 @@ class _ProjectItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bullets = item.effectiveBullets;
-    final links = item.effectiveLinks;
+    final links = item.links;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -557,14 +613,39 @@ class _ProjectItem extends StatelessWidget {
             if (links.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(left: 8),
-                child: Text(
-                  links.join(' | '),
-                  style: TextStyle(
-                    fontSize: template.metaTextSize,
-                    color: template.accent,
-                    fontFamily: template.fontFamily,
-                    height: 1.3,
-                  ),
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 2,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    for (var i = 0; i < links.length; i++) ...[
+                      if (i > 0)
+                        Text(
+                          '·',
+                          style: TextStyle(
+                            fontSize: template.metaTextSize,
+                            color: template.mutedColor,
+                            fontFamily: template.fontFamily,
+                            height: 1.3,
+                          ),
+                        ),
+                      GestureDetector(
+                        onTap: () => LinkLauncher.open(links[i].url),
+                        child: Text(
+                          links[i].label.isNotEmpty
+                              ? links[i].label
+                              : links[i].url,
+                          style: TextStyle(
+                            fontSize: template.metaTextSize,
+                            color: template.accent,
+                            fontFamily: template.fontFamily,
+                            decoration: TextDecoration.underline,
+                            height: 1.3,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
           ],
@@ -760,13 +841,23 @@ class _CertificationsSection extends StatelessWidget {
         for (final c in content.certifications)
           Padding(
             padding: EdgeInsets.only(bottom: template.bulletSpacing),
-            child: Text(
-              c.display,
-              style: TextStyle(
-                fontSize: template.baseTextSize,
-                color: template.bodyColor,
-                fontFamily: template.fontFamily,
-                height: 1.4,
+            child: GestureDetector(
+              onTap: c.link.trim().isNotEmpty
+                  ? () => LinkLauncher.open(c.link.trim())
+                  : null,
+              child: Text(
+                c.display,
+                style: TextStyle(
+                  fontSize: template.baseTextSize,
+                  color: c.link.trim().isNotEmpty
+                      ? template.accent
+                      : template.bodyColor,
+                  fontFamily: template.fontFamily,
+                  height: 1.4,
+                  decoration: c.link.trim().isNotEmpty
+                      ? TextDecoration.underline
+                      : null,
+                ),
               ),
             ),
           ),
