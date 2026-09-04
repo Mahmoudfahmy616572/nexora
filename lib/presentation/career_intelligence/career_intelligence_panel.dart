@@ -225,15 +225,18 @@ class _FacetGrid extends StatelessWidget {
   final String direction;
 
   @override
-  Widget build(BuildContext context) => Row(
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Row(
         children: [
-          Expanded(child: _Facet(label: 'Experience', value: experience)),
+          Expanded(child: _Facet(label: l10n.facetExperience, value: experience)),
           const SizedBox(width: 10),
-          Expanded(child: _Facet(label: 'Education', value: education)),
+          Expanded(child: _Facet(label: l10n.facetEducation, value: education)),
           const SizedBox(width: 10),
-          Expanded(child: _Facet(label: 'Direction', value: direction)),
+          Expanded(child: _Facet(label: l10n.facetDirection, value: direction)),
         ],
       );
+  }
 }
 
 class _Facet extends StatelessWidget {

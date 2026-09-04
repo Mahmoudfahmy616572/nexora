@@ -674,6 +674,12 @@ abstract class AppLocalizations {
   /// **'Ahmed Al-Rashidi'**
   String get homeUserName;
 
+  /// No description provided for @guestName.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest'**
+  String get guestName;
+
   /// No description provided for @homeHealthTitle.
   ///
   /// In en, this message translates to:
@@ -943,6 +949,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Volunteering · Publications · Courses'**
   String get dnaAddMore;
+
+  /// No description provided for @dnaAllOnTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'All on Track'**
+  String get dnaAllOnTrack;
+
+  /// No description provided for @dnaSectionsNeedWorkCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} Section{plural} Need Work'**
+  String dnaSectionsNeedWorkCount(Object count, Object plural);
+
+  /// No description provided for @dnaAddSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a section'**
+  String get dnaAddSection;
+
+  /// No description provided for @dnaAddSectionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sections are evidence-based — you can attach proof later.'**
+  String get dnaAddSectionHint;
+
+  /// No description provided for @dnaAddSectionButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Section'**
+  String get dnaAddSectionButton;
+
+  /// No description provided for @dnaSectionNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Section name'**
+  String get dnaSectionNameHint;
+
+  /// No description provided for @dnaAlreadyComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Already Complete'**
+  String get dnaAlreadyComplete;
+
+  /// No description provided for @dnaMarkComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as Complete'**
+  String get dnaMarkComplete;
+
+  /// No description provided for @dnaSectionAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} added — DNA completeness updated'**
+  String dnaSectionAdded(Object label);
+
+  /// No description provided for @dnaSectionMarkedComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} marked complete'**
+  String dnaSectionMarkedComplete(Object label);
+
+  /// No description provided for @dnaExperienceSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Experience saved — match scores updated'**
+  String get dnaExperienceSaved;
+
+  /// No description provided for @dnaEditorSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} saved — match scores updated'**
+  String dnaEditorSaved(Object title);
+
+  /// No description provided for @dnaTargetFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% · Target 95%'**
+  String dnaTargetFormat(Object percent);
+
+  /// No description provided for @dnaSkillsEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Skills · {count} entries'**
+  String dnaSkillsEntries(Object count);
+
+  /// No description provided for @dnaVolunteering.
+  ///
+  /// In en, this message translates to:
+  /// **'Volunteering'**
+  String get dnaVolunteering;
+
+  /// No description provided for @dnaPublications.
+  ///
+  /// In en, this message translates to:
+  /// **'Publications'**
+  String get dnaPublications;
+
+  /// No description provided for @dnaCourses.
+  ///
+  /// In en, this message translates to:
+  /// **'Courses'**
+  String get dnaCourses;
+
+  /// No description provided for @dnaSectionDetailComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything in this section is verified. Nice work!'**
+  String get dnaSectionDetailComplete;
+
+  /// No description provided for @dnaSectionDetailAddEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Add evidence — upload a document, link, or certificate to bring this section up to 100%.'**
+  String get dnaSectionDetailAddEvidence;
+
+  /// No description provided for @facetExperience.
+  ///
+  /// In en, this message translates to:
+  /// **'Experience'**
+  String get facetExperience;
+
+  /// No description provided for @facetEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get facetEducation;
+
+  /// No description provided for @facetDirection.
+  ///
+  /// In en, this message translates to:
+  /// **'Direction'**
+  String get facetDirection;
+
+  /// No description provided for @micPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone permission denied. Enable it in Settings → Apps → Nexora → Permissions.'**
+  String get micPermissionDenied;
 
   /// No description provided for @dnaVisualLabel.
   ///
@@ -1832,12 +1976,6 @@ abstract class AppLocalizations {
   /// **'6 active'**
   String get homeSixActive;
 
-  /// No description provided for @homeComingSoon.
-  ///
-  /// In en, this message translates to:
-  /// **'AI Interview — coming soon'**
-  String get homeComingSoon;
-
   /// No description provided for @analyzeEmptyTitle.
   ///
   /// In en, this message translates to:
@@ -1981,12 +2119,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Internship'**
   String get studioPurposeInternship;
-
-  /// No description provided for @studioCvBattleSoon.
-  ///
-  /// In en, this message translates to:
-  /// **'CV Battle — coming soon'**
-  String get studioCvBattleSoon;
 
   /// No description provided for @studioTemplateSelected.
   ///

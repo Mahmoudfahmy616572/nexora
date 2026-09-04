@@ -55,15 +55,7 @@ class _TrackerScreenState extends State<TrackerScreen> {
     'Rejected',
   ];
 
-  static const List<JobApplication> _seedApps = [
-    JobApplication(id: 'app1', company: 'Google', role: 'Flutter Engineer', status: 'Interview', date: 'Aug 17', match: 91, ats: 92),
-    JobApplication(id: 'app2', company: 'Careem', role: 'Mobile Developer', status: 'Under Review', date: 'Applied Aug 10', match: 82, ats: 87),
-    JobApplication(id: 'app3', company: 'Noon', role: 'Frontend Engineer', status: 'Assessment', date: 'Due Aug 14', match: 78, ats: 81),
-    JobApplication(id: 'app4', company: 'Noon Commerce', role: 'Frontend Engineer', status: 'Offer 🎉', date: 'Aug 1', match: 88, ats: 89),
-    JobApplication(id: 'app5', company: 'Jumia', role: 'Mobile Developer', status: 'Rejected', date: 'Jul 28', match: 71, ats: 75),
-  ];
-
-  late List<JobApplication> _apps = [..._seedApps];
+  late List<JobApplication> _apps = [];
   JobApplicationRepository? _repository;
 
   @override
@@ -81,11 +73,9 @@ class _TrackerScreenState extends State<TrackerScreen> {
     _repository = repository;
     final apps = await repository.load();
     if (!mounted) return;
-    if (apps == null) {
-      await repository.saveAll(_apps);
-      return;
+    if (apps != null) {
+      setState(() => _apps = apps);
     }
-    setState(() => _apps = apps);
   }
 
   Future<void> _persistApps() async {
@@ -125,8 +115,6 @@ class _TrackerScreenState extends State<TrackerScreen> {
     );
     if (result == null || !mounted) return;
 
-    final seed = result.company.length + result.role.length;
-    final match = 70 + (seed % 21);
     setState(() {
       _apps = [
         JobApplication(
@@ -135,8 +123,8 @@ class _TrackerScreenState extends State<TrackerScreen> {
           role: result.role,
           status: result.status,
           date: 'Applied Just now',
-          match: match,
-          ats: (match + 4).clamp(0, 100),
+          match: 0,
+          ats: 0,
         ),
         ..._apps,
       ];
@@ -454,7 +442,7 @@ class _AppCard extends StatelessWidget {
                       children: [
                         AppChip(label: _statusLabel(l10n, app.status), color: color, size: 10),
                         const SizedBox(height: 4),
-                        Text(l10n.trackerMatchPct(app.match), style: AppTextStyles.mono),
+                        Text(app.match > 0 ? l10n.trackerMatchPct(app.match) : '—', style: AppTextStyles.mono),
                       ],
                     ),
                     ] else
@@ -467,7 +455,7 @@ class _AppCard extends StatelessWidget {
                   children: [
                     Expanded(child: _MetaPill(icon: Icons.schedule_rounded, text: app.date)),
                     const SizedBox(width: 6),
-                    Expanded(child: _MetaPill(icon: Icons.verified_user_outlined, text: l10n.trackerAts(app.ats))),
+                    Expanded(child: _MetaPill(icon: Icons.verified_user_outlined, text: app.ats > 0 ? l10n.trackerAts(app.ats) : '—')),
                   ],
                 ),
               ],

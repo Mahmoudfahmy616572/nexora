@@ -68,7 +68,7 @@ class SettingsScreen extends StatelessWidget {
     final localeCubit = context.watch<LocaleCubit>();
     final isArabic = localeCubit.state.language == AppLanguage.arabic;
 
-    String name = 'Ahmed Al-Rashidi';
+    String name = '';
     String email = '';
     try {
       final user = AuthRepositoryImpl(AuthRemoteDataSource()).currentUser;
@@ -84,6 +84,7 @@ class SettingsScreen extends StatelessWidget {
     } catch (_) {
       // Supabase may be unavailable (e.g. widget tests) — keep the fallback.
     }
+    if (name.isEmpty) name = l10n.guestName;
 
     return Scaffold(
       backgroundColor: AppColors.background,

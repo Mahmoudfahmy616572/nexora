@@ -172,9 +172,10 @@ class _InterviewPracticeViewState extends State<_InterviewPracticeView> {
     }
     if (!_speechReady) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Microphone permission denied. Enable it in Settings → Apps → Nexora → Permissions.'),
+          SnackBar(
+            content: Text(l10n.micPermissionDenied),
           ),
         );
       }

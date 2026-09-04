@@ -127,9 +127,9 @@ class _DnaScreenState extends State<DnaScreen> {
   /// Completeness derived from how much real evidence exists.
   static double _pctFor(int count) => count == 0 ? 0 : (count >= 2 ? 100 : 60);
 
-  static _DnaSection _skillsRowFor(List<String> skills) => _DnaSection(
+  static _DnaSection _skillsRowFor(List<String> skills, AppLocalizations l10n) => _DnaSection(
         icon: Icons.bolt_rounded,
-        label: 'Skills · ${skills.length} entries',
+        label: l10n.dnaSkillsEntries(skills.length),
         pct: (skills.length * 10).clamp(0, 100).toDouble(),
         color: AppColors.purple,
         kind: _SectionKind.skills,
@@ -163,42 +163,42 @@ class _DnaScreenState extends State<DnaScreen> {
             : l10n.dnaIdentityMissing(missingCount),
         kind: _SectionKind.summary,
       ),
-      _DnaSection(
+        _DnaSection(
           icon: Icons.school_rounded,
-          label: 'Education',
+          label: l10n.dnaEducation,
           pct: _pctFor(profile.education.length),
           kind: _SectionKind.education,
         ),
         _DnaSection(
           icon: Icons.work_rounded,
-          label: 'Experience',
+          label: l10n.dnaExperience,
           pct: _pctFor(profile.experience.length),
           color: AppColors.purple,
           kind: _SectionKind.experience,
         ),
         _DnaSection(
           icon: Icons.code_rounded,
-          label: 'Projects',
+          label: l10n.dnaProjects,
           pct: _pctFor(profile.projects.length),
           kind: _SectionKind.projects,
         ),
-        _skillsRowFor(skills),
+        _skillsRowFor(skills, l10n),
         _DnaSection(
           icon: Icons.menu_book_rounded,
-          label: 'Certifications',
+          label: l10n.dnaCertifications,
           pct: _pctFor(profile.certifications.length),
           kind: _SectionKind.certifications,
         ),
         _DnaSection(
           icon: Icons.emoji_events_rounded,
-          label: 'Achievements',
+          label: l10n.dnaAchievements,
           pct: _pctFor(profile.achievements.length),
           color: AppColors.amber,
           kind: _SectionKind.achievements,
         ),
         _DnaSection(
           icon: Icons.language_rounded,
-          label: 'Languages',
+          label: l10n.dnaLanguages,
           pct: _pctFor(profile.languages.length),
           kind: _SectionKind.languages,
         ),
@@ -358,6 +358,7 @@ class _DnaScreenState extends State<DnaScreen> {
   }
 
   Future<void> _showAddSectionSheet() async {
+    final l10n = AppLocalizations.of(context)!;
     final result = await showModalBottomSheet<_AddResult>(
       context: context,
       backgroundColor: AppColors.cardHi,
@@ -387,7 +388,7 @@ class _DnaScreenState extends State<DnaScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text('${result.label} added — DNA completeness updated'),
+          content: Text(l10n.dnaSectionAdded(result.label)),
           behavior: SnackBarBehavior.floating,
           backgroundColor: AppColors.cardHi,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -396,6 +397,7 @@ class _DnaScreenState extends State<DnaScreen> {
   }
 
   Future<void> _showSectionDetail(_DnaSection section) async {
+    final l10n = AppLocalizations.of(context)!;
     final markComplete = await showModalBottomSheet<bool>(
       context: context,
       backgroundColor: AppColors.cardHi,
@@ -422,7 +424,7 @@ class _DnaScreenState extends State<DnaScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text('${section.label} marked complete'),
+          content: Text(l10n.dnaSectionMarkedComplete(section.label)),
           behavior: SnackBarBehavior.floating,
           backgroundColor: AppColors.cardHi,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -584,6 +586,7 @@ class _DnaScreenState extends State<DnaScreen> {
       };
 
   Future<void> _editSection(_SectionKind kind) async {
+    final l10n = AppLocalizations.of(context)!;
     if (kind == _SectionKind.experience) {
       final result = await showModalBottomSheet<List<ExperienceEntry>>(
         context: context,
@@ -617,7 +620,7 @@ class _DnaScreenState extends State<DnaScreen> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
-            content: const Text('Experience saved — match scores updated'),
+            content: Text(l10n.dnaExperienceSaved),
             behavior: SnackBarBehavior.floating,
             backgroundColor: AppColors.cardHi,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -651,7 +654,7 @@ class _DnaScreenState extends State<DnaScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text('${editor.title} saved — match scores updated'),
+          content: Text(l10n.dnaEditorSaved(editor.title)),
           behavior: SnackBarBehavior.floating,
           backgroundColor: AppColors.cardHi,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -707,7 +710,7 @@ class _DnaScreenState extends State<DnaScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text('${l10n.dnaPersonalProfile} saved — CV header updated'),
+          content: Text(l10n.dnaEditorSaved(l10n.dnaPersonalProfile)),
           behavior: SnackBarBehavior.floating,
           backgroundColor: AppColors.cardHi,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -1055,9 +1058,10 @@ class _CompletenessCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final weak = needsWork;
     final note = weak.isEmpty
-        ? 'All sections on track'
+        ? l10n.dnaAllOnTrack
         : [for (final s in weak.take(2)) '${s.label} · ${s.pct.round()}%'].join('\n');
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -1078,7 +1082,7 @@ class _CompletenessCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('DNA COMPLETENESS', style: AppTextStyles.sectionLabel),
+                    Text(l10n.dnaCompleteness, style: AppTextStyles.sectionLabel),
                     const SizedBox(height: 6),
                     NxMetric(
                       value: overall,
@@ -1093,7 +1097,7 @@ class _CompletenessCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     AppChip(
-                      label: weak.isEmpty ? 'All on Track' : '${weak.length} Section${weak.length == 1 ? '' : 's'} Need Work',
+                      label: weak.isEmpty ? l10n.dnaAllOnTrack : l10n.dnaSectionsNeedWorkCount(weak.length, weak.length == 1 ? '' : 's'),
                       color: weak.isEmpty ? AppColors.green : AppColors.amber,
                     ),
                     const SizedBox(height: 6),
@@ -1132,7 +1136,7 @@ class _CompletenessCard extends StatelessWidget {
               const Text('0%', style: AppTextStyles.mono),
               Flexible(
                 child: Text(
-                  '${overall.round()}% · Target 95%',
+                  l10n.dnaTargetFormat(overall.round()),
                   style: const TextStyle(fontSize: 11, fontFamily: AppTextStyles.monoFont, color: AppColors.teal),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
@@ -1152,6 +1156,7 @@ class _EvidenceNote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(14),
@@ -1170,13 +1175,13 @@ class _EvidenceNote extends StatelessWidget {
               TextSpan(
                 style: AppTextStyles.bodySub.copyWith(fontSize: 12, height: 1.45),
                 children: [
-                  TextSpan(text: 'Your profile is '),
+                  TextSpan(text: l10n.dnaEvidenceLead),
                   TextSpan(
-                    text: 'evidence-based',
+                    text: l10n.dnaEvidenceAccent,
                     style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.w600),
                   ),
                   TextSpan(
-                      text: ' — the AI will never fabricate experience or skills. Only verified claims are used.'),
+                      text: l10n.dnaEvidenceTail),
                 ],
               ),
             ),
@@ -1200,6 +1205,7 @@ class _ProfileSections extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -1210,9 +1216,9 @@ class _ProfileSections extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: Text('PROFILE SECTIONS', style: AppTextStyles.sectionLabel),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: Text(l10n.dnaProfileSections, style: AppTextStyles.sectionLabel),
           ),
           for (final section in sections)
             SectionRow(
@@ -1234,14 +1240,14 @@ class _ProfileSections extends StatelessWidget {
                   border: Border.all(color: AppColors.border, style: BorderStyle.solid),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.add_rounded, size: 15, color: AppColors.textMuted),
-                    SizedBox(width: 7),
+                    const Icon(Icons.add_rounded, size: 15, color: AppColors.textMuted),
+                    const SizedBox(width: 7),
                     Expanded(
                       child: Text(
-                        'Add Volunteering · Publications · Courses',
+                        l10n.dnaAddMore,
                         textAlign: TextAlign.center,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -1314,6 +1320,7 @@ class _AddSectionSheetState extends State<_AddSectionSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: EdgeInsets.only(
         left: 20,
@@ -1324,9 +1331,9 @@ class _AddSectionSheetState extends State<_AddSectionSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Add a section', style: AppTextStyles.cardTitle),
+          Text(l10n.dnaAddSection, style: AppTextStyles.cardTitle),
           const SizedBox(height: 4),
-          const Text('Sections are evidence-based — you can attach proof later.', style: AppTextStyles.bodySub),
+          Text(l10n.dnaAddSectionHint, style: AppTextStyles.bodySub),
           const SizedBox(height: 16),
           Wrap(
             spacing: 8,
@@ -1351,8 +1358,8 @@ class _AddSectionSheetState extends State<_AddSectionSheet> {
           const SizedBox(height: 14),
           TextField(
             controller: _controller,
-            decoration: const InputDecoration(
-              hintText: 'Section name',
+            decoration: InputDecoration(
+              hintText: l10n.dnaSectionNameHint,
               filled: true,
               fillColor: AppColors.card,
               border: OutlineInputBorder(
@@ -1377,7 +1384,7 @@ class _AddSectionSheetState extends State<_AddSectionSheet> {
                 backgroundColor: AppColors.teal,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text('Add Section', style: AppTextStyles.primaryButton),
+              child: Text(l10n.dnaAddSectionButton, style: AppTextStyles.primaryButton),
             ),
           ),
         ],
@@ -1393,6 +1400,7 @@ class _SectionDetailSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final done = section.pct >= 100;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -1419,7 +1427,7 @@ class _SectionDetailSheet extends StatelessWidget {
                   children: [
                     Text(section.label, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 2),
-                    Text('${section.pct.round()}% complete', style: AppTextStyles.bodySub),
+                    Text(l10n.dnaScoreFormat(section.pct.round()), style: AppTextStyles.bodySub),
                   ],
                 ),
               ),
@@ -1438,8 +1446,8 @@ class _SectionDetailSheet extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             done
-                ? 'Everything in this section is verified. Nice work!'
-                : 'Add evidence — upload a document, link, or certificate to bring this section up to 100%.',
+                ? l10n.dnaSectionDetailComplete
+                : l10n.dnaSectionDetailAddEvidence,
             style: AppTextStyles.bodySub.copyWith(height: 1.5),
           ),
           const SizedBox(height: 16),
@@ -1454,7 +1462,7 @@ class _SectionDetailSheet extends StatelessWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: Text(
-                done ? 'Already Complete' : 'Mark as Complete',
+                done ? l10n.dnaAlreadyComplete : l10n.dnaMarkComplete,
                 style: AppTextStyles.primaryButton,
               ),
             ),

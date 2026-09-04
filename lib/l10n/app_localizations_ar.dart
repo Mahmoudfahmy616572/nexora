@@ -307,6 +307,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeUserName => 'أحمد الراشدي';
 
   @override
+  String get guestName => 'ضيف';
+
+  @override
   String get homeHealthTitle => 'صحة بصمتك المهنية';
 
   @override
@@ -445,6 +448,90 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dnaAddMore => 'إضافة عمل تطوعي · منشورات · دورات';
+
+  @override
+  String get dnaAllOnTrack => 'كل شيء على المسار';
+
+  @override
+  String dnaSectionsNeedWorkCount(Object count, Object plural) {
+    return 'قسم$plural تحتاج 작업';
+  }
+
+  @override
+  String get dnaAddSection => 'إضافة قسم';
+
+  @override
+  String get dnaAddSectionHint =>
+      'الأقسام مبنية على الأدلة — يمكنك إرفاق الإثبات لاحقاً.';
+
+  @override
+  String get dnaAddSectionButton => 'إضافة القسم';
+
+  @override
+  String get dnaSectionNameHint => 'اسم القسم';
+
+  @override
+  String get dnaAlreadyComplete => 'مكتمل بالفعل';
+
+  @override
+  String get dnaMarkComplete => 'تحديد كمكتمل';
+
+  @override
+  String dnaSectionAdded(Object label) {
+    return 'تمت إضافة $label — تم تحديث اكتمال البصمة';
+  }
+
+  @override
+  String dnaSectionMarkedComplete(Object label) {
+    return 'تم تحديد $label كمكتمل';
+  }
+
+  @override
+  String get dnaExperienceSaved => 'تم حفظ الخبرة — تم تحديث درجات المطابقة';
+
+  @override
+  String dnaEditorSaved(Object title) {
+    return 'تم حفظ $title — تم تحديث درجات المطابقة';
+  }
+
+  @override
+  String dnaTargetFormat(Object percent) {
+    return '$percent% · الهدف 95%';
+  }
+
+  @override
+  String dnaSkillsEntries(Object count) {
+    return 'المهارات · $count عنصر';
+  }
+
+  @override
+  String get dnaVolunteering => 'عمل تطوعي';
+
+  @override
+  String get dnaPublications => 'منشورات';
+
+  @override
+  String get dnaCourses => 'دورات';
+
+  @override
+  String get dnaSectionDetailComplete => 'كل شيء في هذا القسم موثق. عمل رائع!';
+
+  @override
+  String get dnaSectionDetailAddEvidence =>
+      'أضف أدلة — ارفع مستند أو رابط أو شهادة لرفع هذا القسم إلى 100%.';
+
+  @override
+  String get facetExperience => 'الخبرة';
+
+  @override
+  String get facetEducation => 'التعليم';
+
+  @override
+  String get facetDirection => 'التخصص';
+
+  @override
+  String get micPermissionDenied =>
+      'تم رفض إذن الميكروفون. قم بتفعيله من الإعدادات ← التطبيقات ← Nexora → الأذونات.';
 
   @override
   String get dnaVisualLabel => 'البصمة المهنية';
@@ -906,9 +993,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeSixActive => '6 نشطة';
 
   @override
-  String get homeComingSoon => 'مقابلة الذكاء الاصطناعي — قريباً';
-
-  @override
   String get analyzeEmptyTitle => 'لا توجد تحليلات بعد';
 
   @override
@@ -979,9 +1063,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get studioPurposeInternship => 'تدريب';
-
-  @override
-  String get studioCvBattleSoon => 'معركة السير — قريباً';
 
   @override
   String studioTemplateSelected(String name) {

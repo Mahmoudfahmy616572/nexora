@@ -310,6 +310,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeUserName => 'Ahmed Al-Rashidi';
 
   @override
+  String get guestName => 'Guest';
+
+  @override
   String get homeHealthTitle => 'Career DNA Health';
 
   @override
@@ -446,6 +449,91 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dnaAddMore => 'Add Volunteering · Publications · Courses';
+
+  @override
+  String get dnaAllOnTrack => 'All on Track';
+
+  @override
+  String dnaSectionsNeedWorkCount(Object count, Object plural) {
+    return '$count Section$plural Need Work';
+  }
+
+  @override
+  String get dnaAddSection => 'Add a section';
+
+  @override
+  String get dnaAddSectionHint =>
+      'Sections are evidence-based — you can attach proof later.';
+
+  @override
+  String get dnaAddSectionButton => 'Add Section';
+
+  @override
+  String get dnaSectionNameHint => 'Section name';
+
+  @override
+  String get dnaAlreadyComplete => 'Already Complete';
+
+  @override
+  String get dnaMarkComplete => 'Mark as Complete';
+
+  @override
+  String dnaSectionAdded(Object label) {
+    return '$label added — DNA completeness updated';
+  }
+
+  @override
+  String dnaSectionMarkedComplete(Object label) {
+    return '$label marked complete';
+  }
+
+  @override
+  String get dnaExperienceSaved => 'Experience saved — match scores updated';
+
+  @override
+  String dnaEditorSaved(Object title) {
+    return '$title saved — match scores updated';
+  }
+
+  @override
+  String dnaTargetFormat(Object percent) {
+    return '$percent% · Target 95%';
+  }
+
+  @override
+  String dnaSkillsEntries(Object count) {
+    return 'Skills · $count entries';
+  }
+
+  @override
+  String get dnaVolunteering => 'Volunteering';
+
+  @override
+  String get dnaPublications => 'Publications';
+
+  @override
+  String get dnaCourses => 'Courses';
+
+  @override
+  String get dnaSectionDetailComplete =>
+      'Everything in this section is verified. Nice work!';
+
+  @override
+  String get dnaSectionDetailAddEvidence =>
+      'Add evidence — upload a document, link, or certificate to bring this section up to 100%.';
+
+  @override
+  String get facetExperience => 'Experience';
+
+  @override
+  String get facetEducation => 'Education';
+
+  @override
+  String get facetDirection => 'Direction';
+
+  @override
+  String get micPermissionDenied =>
+      'Microphone permission denied. Enable it in Settings → Apps → Nexora → Permissions.';
 
   @override
   String get dnaVisualLabel => 'CAREER DNA';
@@ -911,9 +999,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeSixActive => '6 active';
 
   @override
-  String get homeComingSoon => 'AI Interview — coming soon';
-
-  @override
   String get analyzeEmptyTitle => 'No analyses yet';
 
   @override
@@ -985,9 +1070,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get studioPurposeInternship => 'Internship';
-
-  @override
-  String get studioCvBattleSoon => 'CV Battle — coming soon';
 
   @override
   String studioTemplateSelected(String name) {

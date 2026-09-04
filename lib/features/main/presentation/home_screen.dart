@@ -36,9 +36,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  /// Falls back to the design's sample profile when no session is available
-  /// (cold start without a stored session, widget tests, etc.).
-  String _displayName = 'Ahmed Al-Rashidi';
+  String _displayName = '';
 
   late final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   List<_ActivityItem> _activityItems = [];
@@ -156,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           NxReveal(
             child: _HomeHeader(
-              name: _displayName,
+              name: _displayName.isEmpty ? l10n.guestName : _displayName,
               greeting: _greeting(l10n),
               onOpenProfile: () => GoRouter.of(context).push(Routes.settings),
             ),
@@ -289,16 +287,42 @@ class _QuickActionItem {
   final MainTab? tab;
 }
 
-class _QuickActions extends StatelessWidget {
+class _QuickActions extends StatefulWidget {
   const _QuickActions({required this.onOpenTab});
 
   final ValueChanged<MainTab> onOpenTab;
+
+  @override
+  State<_QuickActions> createState() => _QuickActionsState();
+}
+
+class _QuickActionsState extends State<_QuickActions> {
+  int _activeCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadActiveCount();
+  }
+
+  Future<void> _loadActiveCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    final repo = JobApplicationRepositoryImpl(
+      CareerRemoteDataSource(),
+      CareerLocalDataSource(prefs),
+    );
+    final apps = await repo.load();
+    if (!mounted) return;
+    if (apps != null) {
+      setState(() => _activeCount = apps.where((a) => a.active).length);
+    }
+  }
 
   List<_QuickActionItem> _items(AppLocalizations l10n) => [
         _QuickActionItem(Icons.track_changes_rounded, l10n.homeAnalyzeJob, l10n.homeMatchGaps, AppColors.teal, MainTab.analyze),
         _QuickActionItem(Icons.description_rounded, l10n.homeCreateCv, l10n.homeAiPowered, AppColors.purple, MainTab.studio),
         _QuickActionItem(Icons.mic_rounded, l10n.homePractice, l10n.homeAiInterview, AppColors.amber, null),
-        _QuickActionItem(Icons.bar_chart_rounded, l10n.homeTrackApps, l10n.homeSixActive, AppColors.green, MainTab.track),
+        _QuickActionItem(Icons.bar_chart_rounded, l10n.homeTrackApps, '$_activeCount active', AppColors.green, MainTab.track),
       ];
 
   void _onTap(BuildContext context, _QuickActionItem item) {
@@ -310,7 +334,7 @@ class _QuickActions extends StatelessWidget {
       );
       return;
     }
-    onOpenTab(tab);
+    widget.onOpenTab(tab);
   }
 
   @override
