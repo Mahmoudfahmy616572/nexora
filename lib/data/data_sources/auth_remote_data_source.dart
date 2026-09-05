@@ -57,7 +57,7 @@ class AuthRemoteDataSource {
     if (kIsWeb) {
       await _auth.signInWithOAuth(
         OAuthProvider.google,
-        redirectTo: Uri.base.origin,
+        redirectTo: Uri.base.toString(),
       );
     } else {
       final googleSignIn = GoogleSignIn();

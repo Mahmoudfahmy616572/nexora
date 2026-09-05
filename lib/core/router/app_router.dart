@@ -55,6 +55,17 @@ final GoRouter appRouter = GoRouter(
     if (state.matchedLocation == Routes.splash) {
       return null;
     }
+    // A signed-in user who hasn't completed onboarding should go to intake,
+    // unless they are already on an onboarding-related route.
+    if (_isSignedIn() &&
+        !OnboardingChoicesCubit.isOnboardingCompleted &&
+        state.matchedLocation != Routes.intake &&
+        state.matchedLocation != Routes.onboarding &&
+        state.matchedLocation != Routes.goal &&
+        state.matchedLocation != Routes.stage &&
+        state.matchedLocation != Routes.field) {
+      return Routes.intake;
+    }
     // A signed-in user shouldn't see the welcome screen (e.g. after a stale
     // session resolves mid-flow); send them to the correct place.
     if (state.matchedLocation == Routes.welcome && _isSignedIn()) {
