@@ -15,7 +15,14 @@ class AiIntakeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dna = context.read<CareerDnaCubit>().state.dna ?? CareerDna();
+    final existingDna = context.read<CareerDnaCubit>().state.dna;
+    final choices = context.read<OnboardingChoicesCubit>().state;
+    final dna = existingDna ?? CareerDna(
+      goal: choices.goal,
+      stage: choices.stage,
+      targetField: choices.targetField,
+      preferences: choices.preferences.toList(),
+    );
     return BlocProvider(
       create: (_) => AiIntakeCubit(initialDna: dna),
       child: const _AiIntakeView(),
@@ -63,10 +70,14 @@ class _AiIntakeViewState extends State<_AiIntakeView>
     final cubit = context.read<AiIntakeCubit>();
     if (_showOther) {
       final text = _otherCtrl.text.trim();
-      if (text.isEmpty) return;
+      if (text.isEmpty && cubit.state.selectedValues.isEmpty) return;
       _otherCtrl.clear();
       setState(() => _showOther = false);
-      cubit.answerOther(text, 'en');
+      if (cubit.state.selectedValues.isNotEmpty) {
+        cubit.confirmSelectionWithOther(text, 'en');
+      } else {
+        cubit.answerOther(text, 'en');
+      }
     } else {
       cubit.confirmSelection('en');
     }

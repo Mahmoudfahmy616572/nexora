@@ -13,13 +13,10 @@ import 'main_tab.dart';
 import 'studio_screen.dart';
 import 'tracker_screen.dart';
 
-/// The authenticated app shell — mirrors the design's phone frame:
-/// a 5-item bottom navigation with a raised center "Analyze" module.
+/// The authenticated app shell — bottom nav on mobile, NavigationRail on wide.
 class MainShell extends StatefulWidget {
   const MainShell({super.key, this.initialTab = MainTab.home});
 
-  /// Lets auth flows drop a brand-new (empty-profile) user straight onto the
-  /// DNA tab so the "Build your Career DNA" nudge shows before anything else.
   final MainTab initialTab;
 
   @override
@@ -74,10 +71,17 @@ class _MainShellState extends State<MainShell> {
     return _screens[index];
   }
 
+  int get _selectedIndex {
+    if (_tab == MainTab.studio) return 4;
+    return _tab.index > 2 ? _tab.index - 1 : _tab.index;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return PopScope(
+    final isWide = MediaQuery.sizeOf(context).width >= 768;
+
+    final content = PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
@@ -98,21 +102,133 @@ class _MainShellState extends State<MainShell> {
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: SafeArea(
-          child: AnimatedSwitcher(
-          duration: MotionTokens.fast,
-          switchInCurve: MotionTokens.standard,
-          switchOutCurve: Curves.easeIn,
-          child: KeyedSubtree(
-            key: ValueKey(_tab),
-            child: _currentScreen(),
-          ),
+          child: isWide
+              ? Row(
+                  children: [
+                    _WideNavRail(
+                      current: _tab,
+                      onSelected: (t) => setState(() => _tab = t),
+                    ),
+                    const VerticalDivider(width: 1, color: AppColors.border),
+                    Expanded(
+                      child: AnimatedSwitcher(
+                        duration: MotionTokens.fast,
+                        switchInCurve: MotionTokens.standard,
+                        switchOutCurve: Curves.easeIn,
+                        child: KeyedSubtree(
+                          key: ValueKey(_tab),
+                          child: _currentScreen(),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : AnimatedSwitcher(
+                  duration: MotionTokens.fast,
+                  switchInCurve: MotionTokens.standard,
+                  switchOutCurve: Curves.easeIn,
+                  child: KeyedSubtree(
+                    key: ValueKey(_tab),
+                    child: _currentScreen(),
+                  ),
+                ),
         ),
-        ),
-        bottomNavigationBar: SafeArea(
-          top: false,
-          child: _BottomNav(current: _tab, onSelected: (t) => setState(() => _tab = t)),
+        bottomNavigationBar: isWide
+            ? null
+            : SafeArea(
+                top: false,
+                child: _BottomNav(current: _tab, onSelected: (t) => setState(() => _tab = t)),
+              ),
+      ),
+    );
+
+    return content;
+  }
+}
+
+/// Side navigation rail for wide screens.
+class _WideNavRail extends StatelessWidget {
+  const _WideNavRail({required this.current, required this.onSelected});
+
+  final MainTab current;
+  final ValueChanged<MainTab> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return NavigationRail(
+      selectedIndex: current.index,
+      labelType: NavigationRailLabelType.all,
+      backgroundColor: AppColors.background,
+      selectedIconTheme: const IconThemeData(color: AppColors.brand, size: 24),
+      unselectedIconTheme: const IconThemeData(color: AppColors.textMuted, size: 22),
+      selectedLabelTextStyle: const TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        color: AppColors.brand,
+      ),
+      unselectedLabelTextStyle: const TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textMuted,
+      ),
+      leading: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          children: [
+            const Text(
+              'NEXORA',
+              style: TextStyle(
+                fontFamily: 'Bricolage Grotesque',
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 3,
+                color: AppColors.brand,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Container(
+              width: 24,
+              height: 2,
+              decoration: BoxDecoration(
+                color: AppColors.brand.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(1),
+              ),
+            ),
+          ],
         ),
       ),
+      onDestinationSelected: (i) {
+        final tabs = [MainTab.home, MainTab.dna, MainTab.analyze, MainTab.track, MainTab.studio];
+        onSelected(tabs[i]);
+      },
+      destinations: [
+        NavigationRailDestination(
+          icon: const Icon(Icons.home_rounded),
+          selectedIcon: const Icon(Icons.home_rounded),
+          label: Text(l10n.navHome),
+        ),
+        NavigationRailDestination(
+          icon: const Icon(Icons.fingerprint),
+          selectedIcon: const Icon(Icons.fingerprint),
+          label: Text(l10n.navDna),
+        ),
+        NavigationRailDestination(
+          icon: const Icon(Icons.track_changes_rounded),
+          selectedIcon: const Icon(Icons.track_changes_rounded),
+          label: Text(l10n.navAnalyze),
+        ),
+        NavigationRailDestination(
+          icon: const Icon(Icons.bar_chart_rounded),
+          selectedIcon: const Icon(Icons.bar_chart_rounded),
+          label: Text(l10n.navTrack),
+        ),
+        NavigationRailDestination(
+          icon: const Icon(Icons.description_rounded),
+          selectedIcon: const Icon(Icons.description_rounded),
+          label: Text(l10n.navStudio),
+        ),
+      ],
     );
   }
 }

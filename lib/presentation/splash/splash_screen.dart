@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -9,6 +10,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/widgets/ambient_background.dart';
 import '../../core/widgets/brand_lockup.dart';
+import '../career_dna/cubit/career_dna_cubit.dart';
 import '../onboarding/cubit/onboarding_choices_cubit.dart';
 
 /// Splash screen — brief branded moment shown on launch.
@@ -51,6 +53,7 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
     final router = GoRouter.of(context);
     if (_isSignedIn()) {
+      context.read<CareerDnaCubit>().load();
       router.go(OnboardingChoicesCubit.isOnboardingCompleted ? Routes.main : Routes.intake);
     } else {
       router.go(Routes.welcome);

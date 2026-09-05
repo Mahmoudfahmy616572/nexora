@@ -1,10 +1,9 @@
-import 'dart:io';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
 
+import '../../../../core/platform/file_io.dart';
 import '../../../../domain/cv/cv_pdf_renderer.dart';
 import '../../../../domain/entities/career_dna.dart' show CareerStage;
 import '../../../../domain/entities/career_target.dart' show TargetType;
@@ -182,15 +181,20 @@ class CvExportSheet extends StatelessWidget {
             onPressed: () async {
               try {
                 final bytes = await _renderPdf();
-                final dir = await getApplicationDocumentsDirectory();
                 final name = content.header.name.replaceAll(' ', '_');
-                final file = File('${dir.path}/${name}_CV.pdf');
-                await file.writeAsBytes(bytes);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Saved to ${file.path}')),
+                if (kIsWeb) {
+                  await Printing.layoutPdf(
+                    onLayout: (_) => bytes,
+                    name: '${name}_CV',
                   );
-                  Navigator.pop(context);
+                } else {
+                  await _savePdfNative(bytes, name);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('PDF saved')),
+                    );
+                    Navigator.pop(context);
+                  }
                 }
               } catch (e) {
                 if (context.mounted) {
@@ -209,10 +213,7 @@ class CvExportSheet extends StatelessWidget {
             onPressed: () async {
               try {
                 final bytes = await _renderPdf();
-                final dir = await getTemporaryDirectory();
                 final name = content.header.name.replaceAll(' ', '_');
-                final file = File('${dir.path}/${name}_CV.pdf');
-                await file.writeAsBytes(bytes);
                 await Printing.sharePdf(bytes: bytes, filename: '${name}_CV.pdf');
                 if (context.mounted) Navigator.pop(context);
               } catch (e) {
@@ -229,5 +230,10 @@ class CvExportSheet extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _savePdfNative(List<int> bytes, String name) async {
+    final dir = await getDocumentsPath();
+    await writeBytesToFile('$dir/${name}_CV.pdf', bytes);
   }
 }

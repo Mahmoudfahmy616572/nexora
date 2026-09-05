@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
@@ -8,6 +6,7 @@ import 'package:pdf/widgets.dart' as pw;
 import '../entities/career_dna.dart' show CareerStage;
 import '../entities/career_target.dart' show TargetType;
 import '../entities/cv_content.dart';
+import '../../core/platform/file_io.dart';
 import 'cv_section_ordering.dart';
 import 'cv_template_registry.dart';
 
@@ -128,8 +127,7 @@ class CvPdfRenderer {
       stage: stage,
       targetType: targetType,
     );
-    final file = File(outputPath);
-    await file.writeAsBytes(bytes);
+    await writeBytesToFile(outputPath, bytes);
     return outputPath;
   }
 

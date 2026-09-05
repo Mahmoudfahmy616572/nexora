@@ -149,18 +149,21 @@ class _HomeScreenState extends State<HomeScreen> {
     final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          NxReveal(
-            child: _HomeHeader(
-              name: _displayName.isEmpty ? l10n.guestName : _displayName,
-              greeting: _greeting(l10n),
-              onOpenProfile: () => GoRouter.of(context).push(Routes.settings),
-            ),
-          ),
-          const SizedBox(height: 4),
-          FutureBuilder<SharedPreferences>(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              NxReveal(
+                child: _HomeHeader(
+                  name: _displayName.isEmpty ? l10n.guestName : _displayName,
+                  greeting: _greeting(l10n),
+                  onOpenProfile: () => GoRouter.of(context).push(Routes.settings),
+                ),
+              ),
+              const SizedBox(height: 4),
+              FutureBuilder<SharedPreferences>(
             future: _prefs,
             builder: (context, snap) {
               if (snap.connectionState != ConnectionState.done ||
@@ -186,6 +189,8 @@ class _HomeScreenState extends State<HomeScreen> {
             child: _RecentActivity(items: _activityItems),
           ),
         ],
+       ),
+        ),
       ),
     );
   }

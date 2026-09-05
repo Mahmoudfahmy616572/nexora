@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -53,16 +54,23 @@ class AuthRemoteDataSource {
   Future<void> signOut() => _auth.signOut();
 
   Future<void> signInWithGoogle() async {
-    final googleSignIn = GoogleSignIn();
-    final googleUser = await googleSignIn.signIn();
-    if (googleUser == null) throw const AuthException('Google sign-in was cancelled');
-    final googleAuth = await googleUser.authentication;
-    final idToken = googleAuth.idToken;
-    if (idToken == null) throw const AuthException('Google sign-in failed: no ID token');
-    await _auth.signInWithIdToken(
-      provider: OAuthProvider.google,
-      idToken: idToken,
-      accessToken: googleAuth.accessToken,
-    );
+    if (kIsWeb) {
+      await _auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: Uri.base.origin,
+      );
+    } else {
+      final googleSignIn = GoogleSignIn();
+      final googleUser = await googleSignIn.signIn();
+      if (googleUser == null) throw const AuthException('Google sign-in was cancelled');
+      final googleAuth = await googleUser.authentication;
+      final idToken = googleAuth.idToken;
+      if (idToken == null) throw const AuthException('Google sign-in failed: no ID token');
+      await _auth.signInWithIdToken(
+        provider: OAuthProvider.google,
+        idToken: idToken,
+        accessToken: googleAuth.accessToken,
+      );
+    }
   }
 }

@@ -193,6 +193,16 @@ class AiIntakeCubit extends Cubit<AiIntakeState> {
     await _nextQuestion(language);
   }
 
+  Future<void> confirmSelectionWithOther(String otherText, String language) async {
+    final combined = [
+      ...state.selectedValues,
+      if (otherText.trim().isNotEmpty) otherText.trim(),
+    ].join(', ');
+    if (combined.isEmpty) return;
+    _recordTurn(combined);
+    await _nextQuestion(language);
+  }
+
   void skip(String language) {
     _recordTurn('(skipped)');
     _nextQuestion(language);
@@ -394,9 +404,38 @@ class AiIntakeCubit extends Cubit<AiIntakeState> {
   }
 
   void _finishWithFallback() {
+    final answers = state.turns
+        .where((t) => t.answer.isNotEmpty && t.answer != '(skipped)')
+        .toList();
+    if (answers.isEmpty) {
+      emit(state.copyWith(
+        status: AiIntakeStatus.done,
+        merged: _baseDna,
+        usedFallback: true,
+      ));
+      return;
+    }
+    final answerTexts = answers.map((t) => t.answer).join('; ');
+    final skills = <String>[];
+    final experience = <ProfileExperience>[];
+    for (final turn in answers) {
+      final q = turn.question.toLowerCase();
+      final a = turn.answer;
+      if (q.contains('skill') || q.contains('technolog') || q.contains('framework')) {
+        skills.addAll(a.split(RegExp(r',\s*')).map((s) => s.trim()).where((s) => s.isNotEmpty));
+      } else if (q.contains('experience') || q.contains('work') || q.contains('job')) {
+        experience.add(ProfileExperience(role: a, company: '', description: a));
+      }
+    }
     emit(state.copyWith(
       status: AiIntakeStatus.done,
-      merged: _baseDna,
+      merged: _baseDna.copyWith(
+        profile: _baseDna.profile.copyWith(
+          summary: answerTexts,
+          experience: experience.isNotEmpty ? experience : _baseDna.profile.experience,
+        ),
+        skills: skills.isNotEmpty ? skills : _baseDna.skills,
+      ),
       usedFallback: true,
     ));
   }

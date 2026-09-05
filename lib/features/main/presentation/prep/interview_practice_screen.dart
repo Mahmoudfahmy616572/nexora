@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
 
+import '../../../../core/platform/platform_services.dart';
+import '../../../../core/platform/speech_service.dart';
+import '../../../../core/platform/tts_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../data/data_sources/auth_remote_data_source.dart';
@@ -110,8 +111,8 @@ class _InterviewPracticeView extends StatefulWidget {
 
 class _InterviewPracticeViewState extends State<_InterviewPracticeView> {
   final TextEditingController _answerController = TextEditingController();
-  final FlutterTts _tts = FlutterTts();
-  final stt.SpeechToText _speech = stt.SpeechToText();
+  final SpeechService _speech = PlatformServices.speech;
+  final TextToSpeechService _tts = PlatformServices.tts;
   bool _isListening = false;
   bool _speechReady = false;
   String _lastQuestion = '';
@@ -126,38 +127,24 @@ class _InterviewPracticeViewState extends State<_InterviewPracticeView> {
   }
 
   Future<void> _initTts() async {
-    await _tts.setLanguage('en-US');
-    await _tts.setSpeechRate(0.45);
+    await _tts.initialize(language: 'en-US');
+    await _tts.setRate(0.45);
     await _tts.setVolume(1.0);
     await _tts.setPitch(1.0);
   }
 
   Future<void> _initSpeech() async {
-    if (_speech.isAvailable) {
-      _speechReady = true;
-      return;
-    }
-    _speechReady = await _speech.initialize(
-      onStatus: (status) {
-        debugPrint('[SPEECH] status: $status');
-        if ((status == 'done' || status == 'notListening') && mounted && _isListening) {
-          // Don't reset _isListening — let the user tap stop manually.
-        }
-      },
-      onError: (error) {
-        debugPrint('[SPEECH] error: ${error.errorMsg} permanent=${error.permanent}');
-        if (error.permanent && mounted && _isListening) {
-          setState(() => _isListening = false);
-        }
-      },
-    );
+    final available = await _speech.isAvailable;
+    if (!available) return;
+    _speechReady = true;
+    await _speech.initialize();
     debugPrint('[SPEECH] ready: $_speechReady');
   }
 
   Future<void> _speakQuestion(String text) async {
     if (text == _lastQuestion) return;
     _lastQuestion = text;
-    await _tts.speak(text);
+    await _tts.speak(text, language: 'en-US');
   }
 
   Future<void> _toggleListening() async {
@@ -186,18 +173,16 @@ class _InterviewPracticeViewState extends State<_InterviewPracticeView> {
 
     debugPrint('[SPEECH] calling listen()...');
     await _speech.listen(
-      onResult: (result) {
-        debugPrint('[SPEECH] result: "${result.recognizedWords}" final=${result.finalResult}');
+      onResult: (text, isFinal) {
+        debugPrint('[SPEECH] result: "$text" final=$isFinal');
         if (mounted) {
-          _answerController.text = result.recognizedWords;
+          _answerController.text = text;
           _answerController.selection = TextSelection.fromPosition(
             TextPosition(offset: _answerController.text.length),
           );
         }
       },
-      listenFor: const Duration(seconds: 120),
-      pauseFor: const Duration(seconds: 60),
-      partialResults: true,
+      timeout: const Duration(seconds: 120),
     );
     debugPrint('[SPEECH] listen() started');
   }
