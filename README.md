@@ -17,12 +17,7 @@ AI-generated text is never the source of truth for a score: matching and CV eval
 
 > **Live web build:** https://mahmoudfahmy616572.github.io/nexora/
 
-<!--
-Screens: add 3–4 images here once captured.
-| Home | Career DNA | CV Studio | Interview |
-|---|---|---|---|
-| ![Home](docs/screens/home.png) | ![DNA](docs/screens/dna.png) | ![CV](docs/screens/cv.png) | ![Interview](docs/screens/interview.png) |
--->
+![Nexora — AI career intelligence](docs/screens/nexora-cover.png)
 
 ---
 
