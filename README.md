@@ -215,5 +215,5 @@ Listed on purpose — a README that hides these is a red flag.
 For commercial use, white-labelling, or licensing, contact **mahmoudfahmeyy@gmail.com**.
 
 - Portfolio: https://mahmoudfahmy616572.github.io/My_protfolio/
-- LinkedIn: https://linkedin.com/in/mahmoud__fahmy
+- LinkedIn: https://linkedin.com/in/mahmoud-fahmy-129946322
 - GitHub: https://github.com/Mahmoudfahmy616572
